@@ -7,6 +7,15 @@
 
 namespace Type
 {
+// Forward declaration.
+class Atomic;
+
+struct ObjectField
+{
+    std::string key;
+    bool nullable;
+    // Container type.
+};
 
 /**
  * An object type is any type with a set of typed fields,
@@ -26,6 +35,13 @@ private:
      */
     std::vector<Object> bases;
 
+    /**
+     * Fields in this object.
+     * (Yes, we will move to a hash-table in the future when not using it
+     *  becomes a bottleneck.)
+     */
+    std::vector<struct ObjectField> fields;
+
 public:
     /**
      * Constructs a new object with the given name and no base object.
@@ -38,30 +54,35 @@ public:
     Object(std::string name, std::vector<Object> bases);
 
     /**
-     * Set a new field, returns false if the key already existed and fails.
+     * Returns name of this object.
      */
-    bool set(std::string key, AtomicType type, bool nullable);
+    std::string getName();
 
     /**
      * Set a new field, returns false if the key already existed and fails.
      */
-    bool set(std::string key, ObjectType type, bool nullable);
+    bool set(std::string key, Atomic type, bool nullable);
+
+    /**
+     * Set a new field, returns false if the key already existed and fails.
+     */
+    bool set(std::string key, Object type, bool nullable);
 
     /**
      * Check if the given key exists in this type.
      */
-    has(std::string key);
+    bool has(std::string key);
 
     /**
      * Check if the given uri exists in this type.
      */
-    has(Uri uri);
+    bool has(Uri uri);
 
     /**
      * Return true if the key exists in this object and not
      * the bases.
      */
-    owns(std::string key);
+    bool owns(std::string key);
 
     /**
      * Return all of the fields on this object.
