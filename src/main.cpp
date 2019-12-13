@@ -3,8 +3,16 @@
 #include <string>
 
 #include "parser/tokenizer.hpp"
+#include "type/union.hpp"
+#include "type/atomic.hpp"
 
 using namespace std;
+
+void x(Type::Union &u, Type::Atomic a)
+{
+    u.add(a);
+    cout << u.has(a) << endl;
+}
 
 int main()
 {
@@ -14,4 +22,10 @@ int main()
 
     for (Parser::Token token : tokens)
         token.dump();
+
+    Type::Atomic intT("int");
+    Type::Union union1;
+
+    x(union1, intT);
+    cout << union1.has(intT) << endl;
 }

@@ -1,10 +1,13 @@
 #include <iostream>
+#include <vector>
+#include <string>
 #include <assert.h> 
 
 using namespace std;
 
 #include "type/atomic.hpp"
 #include "type/union.hpp"
+#include "type/uri.hpp"
 
 void test_atomic()
 {
@@ -52,6 +55,36 @@ void test_atomic()
     assert(union3.has(atomicString) == true);
     assert(union3.has(atomicFloat) == true);
     assert(union3.has(atomicInt) == false);
+
+    cout << "done: test_atomic" << endl;
+}
+
+void test_uri()
+{
+    Type::Uri uri, uri2;
+    vector<string> units;
+
+    assert(uri.isEmpty() == true);
+
+    uri = Type::Uri("A", "B");
+    assert(uri.isEmpty() == false);
+
+    units = uri.getUnits();
+    assert(units.size() == 2);
+    assert(units[0] == "A");
+    assert(units[1] == "B");
+
+    uri2 = uri.popFirst();
+    units = uri2.getUnits();
+    assert(units.size() == 1);
+    assert(units[1] == "B");
+
+    units = uri.getUnits();
+    assert(units.size() == 2);
+    assert(units[0] == "A");
+    assert(units[1] == "B");
+
+    cout << "done: test_uri" << endl;
 }
 
 int main()
@@ -59,6 +92,7 @@ int main()
     cout << "Running\n";
 
     test_atomic();
+    test_uri();
 
     cout << "Successful\n";
     return 0;
