@@ -28,6 +28,9 @@
         "**/CTestTestfile.cmake": true,
         "**/_deps": true,
         "**/build": true,
-        "**/markus": true
-    }
+        "**/markus": true,
+        "**/catch.hpp": true,
+        "**/bin": true
+    },
+    "cmake.configureOnOpen": false
 }
