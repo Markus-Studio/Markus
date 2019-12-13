@@ -9,6 +9,7 @@ add_executable(markus
     # Files
     src/main.cpp
     src/type/atomic.cpp
+    src/type/union.cpp
 )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
