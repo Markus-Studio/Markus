@@ -45,6 +45,11 @@ public:
      * Copies members of another union to this one.
      */
     void add(Union type);
+
+    /**
+     * Return whatever this union is empty or not.
+     */
+    bool isEmpty();
 };
 } // namespace Type
 

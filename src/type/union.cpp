@@ -38,4 +38,10 @@ void Union::add(Union type)
     }
 }
 
+bool Union::isEmpty()
+{
+    if (!atomicMembers.empty()) return false;
+    return true;
+}
+
 } // namespace Type

@@ -20,10 +20,15 @@ void test_atomic()
     Type::Union union2;
     Type::Union union3;
 
+    assert(union1.isEmpty() == true);
+    assert(union2.isEmpty() == true);
+    assert(union3.isEmpty() == true);
+
     assert(union1.has(atomicString) == false);
     assert(atomicString.is(union1) == false);
 
     union1.add(atomicString);
+    assert(union1.isEmpty() == false);
 
     assert(union1.has(atomicString) == true);
     assert(atomicString.is(union1) == true);
@@ -31,6 +36,7 @@ void test_atomic()
     union2 = union1.clone();
     assert(union2.has(atomicString) == true);
     assert(atomicString.is(union2) == true);
+    assert(union2.isEmpty() == false);
 
     union2.add(atomicFloat);
     assert(union2.has(atomicFloat) == true);
@@ -41,6 +47,7 @@ void test_atomic()
 
     union3.add(union1);
     union3.add(union2);
+    assert(union3.isEmpty() == false);
 
     assert(union3.has(atomicString) == true);
     assert(union3.has(atomicFloat) == true);
