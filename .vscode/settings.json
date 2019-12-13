@@ -6,5 +6,20 @@
         "string": "cpp",
         "iosfwd": "cpp",
         "iostream": "cpp"
+    },
+    "files.exclude": {
+        "**/CMakeLists.txt.user": true,
+        "**/CMakeCache.txt": true,
+        "**/CMakeFiles": true,
+        "**/CMakeScripts": true,
+        "**/Testing": true,
+        "**/Makefile": true,
+        "**/cmake_install.cmake": true,
+        "**/install_manifest.txt": true,
+        "**/compile_commands.json": true,
+        "**/CTestTestfile.cmake": true,
+        "**/_deps": true,
+        "**/build": true,
+        "**/markus": true
     }
 }
