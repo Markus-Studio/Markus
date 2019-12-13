@@ -46,4 +46,9 @@ namespace Type
     {
         return units;
     }
+
+    std::string Uri::getFirstUnit()
+    {
+        return units[0];
+    }
 }

@@ -64,6 +64,11 @@ public:
      * Returns an iterator over units.
      */
     std::vector<std::string> getUnits();
+
+    /**
+     * Returns the first unit.
+     */
+    std::string getFirstUnit();
 };
 } // namespace Type
 
