@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "MARKUS"
+    ],
+    "files.associations": {
+        "string": "cpp",
+        "iosfwd": "cpp",
+        "iostream": "cpp"
+    }
+}
