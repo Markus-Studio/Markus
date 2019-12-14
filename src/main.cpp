@@ -19,10 +19,10 @@ int main()
 {
     string source = "$x $y %yo $1 true false h1 \"Hello\\\"d\" x + = & 34 56.4\n4.6";
 
-    vector<Parser::Token> tokens = Parser::tokenize(source);
+    vector<Parser::Token *> tokens = Parser::tokenize(source);
 
-    for (Parser::Token token : tokens)
-        token.dump();
+    for (Parser::Token *token : tokens)
+        token->dump();
 
     Type::Atomic intT("int");
     Type::Union union1;

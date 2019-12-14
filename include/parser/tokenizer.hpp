@@ -135,7 +135,7 @@ public:
 /**
  * Tokenize the given string into a list of Tokens.
  */
-std::vector<Token> tokenize(std::string text);
+std::vector<Token *> tokenize(std::string text);
 
 } // namespace Parser
 
