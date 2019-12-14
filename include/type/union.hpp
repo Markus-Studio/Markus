@@ -66,6 +66,14 @@ public:
      * Return whatever this union is empty or not.
      */
     bool isEmpty();
+
+    /**
+     * Evaluates the result of `this is type`, in another word it
+     * checks if this type is subset of the other union.
+     */
+    bool is(Union &type);
+
+    friend class Object;
 };
 } // namespace Type
 

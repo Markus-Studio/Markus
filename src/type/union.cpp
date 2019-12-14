@@ -59,4 +59,27 @@ bool Union::isEmpty()
     return atomicMembers.empty() && objectMembers.empty();
 }
 
+bool Union::is(Union &type)
+{
+    if (atomicMembers.size() > type.atomicMembers.size())
+        return false;
+    
+    if (!objectMembers.empty() && type.objectMembers.empty())
+        return false;
+
+    // Check atomics first.
+    std::list<Atomic *>::iterator it;
+    for (it = atomicMembers.begin(); it != atomicMembers.end(); ++it)
+        if (!type.has(*it))
+            return false;
+
+    // Now check objects.
+    std::list<Object *>::iterator oi;
+    for (oi = objectMembers.begin(); oi != objectMembers.end(); ++oi)
+        if (!(*oi)->is(type))
+            return false;
+
+    return true;
+}
+
 } // namespace Type

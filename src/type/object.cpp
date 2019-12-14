@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <list>
 #include "type/uri.hpp"
 #include "type/atomic.hpp"
 #include "type/union.hpp"
@@ -198,7 +199,11 @@ bool Object::is(Object obj)
 
 bool Object::is(Union u)
 {
-    return u.has(this);
+    std::list<Object *>::iterator it = u.objectMembers.begin();
+    for (; it != u.objectMembers.end(); ++it)
+        if (is(**it))
+            return true;
+    return false;
 }
 
 } // namespace Type

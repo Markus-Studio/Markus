@@ -91,6 +91,10 @@ public:
      * Check if the container is containing an object type.
      */
     bool isObject();
+
+    /**
+     */
+    bool is(Union type);
 };
 
 }
