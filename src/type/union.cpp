@@ -82,4 +82,31 @@ bool Union::is(Union *type)
     return true;
 }
 
+bool Union::is(Atomic *type)
+{
+    if (!objectMembers.empty())
+        return false;
+
+    if (atomicMembers.size() != 1)
+        return false;
+
+    return (*atomicMembers.begin())->is(type);
+}
+
+bool Union::is(Object *type)
+{
+    if (objectMembers.empty())
+        return false;
+
+    if (!atomicMembers.empty())
+        return false;
+    
+    std::list<Object *>::iterator it;
+    for (it = objectMembers.begin(); it != objectMembers.end(); ++it)
+        if (!(*it)->is(*type))
+            return false;
+    
+    return true;
+}
+
 } // namespace Type

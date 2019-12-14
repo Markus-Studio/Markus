@@ -68,10 +68,20 @@ public:
     bool isEmpty();
 
     /**
-     * Evaluates the result of `this is type`, in another word it
-     * checks if this type is subset of the other union.
+     * Evaluates `this is type` and returns the result, in another
+     * word it checks if this type is subset of the other union.
      */
     bool is(Union *type);
+
+    /**
+     * Evalutes `this is type` and returns the result.
+     */
+    bool is(Atomic *type);
+
+    /**
+     * Evalutes `this is type` and returns the result.
+     */
+    bool is(Object *type);
 
     friend class Object;
 };
