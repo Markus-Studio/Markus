@@ -32,6 +32,36 @@ Object::Object(std::string name, std::vector<Object *> bases)
     uid = getObjectId();
 }
 
+Object::Object(std::string name, Object *a)
+{
+    this->name = name;
+    bases.push_back(a);
+    bases.shrink_to_fit();
+    computingGetAllBases = false;
+    uid = getObjectId();
+}
+
+Object::Object(std::string name, Object *a, Object *b)
+{
+    this->name = name;
+    bases.push_back(a);
+    bases.push_back(b);
+    bases.shrink_to_fit();
+    computingGetAllBases = false;
+    uid = getObjectId();
+}
+
+Object::Object(std::string name, Object *a, Object *b, Object *c)
+{
+    this->name = name;
+    bases.push_back(a);
+    bases.push_back(b);
+    bases.push_back(c);
+    bases.shrink_to_fit();
+    computingGetAllBases = false;
+    uid = getObjectId();
+}
+
 std::string Object::getName()
 {
     return name;

@@ -9,6 +9,8 @@ using namespace std;
 #include "type/union.hpp"
 #include "type/uri.hpp"
 
+#include "./is.cpp"
+
 void test_atomic()
 {
     Type::Atomic atomicString("string");
@@ -93,6 +95,7 @@ int main()
 
     test_atomic();
     test_uri();
+    test_is();
 
     cout << "Successful\n";
     return 0;

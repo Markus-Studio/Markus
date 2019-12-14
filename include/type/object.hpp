@@ -83,6 +83,21 @@ public:
     Object(std::string name, std::vector<Object *> bases);
 
     /**
+     * Constructs a new object with the given name and one base.
+     */
+    Object(std::string name, Object *);
+
+    /**
+     * Constructs a new object with the given name and two bases.
+     */
+    Object(std::string name, Object *, Object *);
+
+    /**
+     * Constructs a new object with the given name and three bases.
+     */
+    Object(std::string name, Object *, Object *, Object *);
+
+    /**
      * Returns name of this object.
      */
     std::string getName();

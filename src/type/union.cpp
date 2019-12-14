@@ -10,6 +10,7 @@ Union Union::clone()
 {
     Union newUnion;
     newUnion.atomicMembers.assign(atomicMembers.begin(), atomicMembers.end());
+    newUnion.objectMembers.assign(objectMembers.begin(), objectMembers.end());
     return newUnion;
 }
 
