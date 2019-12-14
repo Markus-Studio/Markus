@@ -71,4 +71,48 @@ bool Container::isObject()
 {
     return kind == TYPE_KIND_OBJECT;
 }
+
+bool Container::is(Atomic *type)
+{
+    switch (kind)
+    {
+    case TYPE_KIND_NEVER:
+    case TYPE_KIND_OBJECT:
+        return false;
+    case TYPE_KIND_ATOMIC:
+        return asAtomic()->is(type);
+    case TYPE_KIND_UNION:
+        return asUnion()->is(type);
+    }
+}
+
+bool Container::is(Union *type)
+{
+    switch (kind)
+    {
+    case TYPE_KIND_NEVER:
+        return false;
+    case TYPE_KIND_ATOMIC:
+        return asAtomic()->is(type);
+    case TYPE_KIND_OBJECT:
+        return asObject()->is(type);
+    case TYPE_KIND_UNION:
+        return asUnion()->is(type);
+    }
+}
+
+bool Container::is(Object *type)
+{
+    switch (kind)
+    {
+    case TYPE_KIND_NEVER:
+    case TYPE_KIND_ATOMIC:
+        return false;
+    case TYPE_KIND_OBJECT:
+        return asObject()->is(type);
+    case TYPE_KIND_UNION:
+        return asUnion()->is(type);
+    }
+}
+
 }

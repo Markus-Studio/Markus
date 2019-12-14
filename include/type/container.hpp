@@ -93,8 +93,22 @@ public:
     bool isObject();
 
     /**
+     * Return the result of evaluating `contained is type`,
+     * whereas type is an atomic.
      */
-    bool is(Union type);
+    bool is(Atomic *type);
+
+    /**
+     * Returns the result of evaluating `contained is type`,
+     * whereas type is an union.
+     */
+    bool is(Union *type);
+
+    /**
+     * Return the result of evaluating `contained is type`,
+     * whereas type is an object.
+     */
+    bool is(Object *type);
 };
 
 }
