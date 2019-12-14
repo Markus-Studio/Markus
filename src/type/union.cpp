@@ -76,7 +76,7 @@ bool Union::is(Union *type)
     // Now check objects.
     std::list<Object *>::iterator oi;
     for (oi = objectMembers.begin(); oi != objectMembers.end(); ++oi)
-        if (!(*oi)->is(*type))
+        if (!(*oi)->is(type))
             return false;
 
     return true;
@@ -103,7 +103,7 @@ bool Union::is(Object *type)
     
     std::list<Object *>::iterator it;
     for (it = objectMembers.begin(); it != objectMembers.end(); ++it)
-        if (!(*it)->is(*type))
+        if (!(*it)->is(type))
             return false;
     
     return true;

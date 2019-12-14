@@ -179,29 +179,29 @@ Container Object::query(Uri uri)
     return Container();
 }
 
-bool Object::is(Object obj)
+bool Object::is(Object *obj)
 {
-    if (obj.uid == uid)
+    if (obj->uid == uid)
         return true;
 
     // All bases are constructed before the actual object.
-    if (obj.uid > uid)
+    if (obj->uid > uid)
         return false;
 
     std::vector<Object *> bases = getAllBases();
     std::vector<Object *>::iterator it = bases.begin();
     for (; it != bases.end(); ++it)
-        if ((*it)->uid == obj.uid)
+        if ((*it)->uid == obj->uid)
             return true;
 
     return false;
 }
 
-bool Object::is(Union u)
+bool Object::is(Union *u)
 {
-    std::list<Object *>::iterator it = u.objectMembers.begin();
-    for (; it != u.objectMembers.end(); ++it)
-        if (is(**it))
+    std::list<Object *>::iterator it = u->objectMembers.begin();
+    for (; it != u->objectMembers.end(); ++it)
+        if (is(*it))
             return true;
     return false;
 }

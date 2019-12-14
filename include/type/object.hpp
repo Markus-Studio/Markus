@@ -141,12 +141,12 @@ public:
     /**
      * Evaluates `this is obj` and returns the result.
      */
-    bool is(Object obj);
+    bool is(Object *obj);
 
     /**
      * Evaluates `this is u` and returns the result.
      */
-    bool is(Union u);
+    bool is(Union *u);
 };
 }
 
