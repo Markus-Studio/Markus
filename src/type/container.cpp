@@ -1,14 +1,24 @@
 #include <assert.h>
 #include "type/atomic.hpp"
 #include "type/union.hpp"
-#include "type/container.hpp"
 #include "type/object.hpp"
+#include "type/container.hpp"
 
 namespace Type
 {
 TypeKind Container::getKind()
 {
     return kind;
+}
+
+Container::Container()
+{
+    kind = TYPE_KIND_NEVER;
+}
+
+bool Container::isNever()
+{
+    return kind == TYPE_KIND_NEVER;
 }
 
 Container::Container(Atomic *a)
@@ -61,5 +71,4 @@ bool Container::isObject()
 {
     return kind == TYPE_KIND_OBJECT;
 }
-
 }

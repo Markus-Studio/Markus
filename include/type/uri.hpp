@@ -69,6 +69,11 @@ public:
      * Returns the first unit.
      */
     std::string getFirstUnit();
+
+    /**
+     * Number of units in this uri.
+     */
+    int size();
 };
 } // namespace Type
 

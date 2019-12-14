@@ -74,12 +74,18 @@ public:
     /**
      * Set a new field, returns false if the key already existed and fails.
      */
-    bool set(std::string key, Atomic type, bool nullable);
+    bool set(std::string key, Atomic *type, bool nullable);
 
     /**
      * Set a new field, returns false if the key already existed and fails.
      */
-    bool set(std::string key, Object type, bool nullable);
+    bool set(std::string key, Object *type, bool nullable);
+
+    /**
+     * Return true if the key exists in this object and not
+     * the bases.
+     */
+    bool owns(std::string key);
 
     /**
      * Check if the given key exists in this type.
@@ -90,17 +96,6 @@ public:
      * Check if the given uri exists in this type.
      */
     bool has(Uri uri);
-
-    /**
-     * Return true if the key exists in this object and not
-     * the bases.
-     */
-    bool owns(std::string key);
-
-    /**
-     * Return all of the fields on this object.
-     */
-    std::vector<Uri> getAllUris();
 
     /**
      * Return all of the bases.

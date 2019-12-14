@@ -9,6 +9,7 @@ class Atomic;
 class Union;
 
 enum TypeKind {
+    TYPE_KIND_NEVER,
     TYPE_KIND_ATOMIC,
     TYPE_KIND_UNION,
     TYPE_KIND_OBJECT
@@ -35,6 +36,16 @@ public:
      * Returns the kind of type this container is containing.
      */
     enum TypeKind getKind();
+
+    /**
+     * Default constructor that contains a `never` type.
+     */
+    Container();
+
+    /**
+     * Returns true if the contained type is a never type.
+     */
+    bool isNever();
 
     /**
      * Construct a new container from an atomic type.
