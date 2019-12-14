@@ -133,9 +133,14 @@ public:
 };
 
 /**
+ * A vector of tokens.
+ */
+typedef std::vector<Token *> TokenVec;
+
+/**
  * Tokenize the given string into a list of Tokens.
  */
-std::vector<Token *> tokenize(std::string text);
+TokenVec tokenize(std::string text);
 
 } // namespace Parser
 
