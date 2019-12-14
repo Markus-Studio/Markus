@@ -2,25 +2,43 @@
 #include <vector>
 #include "type/uri.hpp"
 #include "type/atomic.hpp"
+#include "type/union.hpp"
 #include "type/object.hpp"
 #include "type/container.hpp"
 
 namespace Type
 {
+
+int getObjectId()
+{
+    static int lastId = 100;
+    return lastId++;
+}
+
 Object::Object(std::string name)
 {
     this->name = name;
+    computingGetAllBases = false;
+    uid = getObjectId();
 }
 
 Object::Object(std::string name, std::vector<Object> bases)
 {
     this->name = name;
     this->bases.assign(bases.begin(), bases.end());
+    this->bases.shrink_to_fit();
+    computingGetAllBases = false;
+    uid = getObjectId();
 }
 
 std::string Object::getName()
 {
     return name;
+}
+
+int Object::getId()
+{
+    return uid;
 }
 
 bool Object::set(std::string key, Atomic *type, bool nullable)
@@ -80,6 +98,49 @@ std::vector<Object> Object::getBases()
     return temp;
 }
 
+std::vector<Object> Object::getAllBases()
+{
+    if (!allBasesCache.empty() || bases.empty())
+        return allBasesCache;
+
+    // Prevent circular call to getAllBases(), circular objects
+    // are not supposed to exists.
+    assert(computingGetAllBases == false);
+    computingGetAllBases = true;
+
+    Object *obj;
+    std::vector<Object> result, tmp;
+    bool found;
+    result.assign(bases.begin(), bases.end());
+
+    std::vector<Object>::iterator bIt, bIt2, it;
+    for (bIt = bases.begin(); bIt != bases.end(); ++bIt)
+    {
+        tmp = bIt->getAllBases();
+        for (bIt2 = tmp.begin(); bIt2 != tmp.end(); ++bIt2)
+        {
+            found = false;
+            for (it = result.begin(); it != result.end(); ++it)
+            {
+                if (it->getId() == bIt2->getId())
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                obj = &*bIt2;
+                result.push_back(*obj);
+            }
+        }
+    }
+
+    computingGetAllBases = false;
+    result.shrink_to_fit();
+    return allBasesCache = result;
+}
+
 Container Object::query(std::string name)
 {
     Container container;
@@ -115,6 +176,29 @@ Container Object::query(Uri uri)
         return container.asObject()->query(uri);
     
     return Container();
+}
+
+bool Object::is(Object obj)
+{
+    if (obj.uid == uid)
+        return true;
+
+    // All bases are constructed before the actual object.
+    if (obj.uid > uid)
+        return false;
+
+    std::vector<Object> bases = getAllBases();
+    std::vector<Object>::iterator it = bases.begin();
+    for (; it != bases.end(); ++it)
+        if (it->uid == obj.uid)
+            return true;
+
+    return false;
+}
+
+bool Object::is(Union u)
+{
+    return u.has(*this);
 }
 
 } // namespace Type

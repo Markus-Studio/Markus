@@ -2,6 +2,7 @@
 #define __MARKUS_TYPE_UNION__
 
 #include <list>
+#include "type/object.hpp"
 
 namespace Type
 {
@@ -19,6 +20,11 @@ private:
      * Set of all atomic members that are in this union.
      */
     std::list<Atomic> atomicMembers;
+
+    /**
+     * Set of all object members that are in this union.
+     */
+    std::list<Object> objectMembers;
 
 public:
     /**
@@ -45,6 +51,16 @@ public:
      * Copies members of another union to this one.
      */
     void add(Union type);
+
+    /**
+     * Adds a new object type to this union.
+     */
+    void add(Object object);
+
+    /**
+     * Check if the given object is a member of this union.
+     */
+    bool has(Object object);
 
     /**
      * Return whatever this union is empty or not.

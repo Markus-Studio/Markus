@@ -10,6 +10,7 @@ namespace Type
 {
 // Forward declaration.
 class Atomic;
+class Union;
 
 /**
  * An object field slot.
@@ -39,6 +40,11 @@ class Object
 {
 private:
     /**
+     * Unique id for this object, it's used for comparsion.
+     */
+    int uid;
+
+    /**
      * Name of this object type.
      */
     std::string name;
@@ -47,6 +53,16 @@ private:
      * Base types.
      */
     std::vector<Object> bases;
+
+    /**
+     * Cache of computing `getAllBases()`.
+     */
+    std::vector<Object> allBasesCache;
+
+    /**
+     * Whatever we're in the middle of `getAllBases()` call.
+     */
+    bool computingGetAllBases;
 
     /**
      * Fields in this object.
@@ -70,6 +86,11 @@ public:
      * Returns name of this object.
      */
     std::string getName();
+
+    /**
+     * Returns the unique id for this object.
+     */
+    int getId();
 
     /**
      * Set a new field, returns false if the key already existed and fails.
@@ -103,6 +124,11 @@ public:
     std::vector<Object> getBases();
 
     /**
+     * Return all of the bases recursively.
+     */
+    std::vector<Object> getAllBases();
+
+    /**
      * Query type of the field with the name.
      */
     Container query(std::string name);
@@ -111,6 +137,16 @@ public:
      * Query type of the field with the given uri.
      */
     Container query(Uri uri);
+
+    /**
+     * Evaluates `this is obj` and returns the result.
+     */
+    bool is(Object obj);
+
+    /**
+     * Evaluates `this is u` and returns the result.
+     */
+    bool is(Union u);
 };
 }
 

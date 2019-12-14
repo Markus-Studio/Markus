@@ -1,5 +1,6 @@
 #include "type/union.hpp"
 #include "type/atomic.hpp"
+#include "type/object.hpp"
 
 namespace Type
 {
@@ -38,10 +39,24 @@ void Union::add(Union type)
     }
 }
 
+void Union::add(Object object)
+{
+    if (!has(object))
+        objectMembers.push_back(object);
+}
+
+bool Union::has(Object object)
+{
+    std::list<Object>::iterator itr;
+    for (itr = objectMembers.begin(); itr != objectMembers.end(); ++itr)
+        if (itr->getId() == object.getId())
+            return true;
+    return false;
+}
+
 bool Union::isEmpty()
 {
-    if (!atomicMembers.empty()) return false;
-    return true;
+    return atomicMembers.empty() && objectMembers.empty();
 }
 
 } // namespace Type
