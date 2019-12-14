@@ -23,6 +23,6 @@ bool Atomic::is(Atomic type)
 
 bool Atomic::is(Union type)
 {
-    return type.has(*this);
+    return type.has(this);
 }
 } // namespace Type

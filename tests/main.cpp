@@ -27,34 +27,34 @@ void test_atomic()
     assert(union2.isEmpty() == true);
     assert(union3.isEmpty() == true);
 
-    assert(union1.has(atomicString) == false);
+    assert(union1.has(&atomicString) == false);
     assert(atomicString.is(union1) == false);
 
-    union1.add(atomicString);
+    union1.add(&atomicString);
     assert(union1.isEmpty() == false);
 
-    assert(union1.has(atomicString) == true);
+    assert(union1.has(&atomicString) == true);
     assert(atomicString.is(union1) == true);
 
     union2 = union1.clone();
-    assert(union2.has(atomicString) == true);
+    assert(union2.has(&atomicString) == true);
     assert(atomicString.is(union2) == true);
     assert(union2.isEmpty() == false);
 
-    union2.add(atomicFloat);
-    assert(union2.has(atomicFloat) == true);
+    union2.add(&atomicFloat);
+    assert(union2.has(&atomicFloat) == true);
     assert(atomicFloat.is(union2) == true);
 
-    assert(union1.has(atomicFloat) == false);
+    assert(union1.has(&atomicFloat) == false);
     assert(atomicFloat.is(union1) == false);
 
-    union3.add(union1);
-    union3.add(union2);
+    union3.add(&union1);
+    union3.add(&union2);
     assert(union3.isEmpty() == false);
 
-    assert(union3.has(atomicString) == true);
-    assert(union3.has(atomicFloat) == true);
-    assert(union3.has(atomicInt) == false);
+    assert(union3.has(&atomicString) == true);
+    assert(union3.has(&atomicFloat) == true);
+    assert(union3.has(&atomicInt) == false);
 
     cout << "done: test_atomic" << endl;
 }

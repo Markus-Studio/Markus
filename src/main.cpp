@@ -11,8 +11,8 @@ using namespace std;
 
 void x(Type::Union &u, Type::Atomic a)
 {
-    u.add(a);
-    cout << u.has(a) << endl;
+    u.add(&a);
+    cout << u.has(&a) << endl;
 }
 
 int main()
@@ -33,5 +33,5 @@ int main()
     cout << p.is(intT) << endl;
 
     x(union1, intT);
-    cout << union1.has(intT) << endl;
+    cout << union1.has(&intT) << endl;
 }

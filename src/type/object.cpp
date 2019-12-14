@@ -198,7 +198,7 @@ bool Object::is(Object obj)
 
 bool Object::is(Union u)
 {
-    return u.has(*this);
+    return u.has(this);
 }
 
 } // namespace Type

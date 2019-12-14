@@ -19,12 +19,12 @@ private:
     /**
      * Set of all atomic members that are in this union.
      */
-    std::list<Atomic> atomicMembers;
+    std::list<Atomic *> atomicMembers;
 
     /**
      * Set of all object members that are in this union.
      */
-    std::list<Object> objectMembers;
+    std::list<Object *> objectMembers;
 
 public:
     /**
@@ -40,27 +40,27 @@ public:
     /**
      * Adds a new atomic type to this union.
      */
-    void add(Atomic type);
+    void add(Atomic *type);
 
     /**
      * Check if type is a member of this union.
      */
-    bool has(Atomic type);
+    bool has(Atomic *type);
 
     /**
      * Copies members of another union to this one.
      */
-    void add(Union type);
+    void add(Union *type);
 
     /**
      * Adds a new object type to this union.
      */
-    void add(Object object);
+    void add(Object *object);
 
     /**
      * Check if the given object is a member of this union.
      */
-    bool has(Object object);
+    bool has(Object *object);
 
     /**
      * Return whatever this union is empty or not.
