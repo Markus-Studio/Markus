@@ -2,14 +2,13 @@
 #include <vector>
 #include <string>
 #include <assert.h> 
-
-using namespace std;
+#include "tests.hpp"
 
 #include "type/atomic.hpp"
 #include "type/union.hpp"
 #include "type/uri.hpp"
 
-#include "./is.cpp"
+using namespace std;
 
 void test_atomic()
 {

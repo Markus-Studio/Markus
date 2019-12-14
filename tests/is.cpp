@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <iostream>
+#include "tests.hpp"
 #include "type/atomic.hpp"
 #include "type/object.hpp"
 #include "type/union.hpp"
