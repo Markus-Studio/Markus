@@ -8,7 +8,8 @@ class Object;
 class Atomic;
 class Union;
 
-enum TypeKind {
+enum TypeKind
+{
     TYPE_KIND_NEVER,
     TYPE_KIND_ATOMIC,
     TYPE_KIND_UNION,
@@ -111,6 +112,6 @@ public:
     bool is(Object *type);
 };
 
-}
+} // namespace Type
 
 #endif

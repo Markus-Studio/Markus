@@ -115,4 +115,4 @@ bool Container::is(Object *type)
     }
 }
 
-}
+} // namespace Type

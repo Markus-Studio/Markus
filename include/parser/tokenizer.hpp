@@ -7,7 +7,8 @@
 namespace Parser
 {
 
-enum TokenKind {
+enum TokenKind
+{
     TOKEN_KIND_IDENTIFIER,
     TOKEN_KIND_PUNCTUATION,
     TOKEN_KIND_VARIABLE_NAME,
@@ -123,7 +124,7 @@ public:
     /**
      * Check word of this token against the given value.
      */
-    bool operator == (std::string text);
+    bool operator==(std::string text);
 
     /**
      * Dump the token to the STDIO.
@@ -136,6 +137,6 @@ public:
  */
 std::vector<Token> tokenize(std::string text);
 
-}
+} // namespace Parser
 
 #endif

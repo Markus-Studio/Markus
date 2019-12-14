@@ -163,6 +163,6 @@ public:
      */
     bool is(Union *u);
 };
-}
+} // namespace Type
 
 #endif
