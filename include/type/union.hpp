@@ -71,7 +71,7 @@ public:
      * Evaluates the result of `this is type`, in another word it
      * checks if this type is subset of the other union.
      */
-    bool is(Union &type);
+    bool is(Union *type);
 
     friend class Object;
 };
