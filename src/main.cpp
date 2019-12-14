@@ -5,6 +5,7 @@
 #include "parser/tokenizer.hpp"
 #include "type/union.hpp"
 #include "type/atomic.hpp"
+#include "type/container.hpp"
 
 using namespace std;
 
@@ -25,6 +26,11 @@ int main()
 
     Type::Atomic intT("int");
     Type::Union union1;
+
+    Type::Container intContainer(&intT);
+    Type::Atomic p = *intContainer.asAtomic();
+
+    cout << p.is(intT) << endl;
 
     x(union1, intT);
     cout << union1.has(intT) << endl;

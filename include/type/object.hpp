@@ -4,17 +4,30 @@
 #include <vector>
 #include <string>
 #include "type/uri.hpp"
+#include "type/container.hpp"
 
 namespace Type
 {
 // Forward declaration.
 class Atomic;
 
+/**
+ * An object field slot.
+ */
 struct ObjectField
 {
+    /**
+     * The field key.
+     */
     std::string key;
+    /**
+     * The nullable tag.
+     */
     bool nullable;
-    // Container type.
+    /**
+     * Type container for this field's type.
+     */
+    Container type;
 };
 
 /**
@@ -94,7 +107,15 @@ public:
      */
     std::vector<Object> getBases();
 
-    // Container query(Uri uri);
+    /**
+     * Query type of the field with the name.
+     */
+    Container query(std::string name);
+
+    /**
+     * Query type of the field with the given uri.
+     */
+    Container query(Uri uri);
 };
 }
 

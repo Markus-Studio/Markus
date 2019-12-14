@@ -7,7 +7,7 @@ namespace Parser
 class Program
 {
 private:
-}
+};
 
 }
 
