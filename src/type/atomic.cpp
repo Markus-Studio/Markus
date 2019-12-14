@@ -16,13 +16,13 @@ string Atomic::getName()
     return name;
 }
 
-bool Atomic::is(Atomic type)
+bool Atomic::is(Atomic *type)
 {
-    return name == type.name;
+    return name == type->name;
 }
 
-bool Atomic::is(Union type)
+bool Atomic::is(Union *type)
 {
-    return type.has(this);
+    return type->has(this);
 }
 } // namespace Type

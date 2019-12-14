@@ -37,7 +37,7 @@ public:
      * 
      * It only checks if the name of both types are the same.
      */
-    bool is(Atomic type);
+    bool is(Atomic *type);
 
     /**
      * Returns the result of evaluating `this is type`, where `type` is
@@ -45,7 +45,7 @@ public:
      * 
      * It is equal to calling `type.has(this)`.
      */
-    bool is(Union type);
+    bool is(Union *type);
 };
 } // namespace Type
 

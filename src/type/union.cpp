@@ -23,7 +23,7 @@ bool Union::has(Atomic *type)
 {
     std::list<Atomic *>::iterator itr;
     for (itr = atomicMembers.begin(); itr != atomicMembers.end(); ++itr)
-        if ((*itr)->is(*type))
+        if ((*itr)->is(type))
             return true;
     return false;
 }

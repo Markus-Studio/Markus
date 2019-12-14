@@ -30,7 +30,7 @@ int main()
     Type::Container intContainer(&intT);
     Type::Atomic p = *intContainer.asAtomic();
 
-    cout << p.is(intT) << endl;
+    cout << p.is(&intT) << endl;
 
     x(union1, intT);
     cout << union1.has(&intT) << endl;
