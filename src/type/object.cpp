@@ -22,7 +22,7 @@ Object::Object(std::string name)
     uid = getObjectId();
 }
 
-Object::Object(std::string name, std::vector<Object> bases)
+Object::Object(std::string name, std::vector<Object *> bases)
 {
     this->name = name;
     this->bases.assign(bases.begin(), bases.end());
@@ -73,9 +73,9 @@ bool Object::has(std::string key)
     if (owns(key))
         return true;
 
-    std::vector<Object>::iterator it;
+    std::vector<Object *>::iterator it;
     for (it = bases.begin(); it != bases.end(); ++it)
-        if (it->has(key))
+        if ((*it)->has(key))
             return true;
 
     return false;
@@ -90,15 +90,15 @@ bool Object::has(Uri uri)
     return !container.isNever();
 }
 
-std::vector<Object> Object::getBases()
+std::vector<Object *> Object::getBases()
 {
-    std::vector<Object> temp;
+    std::vector<Object *> temp;
     temp.assign(bases.begin(), bases.end());
     temp.shrink_to_fit();
     return temp;
 }
 
-std::vector<Object> Object::getAllBases()
+std::vector<Object *> Object::getAllBases()
 {
     if (!allBasesCache.empty() || bases.empty())
         return allBasesCache;
@@ -109,20 +109,20 @@ std::vector<Object> Object::getAllBases()
     computingGetAllBases = true;
 
     Object *obj;
-    std::vector<Object> result, tmp;
+    std::vector<Object *> result, tmp;
     bool found;
     result.assign(bases.begin(), bases.end());
 
-    std::vector<Object>::iterator bIt, bIt2, it;
+    std::vector<Object *>::iterator bIt, bIt2, it;
     for (bIt = bases.begin(); bIt != bases.end(); ++bIt)
     {
-        tmp = bIt->getAllBases();
+        tmp = (*bIt)->getAllBases();
         for (bIt2 = tmp.begin(); bIt2 != tmp.end(); ++bIt2)
         {
             found = false;
             for (it = result.begin(); it != result.end(); ++it)
             {
-                if (it->getId() == bIt2->getId())
+                if ((*it)->getId() == (*bIt2)->getId())
                 {
                     found = true;
                     break;
@@ -130,8 +130,8 @@ std::vector<Object> Object::getAllBases()
             }
             if (!found)
             {
-                obj = &*bIt2;
-                result.push_back(*obj);
+                obj = *bIt2;
+                result.push_back(obj);
             }
         }
     }
@@ -150,9 +150,9 @@ Container Object::query(std::string name)
         if (it->key == name)
             return it->type;
 
-    std::vector<Object>::iterator bIt;
+    std::vector<Object *>::iterator bIt;
     for (bIt = bases.begin(); bIt != bases.end(); ++bIt)
-        if (!(container = bIt->query(name)).isNever())
+        if (!(container = (*bIt)->query(name)).isNever())
             return container;
 
     return container;
@@ -187,10 +187,10 @@ bool Object::is(Object obj)
     if (obj.uid > uid)
         return false;
 
-    std::vector<Object> bases = getAllBases();
-    std::vector<Object>::iterator it = bases.begin();
+    std::vector<Object *> bases = getAllBases();
+    std::vector<Object *>::iterator it = bases.begin();
     for (; it != bases.end(); ++it)
-        if (it->uid == obj.uid)
+        if ((*it)->uid == obj.uid)
             return true;
 
     return false;

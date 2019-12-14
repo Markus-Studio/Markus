@@ -52,12 +52,12 @@ private:
     /**
      * Base types.
      */
-    std::vector<Object> bases;
+    std::vector<Object *> bases;
 
     /**
      * Cache of computing `getAllBases()`.
      */
-    std::vector<Object> allBasesCache;
+    std::vector<Object *> allBasesCache;
 
     /**
      * Whatever we're in the middle of `getAllBases()` call.
@@ -80,7 +80,7 @@ public:
     /**
      * Constructs a new object type with the given data.
      */
-    Object(std::string name, std::vector<Object> bases);
+    Object(std::string name, std::vector<Object *> bases);
 
     /**
      * Returns name of this object.
@@ -121,12 +121,12 @@ public:
     /**
      * Return all of the bases.
      */
-    std::vector<Object> getBases();
+    std::vector<Object *> getBases();
 
     /**
      * Return all of the bases recursively.
      */
-    std::vector<Object> getAllBases();
+    std::vector<Object *> getAllBases();
 
     /**
      * Query type of the field with the name.
