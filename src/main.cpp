@@ -7,6 +7,8 @@
 #include "type/atomic.hpp"
 #include "type/container.hpp"
 
+#include "diagnostics/controller.hpp"
+
 using namespace std;
 
 void x(Type::Union &u, Type::Atomic a)
