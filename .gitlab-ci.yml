@@ -4,9 +4,13 @@ before_script:
   - apt update && apt -y install make cmake
 
 build:
+  stage: build
   script:
     - cmake .
     - make
+  artifacts:
+    paths:
+      - ./bin/markus-test
 
 test:
   stage: test
