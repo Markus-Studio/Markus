@@ -4,6 +4,8 @@
 #include <map>
 #include <assert.h>
 #include "parser/tokenizer.hpp"
+#include "diagnostics/controller.hpp"
+#include "diagnostics/error.hpp"
 
 namespace Parser
 {
@@ -305,7 +307,8 @@ std::vector<Token *> tokenize(std::string source)
             continue;
         }
 
-        assert(false);
+        Diagnostics::Controller::report(Diagnostics::Error::unexpectedCharacter(line, column));
+        return tokens;
     }
 
     return tokens;
