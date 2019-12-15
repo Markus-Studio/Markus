@@ -1,6 +1,7 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <assert.h>
 #include "parser/tokenizer.hpp"
 #include "parser/scanner.hpp"
 
