@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <assert.h>
 #include "type/uri.hpp"
 #include "type/atomic.hpp"
 #include "type/union.hpp"
