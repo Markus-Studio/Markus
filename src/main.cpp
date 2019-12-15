@@ -3,41 +3,26 @@
 #include <string>
 
 #include "parser/tokenizer.hpp"
-#include "type/union.hpp"
-#include "type/atomic.hpp"
-#include "type/container.hpp"
+#include "parser/scanner.hpp"
 
 #include "diagnostics/error.hpp"
 #include "diagnostics/controller.hpp"
 
 using namespace std;
 
-void x(Type::Union &u, Type::Atomic a)
-{
-    u.add(&a);
-    cout << u.has(&a) << endl;
-}
-
 int main()
 {
-    string source = "$x $y %yo $1 ش true false h1 \"Hello\\\"d\" x + = & 34 56.4\n4.6";
+    string source =
+        "query X() {\n"
+        "}\n"
+        "action Y{}\n"
+        "action Y{}\n";
 
-    vector<Parser::Token *> tokens = Parser::tokenize(source);
+    cout << source << endl;
 
+    Parser::TokenVec tokens = Parser::tokenize(source);
+    Parser::Scanner scanner(tokens);
 
-    for (Parser::Token *token : tokens)
-        token->dump();
-
-    Diagnostics::Controller::dumpAll();
-
-    Type::Atomic intT("int");
-    Type::Union union1;
-
-    Type::Container intContainer(&intT);
-    Type::Atomic p = *intContainer.asAtomic();
-
-    cout << p.is(&intT) << endl;
-
-    x(union1, intT);
-    cout << union1.has(&intT) << endl;
+    if (Diagnostics::Controller::hasError())
+        Diagnostics::Controller::dumpAll();
 }

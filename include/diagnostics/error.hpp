@@ -2,6 +2,7 @@
 #define __MARKUS_DIAGNOSTICS_ERROR__
 
 #include <string>
+#include "parser/tokenizer.hpp"
 
 namespace Diagnostics
 {
@@ -13,7 +14,11 @@ enum ErrorNo
 {
     E_NOT_AN_ERROR,
     E_UNEXPECTED_CHARACTER,
-    E_UNTERMINATED_QUOTE
+    E_UNTERMINATED_QUOTE,
+    E_UNEXPECTED_TOKEN,
+    E_MISMATCHED_BRACE,
+    E_EARLY_EOF,
+    E_NAME_ALREADY_IN_USE
 };
 
 /**
@@ -61,6 +66,37 @@ public:
      * Constructs a new unterminated quote/string-literal error.
      */
     static Error *unterminatedQuote(int line, int column);
+
+    /**
+     * Construct a new unexpected token error.
+     */
+    static Error *unexpectedToken(Parser::Token *token);
+
+    /**
+     * Construct a new unexpected token error that also says what was expected.
+     */
+    static Error *unexpectedToken(Parser::Token *token, std::string expected);
+
+    /**
+     * Constructs a new mismatched brace error.
+     */
+    static Error *mismatchedBrace(Parser::Token *token);
+
+    /**
+     * Constructs a new early end of file error.
+     */
+    static Error *earlyEOF();
+
+    /**
+     * Constructs a new name already in use error.
+     */
+    static Error *nameAlreadyInUse(std::string name);
+
+    /**
+     * Constructs a new name already in use error from a token
+     * and stating position of the error.
+     */
+    static Error *nameAlreadyInUse(Parser::Token *token);
 };
 } // namespace Diagnostics
 

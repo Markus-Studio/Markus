@@ -46,6 +46,13 @@ private:
      */
     std::map<std::string, TokenVec> actions;
 
+    /**
+     * Reads a section of the code and parses it, calls it self
+     * recursively until it reaches end of the iterator.
+     */
+    void parse(std::vector<Token *>::iterator iter,
+               std::vector<Token *>::iterator end);
+
 public:
     /**
      * Constructs a new scanner from a vector of tokens.
