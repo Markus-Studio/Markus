@@ -280,13 +280,13 @@ std::vector<Token *> tokenize(std::string source)
             continue;
         }
 
-        if (isnumber(source[cursor]))
+        if (isdigit(source[cursor]))
         {
             bool isFloat = false;
 
             while (source[cursor])
             {
-                if (!isFloat && source[cursor] == '.' && isnumber(source[cursor + 1]))
+                if (!isFloat && source[cursor] == '.' && isdigit(source[cursor + 1]))
                 {
                     word += '.';
                     cursor += 1;
@@ -294,7 +294,7 @@ std::vector<Token *> tokenize(std::string source)
                     continue;
                 }
 
-                if (isnumber(source[cursor]))
+                if (isdigit(source[cursor]))
                 {
                     word += source[cursor];
                     cursor += 1;
