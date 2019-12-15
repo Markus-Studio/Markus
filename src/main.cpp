@@ -1,10 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
-
 #include "parser/tokenizer.hpp"
 #include "parser/scanner.hpp"
-
 #include "diagnostics/error.hpp"
 #include "diagnostics/controller.hpp"
 
