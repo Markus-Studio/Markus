@@ -2,6 +2,7 @@
 #define __MARKUS_TESTS__
 
 void test_atomic();
+void test_object();
 void test_uri();
 void test_is();
 

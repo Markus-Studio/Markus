@@ -8,6 +8,7 @@ int main()
     cout << "Running\n";
 
     test_atomic();
+    test_object();
     test_is();
     test_uri();
 
