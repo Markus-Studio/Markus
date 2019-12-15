@@ -1,0 +1,14 @@
+image: gcc
+
+before_script:
+  - apt update && apt -y install make cmake
+
+build:
+  script:
+    - cmake .
+    - make
+
+test:
+  stage: test
+  script:
+    - ./bin/markus-test
