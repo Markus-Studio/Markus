@@ -2,6 +2,7 @@
 #define __MARKUS_DIAGNOSTICS_ERROR__
 
 #include <string>
+#include <set>
 #include "parser/tokenizer.hpp"
 
 namespace Diagnostics
@@ -18,7 +19,10 @@ enum ErrorNo
     E_UNEXPECTED_TOKEN,
     E_MISMATCHED_BRACE,
     E_EARLY_EOF,
-    E_NAME_ALREADY_IN_USE
+    E_NAME_ALREADY_IN_USE,
+    E_CIRCULAR_BASE,
+    E_CANNOT_RESOLVE_NAME,
+    E_BASE_MUST_BE_OBJECT
 };
 
 /**
@@ -97,6 +101,21 @@ public:
      * and stating position of the error.
      */
     static Error *nameAlreadyInUse(Parser::Token *token);
+
+    /**
+     * Constructs a new circular base error.
+     */
+    static Error *circularBase(std::set<Parser::TokenVec *> vectors);
+
+    /**
+     * Constructs a new base must be object error.
+     */
+    static Error *baseMustBeObject(Parser::Token *token);
+
+    /**
+     * Constructs a new cannot resolve name error.
+     */
+    static Error *cannotResolveName(Parser::Token *token);
 };
 } // namespace Diagnostics
 

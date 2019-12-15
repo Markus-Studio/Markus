@@ -1,5 +1,7 @@
 #include <string>
 #include <sstream>
+#include <set>
+#include "parser/tokenizer.hpp"
 #include "diagnostics/error.hpp"
 
 namespace Diagnostics
@@ -79,7 +81,42 @@ Error *Error::nameAlreadyInUse(Parser::Token *token)
     fmt << "Error: Name " << token->getWord()
         << " is already in use, on line "
         << token->getLine() << ":" << token->getColumn() << ".";
-    return new Error(E_MISMATCHED_BRACE, fmt.str());
+    return new Error(E_NAME_ALREADY_IN_USE, fmt.str());
+}
+
+Error *Error::circularBase(std::set<Parser::TokenVec *> vectors)
+{
+    std::set<Parser::TokenVec *>::iterator it = vectors.begin();
+
+    std::stringstream fmt;
+    fmt << "Error: Found circular base ";
+    fmt << ((**it++)[1])->getWord();
+
+    for (; it != vectors.end(); ++it)
+    {
+        fmt << "->" << (**it)[1]->getWord();
+    }
+
+    fmt << ".";
+
+    return new Error(E_CIRCULAR_BASE, fmt.str());
+}
+
+Error *Error::baseMustBeObject(Parser::Token *token)
+{
+    std::stringstream fmt;
+    fmt << "Error: " << token->getWord() << " is not an object-type and "
+        << "is used as the base for another type on line "
+        << token->getLine() << ":" << token->getColumn() << ".";
+    return new Error(E_BASE_MUST_BE_OBJECT, fmt.str());
+}
+
+Error *Error::cannotResolveName(Parser::Token *token)
+{
+    std::stringstream fmt;
+    fmt << "Error: Cannot resolve name " << token->getWord() << " on line "
+        << token->getLine() << ":" << token->getColumn() << ".";
+    return new Error(E_CANNOT_RESOLVE_NAME, fmt.str());
 }
 
 } // namespace Diagnostics

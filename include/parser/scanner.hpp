@@ -29,22 +29,22 @@ private:
     /**
      * Every type in this document.
      */
-    std::map<std::string, TokenVec> types;
+    std::map<std::string, TokenVec *> types;
 
     /**
      * Every permission in this document.
      */
-    std::map<std::string, TokenVec> permissions;
+    std::map<std::string, TokenVec *> permissions;
 
     /**
      * Every query in this document.
      */
-    std::map<std::string, TokenVec> queries;
+    std::map<std::string, TokenVec *> queries;
 
     /**
      * Every action in this document.
      */
-    std::map<std::string, TokenVec> actions;
+    std::map<std::string, TokenVec *> actions;
 
     /**
      * Reads a section of the code and parses it, calls it self
@@ -72,7 +72,7 @@ public:
     /**
      * Finds and returns the tokens of a type declaration with the given name.
      */
-    TokenVec lookupType(std::string name);
+    TokenVec *lookupType(std::string name);
 
     /**
      * Returns list of all the permissions defined in this document.
@@ -87,7 +87,7 @@ public:
     /**
      * Finds and returns the tokens of a type declaration with the given name.
      */
-    TokenVec lookupPermission(std::string name);
+    TokenVec *lookupPermission(std::string name);
 
     /**
      * Returns list of all the queries defined in this document.
@@ -102,7 +102,7 @@ public:
     /**
      * Finds and returns the tokens of a query declaration with the given name.
      */
-    TokenVec lookupQuery(std::string name);
+    TokenVec *lookupQuery(std::string name);
 
     /**
      * Returns list of all the actions defined in this document.
@@ -117,7 +117,7 @@ public:
     /**
      * Finds and returns the tokens of an action declaration with the given name.
      */
-    TokenVec lookupAction(std::string name);
+    TokenVec *lookupAction(std::string name);
 };
 } // namespace Parser
 

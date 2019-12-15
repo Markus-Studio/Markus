@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 #include "parser/scanner.hpp"
 #include "parser/tokenizer.hpp"
 #include "type/container.hpp"
@@ -19,13 +20,30 @@ private:
     /**
      * Map each name to the corseponding type. 
      */
-    std::map<std::string, Type::Container> types;
+    std::map<std::string, Type::Container *> types;
 
     /**
      * Parse a token vector that is supposed to be a type declaration
      * and adds it to the space.
      */
-    void parse(TokenVec *tokens);
+    void parse(Scanner *scanner, TokenVec *tokens,
+               std::set<TokenVec *> *seen, std::set<TokenVec *> *parsed);
+
+    /**
+     * Try to resolve a name in the middle of parsing another token.
+     */
+    Type::Container *tryResolve(std::string name, Scanner *scanner,
+                                std::set<TokenVec *> *seen, std::set<TokenVec *> *parsed);
+
+    /**
+     * Setup built in types, called from constructor.
+     */
+    void builtins();
+
+    /**
+     * Adds the type to this space.
+     */
+    void add(std::string name, Type::Container *container);
 
 public:
     /**

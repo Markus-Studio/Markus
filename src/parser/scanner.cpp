@@ -13,9 +13,9 @@ namespace Parser
 using namespace Diagnostics;
 
 // util
-inline std::vector<std::string> keys(std::map<std::string, TokenVec> map)
+inline std::vector<std::string> keys(std::map<std::string, TokenVec *> map)
 {
-    std::map<std::string, TokenVec>::iterator it;
+    std::map<std::string, TokenVec *>::iterator it;
     std::vector<std::string> keys;
     keys.reserve(map.size());
 
@@ -25,11 +25,11 @@ inline std::vector<std::string> keys(std::map<std::string, TokenVec> map)
     return keys;
 }
 
-inline TokenVec lookup(
-    std::map<std::string, TokenVec> map,
+inline TokenVec *lookup(
+    std::map<std::string, TokenVec *> map,
     std::string name)
 {
-    std::map<std::string, TokenVec>::iterator it;
+    std::map<std::string, TokenVec *>::iterator it;
     it = map.find(name);
     assert(it != map.end());
     return it->second;
@@ -142,9 +142,9 @@ void Scanner::parse(
         return;
     }
 
-    TokenVec vec;
-    vec.assign(begining, iter);
-    vec.shrink_to_fit();
+    TokenVec *vec = new TokenVec();
+    vec->assign(begining, iter);
+    vec->shrink_to_fit();
     word = (*begining)->getWord();
     tmp = name->getWord();
 
@@ -152,25 +152,25 @@ void Scanner::parse(
     {
         if (queries.count(tmp) > 0)
             return Controller::report(Error::nameAlreadyInUse(name));
-        queries.insert(std::pair<std::string, TokenVec>(tmp, vec));
+        queries.insert(std::pair<std::string, TokenVec *>(tmp, vec));
     }
     else if (word == "action")
     {
         if (actions.count(tmp) > 0)
             return Controller::report(Error::nameAlreadyInUse(name));
-        actions.insert(std::pair<std::string, TokenVec>(tmp, vec));
+        actions.insert(std::pair<std::string, TokenVec *>(tmp, vec));
     }
     else if (word == "type")
     {
         if (types.count(tmp) > 0)
             return Controller::report(Error::nameAlreadyInUse(name));
-        types.insert(std::pair<std::string, TokenVec>(tmp, vec));
+        types.insert(std::pair<std::string, TokenVec *>(tmp, vec));
     }
     else if (word == "permission")
     {
         if (permissions.count(tmp) > 0)
             return Controller::report(Error::nameAlreadyInUse(name));
-        permissions.insert(std::pair<std::string, TokenVec>(tmp, vec));
+        permissions.insert(std::pair<std::string, TokenVec *>(tmp, vec));
     }
     else
         return Controller::report(Error::unexpectedToken(*begining, " either action, query, permission or type"));
@@ -188,7 +188,7 @@ bool Scanner::hasType(std::string name)
     return types.count(name) > 0;
 }
 
-TokenVec Scanner::lookupType(std::string name)
+TokenVec *Scanner::lookupType(std::string name)
 {
     return lookup(types, name);
 }
@@ -203,7 +203,7 @@ bool Scanner::hasPermission(std::string name)
     return permissions.count(name) > 0;
 }
 
-TokenVec Scanner::lookupPermission(std::string name)
+TokenVec *Scanner::lookupPermission(std::string name)
 {
     return lookup(permissions, name);
 }
@@ -218,7 +218,7 @@ bool Scanner::hasQuery(std::string name)
     return queries.count(name) > 0;
 }
 
-TokenVec Scanner::lookupQuery(std::string name)
+TokenVec *Scanner::lookupQuery(std::string name)
 {
     return lookup(queries, name);
 }
@@ -233,7 +233,7 @@ bool Scanner::hasAction(std::string name)
     return actions.count(name) > 0;
 }
 
-TokenVec Scanner::lookupAction(std::string name)
+TokenVec *Scanner::lookupAction(std::string name)
 {
     return lookup(actions, name);
 }
