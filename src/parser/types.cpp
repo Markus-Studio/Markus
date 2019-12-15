@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <assert.h>
 #include "parser/tokenizer.hpp"
 #include "parser/scanner.hpp"
 #include "parser/types.hpp"
