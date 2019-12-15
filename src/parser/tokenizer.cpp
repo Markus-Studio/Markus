@@ -9,6 +9,7 @@
 
 namespace Parser
 {
+using namespace Diagnostics;
 
 inline bool isValidIdentifierStart(char c)
 {
@@ -189,6 +190,7 @@ std::vector<Token *> tokenize(std::string source)
         if (source[cursor] == '"')
         {
             bool escaped = false;
+            bool finished = false;
             cursor += 1;
 
             while (source[cursor])
@@ -196,6 +198,7 @@ std::vector<Token *> tokenize(std::string source)
                 if (!escaped && source[cursor] == '"')
                 {
                     cursor += 1;
+                    finished = true;
                     break;
                 }
 
@@ -232,6 +235,12 @@ std::vector<Token *> tokenize(std::string source)
                 }
 
                 cursor += 1;
+            }
+
+            if (!finished)
+            {
+                Controller::report(Error::unterminatedQuote(line, column));
+                return tokens;
             }
 
             Token *token = new Token(word, line, column, TOKEN_KIND_STRING_LITERAL);
@@ -307,7 +316,7 @@ std::vector<Token *> tokenize(std::string source)
             continue;
         }
 
-        Diagnostics::Controller::report(Diagnostics::Error::unexpectedCharacter(line, column));
+        Controller::report(Error::unexpectedCharacter(line, column));
         return tokens;
     }
 

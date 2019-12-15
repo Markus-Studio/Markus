@@ -12,7 +12,8 @@ namespace Diagnostics
 enum ErrorNo
 {
     E_NOT_AN_ERROR,
-    E_UNEXPECTED_CHARACTER
+    E_UNEXPECTED_CHARACTER,
+    E_UNTERMINATED_QUOTE
 };
 
 /**
@@ -55,6 +56,11 @@ public:
      * Constructs a new unexpected character error.
      */
     static Error *unexpectedCharacter(int line, int column);
+
+    /**
+     * Constructs a new unterminated quote/string-literal error.
+     */
+    static Error *unterminatedQuote(int line, int column);
 };
 } // namespace Diagnostics
 

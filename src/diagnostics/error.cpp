@@ -4,7 +4,6 @@
 
 namespace Diagnostics
 {
-
 Error::Error()
 {
     errorNo = E_NOT_AN_ERROR;
@@ -28,6 +27,14 @@ Error *Error::unexpectedCharacter(int line, int column)
     fmt << "Error: Found unexpected character on line "
         << line << ":" << column << ".";
     return new Error(E_UNEXPECTED_CHARACTER, fmt.str());
+}
+
+Error *Error::unterminatedQuote(int line, int column)
+{
+    std::stringstream fmt;
+    fmt << "Error: Unterminated string literal found on line "
+        << line << ":" << column << ".";
+    return new Error(E_UNTERMINATED_QUOTE, fmt.str());
 }
 
 } // namespace Diagnostics
