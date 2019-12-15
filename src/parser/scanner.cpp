@@ -1,6 +1,6 @@
-#include <iostream>
 #include <vector>
 #include <stack>
+#include <map>
 #include "parser/tokenizer.hpp"
 #include "parser/scanner.hpp"
 
@@ -10,6 +10,29 @@
 namespace Parser
 {
 using namespace Diagnostics;
+
+// util
+inline std::vector<std::string> keys(std::map<std::string, TokenVec> map)
+{
+    std::map<std::string, TokenVec>::iterator it;
+    std::vector<std::string> keys;
+    keys.reserve(map.size());
+
+    for (it = map.begin(); it != map.end(); ++it)
+        keys.push_back(it->first);
+
+    return keys;
+}
+
+inline TokenVec lookup(
+    std::map<std::string, TokenVec> map,
+    std::string name)
+{
+    std::map<std::string, TokenVec>::iterator it;
+    it = map.find(name);
+    assert(it != map.end());
+    return it->second;
+}
 
 Scanner::Scanner(TokenVec tokens)
 {
@@ -152,6 +175,66 @@ void Scanner::parse(
         return Controller::report(Error::unexpectedToken(*begining, " either action, query, permission or type"));
 
     parse(++iter, end);
+}
+
+std::vector<std::string> Scanner::getTypeNames()
+{
+    return keys(types);
+}
+
+bool Scanner::hasType(std::string name)
+{
+    return types.count(name) > 0;
+}
+
+TokenVec Scanner::lookupType(std::string name)
+{
+    return lookup(types, name);
+}
+
+std::vector<std::string> Scanner::getPermissionNames()
+{
+    return keys(permissions);
+}
+
+bool Scanner::hasPermission(std::string name)
+{
+    return permissions.count(name) > 0;
+}
+
+TokenVec Scanner::lookupPermission(std::string name)
+{
+    return lookup(permissions, name);
+}
+
+std::vector<std::string> Scanner::getQueryNames()
+{
+    return keys(queries);
+}
+
+bool Scanner::hasQuery(std::string name)
+{
+    return queries.count(name) > 0;
+}
+
+TokenVec Scanner::lookupQuery(std::string name)
+{
+    return lookup(queries, name);
+}
+
+std::vector<std::string> Scanner::getActionNames()
+{
+    return keys(actions);
+}
+
+bool Scanner::hasAction(std::string name)
+{
+    return actions.count(name) > 0;
+}
+
+TokenVec Scanner::lookupAction(std::string name)
+{
+    return lookup(actions, name);
 }
 
 } // namespace Parser

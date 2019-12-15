@@ -16,12 +16,15 @@ int main()
         "query X() {\n"
         "}\n"
         "action Y{}\n"
-        "action Y{}\n";
+        "query Y{}\n";
 
     cout << source << endl;
 
     Parser::TokenVec tokens = Parser::tokenize(source);
     Parser::Scanner scanner(tokens);
+
+    cout << scanner.hasQuery("Y") << endl;
+    cout << scanner.hasQuery("Z") << endl;
 
     if (Diagnostics::Controller::hasError())
         Diagnostics::Controller::dumpAll();
