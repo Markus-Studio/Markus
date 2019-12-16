@@ -6,7 +6,9 @@ type A: B, C {
 type B {
     int x;
     int y;
+    A p;
 }
 
 type C: B {
+    int z;
 }

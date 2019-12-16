@@ -108,6 +108,11 @@ public:
     int getId();
 
     /**
+     * Add a new base.
+     */
+    void addBase(Object *base);
+
+    /**
      * Set a new field, returns false if the key already existed and fails.
      */
     bool set(std::string key, Atomic *type, bool nullable);

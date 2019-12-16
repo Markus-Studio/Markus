@@ -73,6 +73,12 @@ int Object::getId()
     return uid;
 }
 
+void Object::addBase(Object *base)
+{
+    allBasesCache.clear();
+    bases.push_back(base);
+}
+
 bool Object::set(std::string key, Atomic *type, bool nullable)
 {
     if (has(key))
@@ -214,10 +220,6 @@ bool Object::is(Object *obj)
 {
     if (obj->uid == uid)
         return true;
-
-    // All bases are constructed before the actual object.
-    if (obj->uid > uid)
-        return false;
 
     std::vector<Object *> bases = getAllBases();
     std::vector<Object *>::iterator it = bases.begin();
