@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <list>
 #include "parser/scanner.hpp"
 #include "parser/tokenizer.hpp"
 #include "type/container.hpp"

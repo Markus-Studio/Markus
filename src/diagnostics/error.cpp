@@ -84,20 +84,19 @@ Error *Error::nameAlreadyInUse(Parser::Token *token)
     return new Error(E_NAME_ALREADY_IN_USE, fmt.str());
 }
 
-Error *Error::circularBase(std::set<Parser::TokenVec *> vectors)
+Error *Error::circularBase(std::set<Parser::TokenVec *> vectors, Parser::TokenVec *currnet)
 {
     std::set<Parser::TokenVec *>::iterator it = vectors.begin();
 
     std::stringstream fmt;
     fmt << "Error: Found circular base ";
-    fmt << ((**it++)[1])->getWord();
 
     for (; it != vectors.end(); ++it)
     {
-        fmt << "->" << (**it)[1]->getWord();
+        fmt << (**it)[1]->getWord() << "->";
     }
 
-    fmt << ".";
+    fmt << (*currnet)[1]->getWord() << ".";
 
     return new Error(E_CIRCULAR_BASE, fmt.str());
 }

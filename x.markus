@@ -1,0 +1,12 @@
+type A: B, C {
+    int a;
+    int b;
+}
+
+type B {
+    int x;
+    int y;
+}
+
+type C: B {
+}

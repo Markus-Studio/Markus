@@ -29,11 +29,6 @@ Types::Types(Scanner *scanner)
         std::set<TokenVec *> seen;
         parse(scanner, scanner->lookupType(*it), &seen, &parsed);
     }
-
-    for (it = names.begin(); it != names.end(); ++it) {
-        std::set<TokenVec *> seen;
-        parse(scanner, scanner->lookupType(*it), &seen, &parsed);
-    }
 }
 
 void Types::add(std::string name, Type::Container *container)
@@ -111,8 +106,7 @@ void Types::parse(
     // If we've seen this before, it's a circular reference.
     if (seen->count(tokens))
     {
-        seen->insert(tokens);
-        return Controller::report(Error::circularBase(*seen));
+        return Controller::report(Error::circularBase(*seen, tokens));
     }
 
     // If this is already parsed simply return.
@@ -131,7 +125,6 @@ void Types::parse(
     std::string name = (*it++)->getWord();
 
     std::cout << "TYPE " << name << std::endl;
-    std::cout << (*it)->getWord() << " o" << std::endl;
 
     if (**it == ":")
     {
@@ -139,7 +132,7 @@ void Types::parse(
         {
             ++it;
             if (!(*it)->isIdentifier())
-                return Controller::report(Error::unexpectedToken(*it));
+                return Controller::report(Error::unexpectedToken(*it, "identifier"));
             base = tryResolve((*it)->getWord(), scanner, seen, parsed);
             if (base->isNever())
                 return Controller::report(Error::cannotResolveName(*it));
@@ -150,6 +143,15 @@ void Types::parse(
         } while (**it == ",");
     }
 
+    bases.shrink_to_fit();
+    Type::Object *obj = new Type::Object(name, bases);
+
+    if (**it++ != "{")
+        return Controller::report(Error::unexpectedToken(*it, "{"));
+
+    std::cout << (*it)->getWord() << " o" << std::endl;
+
+    add(name, new Type::Container(obj));
 }
 
 Type::Container *Types::tryResolve(
@@ -158,7 +160,23 @@ Type::Container *Types::tryResolve(
     std::set<TokenVec *> *seen,
     std::set<TokenVec *> *parsed)
 {
-    return new Type::Container();
+    if (has(name))
+        return resolve(name);
+
+    if (!scanner->hasType(name))
+        return new Type::Container();
+
+    parse(scanner, scanner->lookupType(name), seen, parsed);
+    return resolve(name);
+}
+
+Type::Container *Types::resolve(std::string name)
+{
+    std::map<std::string, Type::Container *>::iterator it;
+    it = types.find(name);
+    if (it == types.end())
+        return new Type::Container();
+    return it->second;
 }
 
 } // namespace Parser

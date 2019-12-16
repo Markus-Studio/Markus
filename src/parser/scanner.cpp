@@ -143,7 +143,7 @@ void Scanner::parse(
     }
 
     TokenVec *vec = new TokenVec();
-    vec->assign(begining, iter);
+    vec->assign(begining, ++iter);
     vec->shrink_to_fit();
     word = (*begining)->getWord();
     tmp = name->getWord();
@@ -175,7 +175,7 @@ void Scanner::parse(
     else
         return Controller::report(Error::unexpectedToken(*begining, " either action, query, permission or type"));
 
-    parse(++iter, end);
+    parse(iter, end);
 }
 
 std::vector<std::string> Scanner::getTypeNames()

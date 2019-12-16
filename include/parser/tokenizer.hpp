@@ -127,6 +127,12 @@ public:
     bool operator==(std::string text);
 
     /**
+     * Check word of this token against the given value and see if they're
+     * not equal.
+     */
+    bool operator!=(std::string text);
+
+    /**
      * Dump the token to the STDIO.
      */
     void dump();

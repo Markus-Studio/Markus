@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream>
+#include <sstream>
 #include "parser/tokenizer.hpp"
 #include "parser/scanner.hpp"
 #include "parser/types.hpp"
@@ -9,25 +11,26 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
-    string source =
-        "query X() {\n"
-        "}\n"
-        "action Y{}\n"
-        "query Y{}\n"
-        "type B: A, C, D {}\n"
-        "type A {}\n"
-        ;
+    if (argc != 2) {
+        cerr << "Usage: " << argv[0] << " <filename>" << endl;
+        return -1;
+    }
 
-    cout << source << endl;
+    std::ifstream t(argv[1]);
 
-    Parser::TokenVec tokens = Parser::tokenize(source);
+    if (!t.is_open()) {
+        cerr << "There was an error trying to read " << argv[1] << endl;
+        return -1;
+    }
+
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+
+    Parser::TokenVec tokens = Parser::tokenize(buffer.str());
     Parser::Scanner scanner(tokens);
     Parser::Types types(&scanner);
-
-    cout << scanner.hasQuery("Y") << endl;
-    cout << scanner.hasQuery("Z") << endl;
 
     if (Diagnostics::Controller::hasError())
         Diagnostics::Controller::dumpAll();

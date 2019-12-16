@@ -117,6 +117,11 @@ bool Token::operator==(std::string value)
     return word == value;
 }
 
+bool Token::operator!=(std::string value)
+{
+    return word != value;
+}
+
 void Token::dump()
 {
     std::cout << "Token[" << kind << "] {" << std::endl
