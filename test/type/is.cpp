@@ -7,6 +7,7 @@
 
 using namespace Type;
 
+namespace {
 TEST("is") {
   Atomic x("x");
   Atomic y("y");
@@ -114,4 +115,5 @@ TEST("is") {
   CHECK(0 == AorEorB.is(&C));
   CHECK(1 == AorEorB.is(&BorC));
   CHECK(0 == BorC.is(&A));
+}
 }

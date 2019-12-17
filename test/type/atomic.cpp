@@ -4,18 +4,21 @@
 #include "type/union.hpp"
 #include "type/uri.hpp"
 
+using namespace Type;
+
+namespace {
 TEST("Atomic") {
-  Type::Atomic atomicString("string");
-  Type::Atomic atomicInt("int");
-  Type::Atomic atomicFloat("float");
+  Atomic atomicString("string");
+  Atomic atomicInt("int");
+  Atomic atomicFloat("float");
 
   CHECK(atomicString.is(&atomicString) == true);
   CHECK(atomicString.is(&atomicInt) == false);
   CHECK(atomicInt.getName() == "int");
 
-  Type::Union union1;
-  Type::Union union2;
-  Type::Union union3;
+  Union union1;
+  Union union2;
+  Union union3;
 
   CHECK(union1.isEmpty() == true);
   CHECK(union2.isEmpty() == true);
@@ -49,4 +52,5 @@ TEST("Atomic") {
   CHECK(union3.has(&atomicString) == true);
   CHECK(union3.has(&atomicFloat) == true);
   CHECK(union3.has(&atomicInt) == false);
+}
 }

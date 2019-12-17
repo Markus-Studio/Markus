@@ -7,6 +7,7 @@
 
 using namespace Type;
 
+namespace {
 TEST("Object") {
   Atomic x("x");
   Atomic y("y");
@@ -77,4 +78,5 @@ TEST("Object") {
 
   c = o3.query(u3);
   CHECK(c.isNever());
+}
 }
