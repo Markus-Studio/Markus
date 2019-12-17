@@ -71,6 +71,11 @@ class Types {
    * Return a vector of the name of every type in this document.
    */
   std::vector<std::string> getTypeNames();
+
+  /**
+   * Return whatever this type is built-in or not.
+   */
+  bool isBuiltIn(std::string name);
 };
 }  // namespace Parser
 

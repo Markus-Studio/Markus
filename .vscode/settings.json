@@ -107,5 +107,6 @@
         "**/*.cmake": true,
         "**/coverage-report.html": true
     },
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "C_Cpp.clang_format_fallbackStyle": "Chromium"
 }
