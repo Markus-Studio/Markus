@@ -21,9 +21,9 @@ void printStatus(struct TestContext* current, enum UpdateReason r) {
       return;
     case UR_FAILED:
       std::cout << "[FAILED] " << current->description << std::endl;
-      std::cout << std::string(50, '#') << std::endl;
-      std::cout << "#  " << current->error << std::endl;
-      std::cout << std::string(50, '#') << std::endl;
+      std::cout << std::string(80, '-') << std::endl;
+      std::cout << current->error << std::endl;
+      std::cout << std::string(80, '-') << std::endl;
       return;
     case UR_COMPLETED:
       if (current->failed)

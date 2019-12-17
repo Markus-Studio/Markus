@@ -1,4 +1,4 @@
-#include "test.hpp"
+#include "../test.hpp"
 
 TEST("Hello") {
   CHECK_TRUE(false);

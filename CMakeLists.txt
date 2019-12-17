@@ -9,14 +9,14 @@ option(BUILD_FOR_COVERAGE "Build to be used with llvm-cov" OFF)
 include_directories(include)
 
 file(GLOB_RECURSE BIN_CPP_FILES "src/*/**.cpp")
-file(GLOB_RECURSE TEST_CPP_FILES "tests/*.cpp")
+file(GLOB_RECURSE TEST_CPP_FILES "test/*/**.cpp")
 
 if(BUILD_BINARY)
     add_executable(markus src/main.cpp ${BIN_CPP_FILES})
 endif(BUILD_BINARY)
 
 if(BUILD_TESTS)
-    add_executable(markus-test ${BIN_CPP_FILES} ${TEST_CPP_FILES})
+    add_executable(markus-test test/test.cpp ${BIN_CPP_FILES} ${TEST_CPP_FILES})
 endif(BUILD_TESTS)
 
 if(BUILD_FOR_COVERAGE)

@@ -79,16 +79,16 @@ struct AutoReg {
 int run();
 }  // namespace MarkusTesting
 
-#define CHECK(e)                                                              \
-  do {                                                                        \
-    if (!(e)) {                                                               \
-      ctx->failed = true;                                                     \
-      sprintf(ctx->error, "%s:%d Failed assertion `%s`.", __FILE__, __LINE__, \
-              #e);                                                            \
-      ctx->updated(ctx, MarkusTesting::UR_FAILED);                            \
-      return;                                                                 \
-    }                                                                         \
-    ctx->updated(ctx, MarkusTesting::UR_ASSERT);                              \
+#define CHECK(e)                                                       \
+  do {                                                                 \
+    if (!(e)) {                                                        \
+      ctx->failed = true;                                              \
+      sprintf(ctx->error, "%s:%d\n\tFailed assertion `%s`.", __FILE__, \
+              __LINE__, #e);                                           \
+      ctx->updated(ctx, MarkusTesting::UR_FAILED);                     \
+      return;                                                          \
+    }                                                                  \
+    ctx->updated(ctx, MarkusTesting::UR_ASSERT);                       \
   } while (0)
 
 #define CHECK_TRUE(e) CHECK(e == true)
