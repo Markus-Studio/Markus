@@ -53,4 +53,4 @@ TEST("Atomic") {
   CHECK(union3.has(&atomicFloat) == true);
   CHECK(union3.has(&atomicInt) == false);
 }
-}
+}  // namespace

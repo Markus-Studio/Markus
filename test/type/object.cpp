@@ -79,4 +79,4 @@ TEST("Object") {
   c = o3.query(u3);
   CHECK(c.isNever());
 }
-}
+}  // namespace

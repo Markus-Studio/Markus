@@ -116,4 +116,4 @@ TEST("is") {
   CHECK(1 == AorEorB.is(&BorC));
   CHECK(0 == BorC.is(&A));
 }
-}
+}  // namespace
