@@ -25,11 +25,13 @@ def generateReport():
     exec(["./bin/markus-test"], env=env)
     exec(["llvm-profdata", "merge", "-sparse", "/tmp/markus.profraw", "-o", "/tmp/markus.profdata"])
     exec_save(["llvm-cov", "show", "./bin/markus-test", "-instr-profile=/tmp/markus.profdata", "-format=html"], "coverage-report.html")
+    exec(["llvm-cov", "report", "./bin/markus-test", "-instr-profile=/tmp/markus.profdata"])
 
 def main():
     os.chdir(get_git_root())
     build()
     generateReport()
+    print("A full report was saved to coverage-report.html")
 
 if __name__ == "__main__":
     sys.exit(main())
