@@ -12,3 +12,4 @@ _deps
 build
 catch.hpp
 bin
+*.cmake

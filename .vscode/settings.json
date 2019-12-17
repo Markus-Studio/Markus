@@ -103,7 +103,8 @@
         "**/build": true,
         "**/markus": true,
         "**/catch.hpp": true,
-        "**/bin": true
+        "**/bin": true,
+        "**/*.cmake": true
     },
     "cmake.configureOnOpen": false
 }
