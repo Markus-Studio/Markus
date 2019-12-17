@@ -1,34 +1,36 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <assert.h>
-#include "tests.hpp"
 #include "type/uri.hpp"
 
-void test_uri()
-{
-    Type::Uri uri, uri2;
-    std::vector<std::string> units;
+#include <assert.h>
 
-    assert(uri.isEmpty() == true);
+#include <iostream>
+#include <string>
+#include <vector>
 
-    uri = Type::Uri("A", "B");
-    assert(uri.isEmpty() == false);
+#include "tests.hpp"
 
-    units = uri.getUnits();
-    assert(units.size() == 2);
-    assert(units[0] == "A");
-    assert(units[1] == "B");
+void test_uri() {
+  Type::Uri uri, uri2;
+  std::vector<std::string> units;
 
-    uri2 = uri.popFirst();
-    units = uri2.getUnits();
-    assert(units.size() == 1);
-    assert(units[1] == "B");
+  assert(uri.isEmpty() == true);
 
-    units = uri.getUnits();
-    assert(units.size() == 2);
-    assert(units[0] == "A");
-    assert(units[1] == "B");
+  uri = Type::Uri("A", "B");
+  assert(uri.isEmpty() == false);
 
-    std::cout << "done: test_uri" << std::endl;
+  units = uri.getUnits();
+  assert(units.size() == 2);
+  assert(units[0] == "A");
+  assert(units[1] == "B");
+
+  uri2 = uri.popFirst();
+  units = uri2.getUnits();
+  assert(units.size() == 1);
+  assert(units[1] == "B");
+
+  units = uri.getUnits();
+  assert(units.size() == 2);
+  assert(units[0] == "A");
+  assert(units[1] == "B");
+
+  std::cout << "done: test_uri" << std::endl;
 }

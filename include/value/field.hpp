@@ -2,58 +2,57 @@
 #define __MARKUS_VALUE_FIELD__
 
 #include <string>
+
 #include "type/uri.hpp"
 
-namespace Value
-{
+namespace Value {
 /**
  * The field value is just a URI with informations regarding
  * its location in the source code.
  */
-class Field
-{
-private:
-    /**
-     * The URI for this value.
-     */
-    Type::Uri uri;
+class Field {
+ private:
+  /**
+   * The URI for this value.
+   */
+  Type::Uri uri;
 
-    /**
-     * Line number.
-     */
-    int line;
+  /**
+   * Line number.
+   */
+  int line;
 
-    /**
-     * Column number.
-     */
-    int column;
+  /**
+   * Column number.
+   */
+  int column;
 
-public:
-    /**
-     * Constructs a new Field value.
-     */
-    Field(int line, int column, Type::Uri uri);
+ public:
+  /**
+   * Constructs a new Field value.
+   */
+  Field(int line, int column, Type::Uri uri);
 
-    /**
-     * Return the uri.
-     */
-    Type::Uri asUri();
+  /**
+   * Return the uri.
+   */
+  Type::Uri asUri();
 
-    /**
-     * Return the line number.
-     */
-    int getLine();
+  /**
+   * Return the line number.
+   */
+  int getLine();
 
-    /**
-     * Return the column number.
-     */
-    int getColumn();
+  /**
+   * Return the column number.
+   */
+  int getColumn();
 
-    /**
-     * Format the field and return it as an string.
-     */
-    std::string toString();
+  /**
+   * Format the field and return it as an string.
+   */
+  std::string toString();
 };
-} // namespace Value
+}  // namespace Value
 
 #endif

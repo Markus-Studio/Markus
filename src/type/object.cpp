@@ -1,242 +1,219 @@
+#include "type/object.hpp"
+
+#include <assert.h>
+
+#include <list>
 #include <string>
 #include <vector>
-#include <list>
-#include <assert.h>
-#include "type/uri.hpp"
+
 #include "type/atomic.hpp"
-#include "type/union.hpp"
-#include "type/object.hpp"
 #include "type/container.hpp"
+#include "type/union.hpp"
+#include "type/uri.hpp"
 
-namespace Type
-{
+namespace Type {
 
-int getObjectId()
-{
-    static int lastId = 100;
-    return lastId++;
+int getObjectId() {
+  static int lastId = 100;
+  return lastId++;
 }
 
-Object::Object(std::string name)
-{
-    this->name = name;
-    computingGetAllBases = false;
-    uid = getObjectId();
+Object::Object(std::string name) {
+  this->name = name;
+  computingGetAllBases = false;
+  uid = getObjectId();
 }
 
-Object::Object(std::string name, std::vector<Object *> bases)
-{
-    this->name = name;
-    this->bases.assign(bases.begin(), bases.end());
-    this->bases.shrink_to_fit();
-    computingGetAllBases = false;
-    uid = getObjectId();
+Object::Object(std::string name, std::vector<Object*> bases) {
+  this->name = name;
+  this->bases.assign(bases.begin(), bases.end());
+  this->bases.shrink_to_fit();
+  computingGetAllBases = false;
+  uid = getObjectId();
 }
 
-Object::Object(std::string name, Object *a)
-{
-    this->name = name;
-    bases.push_back(a);
-    bases.shrink_to_fit();
-    computingGetAllBases = false;
-    uid = getObjectId();
+Object::Object(std::string name, Object* a) {
+  this->name = name;
+  bases.push_back(a);
+  bases.shrink_to_fit();
+  computingGetAllBases = false;
+  uid = getObjectId();
 }
 
-Object::Object(std::string name, Object *a, Object *b)
-{
-    this->name = name;
-    bases.push_back(a);
-    bases.push_back(b);
-    bases.shrink_to_fit();
-    computingGetAllBases = false;
-    uid = getObjectId();
+Object::Object(std::string name, Object* a, Object* b) {
+  this->name = name;
+  bases.push_back(a);
+  bases.push_back(b);
+  bases.shrink_to_fit();
+  computingGetAllBases = false;
+  uid = getObjectId();
 }
 
-Object::Object(std::string name, Object *a, Object *b, Object *c)
-{
-    this->name = name;
-    bases.push_back(a);
-    bases.push_back(b);
-    bases.push_back(c);
-    bases.shrink_to_fit();
-    computingGetAllBases = false;
-    uid = getObjectId();
+Object::Object(std::string name, Object* a, Object* b, Object* c) {
+  this->name = name;
+  bases.push_back(a);
+  bases.push_back(b);
+  bases.push_back(c);
+  bases.shrink_to_fit();
+  computingGetAllBases = false;
+  uid = getObjectId();
 }
 
-std::string Object::getName()
-{
-    return name;
+std::string Object::getName() {
+  return name;
 }
 
-int Object::getId()
-{
-    return uid;
+int Object::getId() {
+  return uid;
 }
 
-void Object::addBase(Object *base)
-{
-    allBasesCache.clear();
-    bases.push_back(base);
+void Object::addBase(Object* base) {
+  allBasesCache.clear();
+  bases.push_back(base);
 }
 
-bool Object::set(std::string key, Atomic *type, bool nullable)
-{
-    if (has(key))
-        return false;
-    struct ObjectField field = {key, nullable, Container(type)};
-    fields.push_back(field);
-    return true;
-}
-
-bool Object::set(std::string key, Object *type, bool nullable)
-{
-    if (has(key))
-        return false;
-    struct ObjectField field = {key, nullable, Container(type)};
-    fields.push_back(field);
-    return true;
-}
-
-bool Object::owns(std::string key)
-{
-    std::vector<struct ObjectField>::iterator it;
-    for (it = fields.begin(); it != fields.end(); ++it)
-        if (it->key == key)
-            return true;
+bool Object::set(std::string key, Atomic* type, bool nullable) {
+  if (has(key))
     return false;
+  struct ObjectField field = {key, nullable, Container(type)};
+  fields.push_back(field);
+  return true;
 }
 
-bool Object::has(std::string key)
-{
-    if (owns(key))
-        return true;
-
-    std::vector<Object *>::iterator it;
-    for (it = bases.begin(); it != bases.end(); ++it)
-        if ((*it)->has(key))
-            return true;
-
+bool Object::set(std::string key, Object* type, bool nullable) {
+  if (has(key))
     return false;
+  struct ObjectField field = {key, nullable, Container(type)};
+  fields.push_back(field);
+  return true;
 }
 
-bool Object::has(Uri uri)
-{
-    if (uri.size() == 1)
-        return has(uri.getFirstUnit());
-
-    Container container = query(uri);
-    return !container.isNever();
+bool Object::owns(std::string key) {
+  std::vector<struct ObjectField>::iterator it;
+  for (it = fields.begin(); it != fields.end(); ++it)
+    if (it->key == key)
+      return true;
+  return false;
 }
 
-std::vector<Object *> Object::getBases()
-{
-    std::vector<Object *> temp;
-    temp.assign(bases.begin(), bases.end());
-    temp.shrink_to_fit();
-    return temp;
+bool Object::has(std::string key) {
+  if (owns(key))
+    return true;
+
+  std::vector<Object*>::iterator it;
+  for (it = bases.begin(); it != bases.end(); ++it)
+    if ((*it)->has(key))
+      return true;
+
+  return false;
 }
 
-std::vector<Object *> Object::getAllBases()
-{
-    if (!allBasesCache.empty() || bases.empty())
-        return allBasesCache;
+bool Object::has(Uri uri) {
+  if (uri.size() == 1)
+    return has(uri.getFirstUnit());
 
-    // Prevent circular call to getAllBases(), circular objects
-    // are not supposed to exists.
-    assert(computingGetAllBases == false);
-    computingGetAllBases = true;
+  Container container = query(uri);
+  return !container.isNever();
+}
 
-    Object *obj;
-    std::vector<Object *> result, tmp;
-    bool found;
-    result.assign(bases.begin(), bases.end());
+std::vector<Object*> Object::getBases() {
+  std::vector<Object*> temp;
+  temp.assign(bases.begin(), bases.end());
+  temp.shrink_to_fit();
+  return temp;
+}
 
-    std::vector<Object *>::iterator bIt, bIt2, it;
-    for (bIt = bases.begin(); bIt != bases.end(); ++bIt)
-    {
-        tmp = (*bIt)->getAllBases();
-        for (bIt2 = tmp.begin(); bIt2 != tmp.end(); ++bIt2)
-        {
-            found = false;
-            for (it = result.begin(); it != result.end(); ++it)
-            {
-                if ((*it)->getId() == (*bIt2)->getId())
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-            {
-                obj = *bIt2;
-                result.push_back(obj);
-            }
+std::vector<Object*> Object::getAllBases() {
+  if (!allBasesCache.empty() || bases.empty())
+    return allBasesCache;
+
+  // Prevent circular call to getAllBases(), circular objects
+  // are not supposed to exists.
+  assert(computingGetAllBases == false);
+  computingGetAllBases = true;
+
+  Object* obj;
+  std::vector<Object*> result, tmp;
+  bool found;
+  result.assign(bases.begin(), bases.end());
+
+  std::vector<Object*>::iterator bIt, bIt2, it;
+  for (bIt = bases.begin(); bIt != bases.end(); ++bIt) {
+    tmp = (*bIt)->getAllBases();
+    for (bIt2 = tmp.begin(); bIt2 != tmp.end(); ++bIt2) {
+      found = false;
+      for (it = result.begin(); it != result.end(); ++it) {
+        if ((*it)->getId() == (*bIt2)->getId()) {
+          found = true;
+          break;
         }
+      }
+      if (!found) {
+        obj = *bIt2;
+        result.push_back(obj);
+      }
     }
+  }
 
-    computingGetAllBases = false;
-    result.shrink_to_fit();
-    return allBasesCache = result;
+  computingGetAllBases = false;
+  result.shrink_to_fit();
+  return allBasesCache = result;
 }
 
-Container Object::query(std::string name)
-{
-    Container container;
+Container Object::query(std::string name) {
+  Container container;
 
-    std::vector<struct ObjectField>::iterator it;
-    for (it = fields.begin(); it != fields.end(); ++it)
-        if (it->key == name)
-            return it->type;
+  std::vector<struct ObjectField>::iterator it;
+  for (it = fields.begin(); it != fields.end(); ++it)
+    if (it->key == name)
+      return it->type;
 
-    std::vector<Object *>::iterator bIt;
-    for (bIt = bases.begin(); bIt != bases.end(); ++bIt)
-        if (!(container = (*bIt)->query(name)).isNever())
-            return container;
+  std::vector<Object*>::iterator bIt;
+  for (bIt = bases.begin(); bIt != bases.end(); ++bIt)
+    if (!(container = (*bIt)->query(name)).isNever())
+      return container;
 
+  return container;
+}
+
+Container Object::query(Uri uri) {
+  if (uri.isEmpty())
+    return Container(this);
+
+  if (uri.size() == 1)
+    return query(uri.getFirstUnit());
+
+  Container container = query(uri.getFirstUnit());
+  uri = uri.popFirst();
+
+  if (container.isNever())
     return container;
+
+  if (container.isObject())
+    return container.asObject()->query(uri);
+
+  return Container();
 }
 
-Container Object::query(Uri uri)
-{
-    if (uri.isEmpty())
-        return Container(this);
+bool Object::is(Object* obj) {
+  if (obj->uid == uid)
+    return true;
 
-    if (uri.size() == 1)
-        return query(uri.getFirstUnit());
-    
-    Container container = query(uri.getFirstUnit());
-    uri = uri.popFirst();
+  std::vector<Object*> bases = getAllBases();
+  std::vector<Object*>::iterator it = bases.begin();
+  for (; it != bases.end(); ++it)
+    if ((*it)->uid == obj->uid)
+      return true;
 
-    if (container.isNever())
-        return container;
-    
-    if (container.isObject())
-        return container.asObject()->query(uri);
-    
-    return Container();
+  return false;
 }
 
-bool Object::is(Object *obj)
-{
-    if (obj->uid == uid)
-        return true;
-
-    std::vector<Object *> bases = getAllBases();
-    std::vector<Object *>::iterator it = bases.begin();
-    for (; it != bases.end(); ++it)
-        if ((*it)->uid == obj->uid)
-            return true;
-
-    return false;
+bool Object::is(Union* u) {
+  std::list<Object*>::iterator it = u->objectMembers.begin();
+  for (; it != u->objectMembers.end(); ++it)
+    if (is(*it))
+      return true;
+  return false;
 }
 
-bool Object::is(Union *u)
-{
-    std::list<Object *>::iterator it = u->objectMembers.begin();
-    for (; it != u->objectMembers.end(); ++it)
-        if (is(*it))
-            return true;
-    return false;
-}
-
-} // namespace Type
+}  // namespace Type

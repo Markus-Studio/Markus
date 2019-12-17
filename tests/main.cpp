@@ -1,17 +1,17 @@
 #include <iostream>
+
 #include "tests.hpp"
 
 using namespace std;
 
-int main()
-{
-    cout << "Running\n";
+int main() {
+  cout << "Running\n";
 
-    test_atomic();
-    test_object();
-    test_is();
-    test_uri();
+  test_atomic();
+  test_object();
+  test_is();
+  test_uri();
 
-    cout << "Successful\n";
-    return 0;
+  cout << "Successful\n";
+  return 0;
 }
