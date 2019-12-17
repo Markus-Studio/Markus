@@ -1,15 +1,11 @@
 #include "test.hpp"
 
-void test_01(struct MarkusTesting::TestContext* ctx) {}
+TEST("Hello") {
+  UNIT("S", { CHECK(1 == 1); });
+  UNIT("URP", { CHECK(1 == 1); });
 
-namespace {
-MarkusTesting::AutoReg x("Test 01", &test_01);
-}
-
-void test_2(struct MarkusTesting::TestContext* ctx) {
-  ctx->failed = true;
-}
-
-namespace {
-MarkusTesting::AutoReg y("Test 02", &test_2);
+  UNIT("PEEXX", {
+    UNIT("D", { CHECK(1 == 1); });
+    UNIT("F", { CHECK(1 == 1); });
+  });
 }
