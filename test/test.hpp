@@ -57,11 +57,6 @@ struct TestContext {
   bool finished;
 
   /**
-   * Name of the current unit that we're runnning at this moment.
-   */
-  std::list<std::string> currentUnit;
-
-  /**
    * Error message.
    */
   char error[512];
@@ -96,24 +91,24 @@ int run();
     ctx->updated(ctx, MarkusTesting::UR_ASSERT);                              \
   } while (0)
 
-#define MTESTING_CONCAT2(a, b) a##b
-#define MTESTING_CONCAT(a, b) MTESTING_CONCAT2(a, b)
-#define MTESTING_UNIQUE_NAME(name) MTESTING_CONCAT(name, __COUNTER__)
-#define MTESTING_GET_TEST_NAME() MTESTING_UNIQUE_NAME(MARKUS_test_)
+#define CHECK_TRUE(e) CHECK(e == true)
+#define CHECK_FALSE(e) CHECK(e == true)
 
-#define MTESTING_GENERATE_TEST(description, name)                           \
-  void name(MarkusTesting::TestContext*);                                   \
-  namespace {                                                               \
-  MarkusTesting::AutoReg MTESTING_UNIQUE_NAME(MTESAUT)(description, &name); \
-  }                                                                         \
+#define MARKUS_TESTING_CONCAT2(a, b) a##b
+#define MARKUS_TESTING_CONCAT(a, b) MARKUS_TESTING_CONCAT2(a, b)
+#define MARKUS_TESTING_UNIQUE_NAME(name) \
+  MARKUS_TESTING_CONCAT(name, __COUNTER__)
+#define MARKUS_TESTING_GET_TEST_NAME() MARKUS_TESTING_UNIQUE_NAME(MARKUS_test_)
+
+#define MARKUS_TESTING_GENERATE_TEST(description, name)                    \
+  void name(MarkusTesting::TestContext*);                                  \
+  namespace {                                                              \
+  MarkusTesting::AutoReg MARKUS_TESTING_UNIQUE_NAME(MAR_AUTO)(description, \
+                                                              &name);      \
+  }                                                                        \
   void name(MarkusTesting::TestContext* ctx)
 
 #define TEST(description) \
-  MTESTING_GENERATE_TEST(description, MTESTING_GET_TEST_NAME())
-
-#define UNIT(name, block)                          \
-  ctx->currentUnit.push_back(name);                \
-  ctx->updated(ctx, MarkusTesting::UR_ENTER_UNIT); \
-  block ctx->currentUnit.pop_back()
+  MARKUS_TESTING_GENERATE_TEST(description, MARKUS_TESTING_GET_TEST_NAME())
 
 #endif
