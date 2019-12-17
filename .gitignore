@@ -13,3 +13,4 @@ build
 catch.hpp
 bin
 *.cmake
+coverage-report.html
