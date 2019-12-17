@@ -1,11 +1,9 @@
 image: gcc
 
-before_script:
-  - apt update && apt -y install make cmake
-
 build:
   stage: build
   script:
+    - apt update && apt -y install make cmake
     - cmake . -DBUILD_TESTS=ON
     - make
   artifacts:
