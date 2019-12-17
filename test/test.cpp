@@ -54,5 +54,5 @@ int run() {
 }  // namespace MarkusTesting
 
 int main() {
-  MarkusTesting::run();
+  return MarkusTesting::run();
 }

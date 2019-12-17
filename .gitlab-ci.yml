@@ -6,13 +6,13 @@ before_script:
 build:
   stage: build
   script:
-    - cmake .
+    - cmake . -DBUILD_TESTS=ON
     - make
   artifacts:
     paths:
       - ./bin/markus-test
 
-# test:
-#   stage: test
-#   script:
-#     - ./bin/markus-test
+test:
+  stage: test
+  script:
+    - ./bin/markus-test
