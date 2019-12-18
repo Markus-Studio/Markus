@@ -1,5 +1,6 @@
-#include <iostream>
 #include "writer/file.hpp"
+
+#include <iostream>
 
 #include "../test.hpp"
 

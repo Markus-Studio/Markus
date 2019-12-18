@@ -1,5 +1,6 @@
-#include <iostream>
 #include "writer/file.hpp"
+
+#include <iostream>
 
 namespace Writer {
 void File::keepSync(std::ofstream* stream) {
