@@ -108,5 +108,8 @@
         "**/coverage-report.html": true
     },
     "cmake.configureOnOpen": false,
-    "C_Cpp.clang_format_fallbackStyle": "Chromium"
+    "C_Cpp.clang_format_fallbackStyle": "Chromium",
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.detectIndentation": true
 }

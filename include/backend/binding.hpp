@@ -2,7 +2,7 @@
 #define __MARKUS_BACKEND_BINDING__
 
 #include "parser/types.hpp"
-#include "writer/container.hpp"
+#include "writer/directory.hpp"
 
 namespace Backend {
 /**
@@ -15,17 +15,17 @@ struct Binding {
    * First pass in the compiler is to genreate the runtime, which is a constant
    * set of functions or headers that are used in the library.
    */
-  void (*generageRuntime)(Writer::Container* container);
+  void (*generageRuntime)(Writer::Directory* dir);
 
   /**
    * Second pass in the compilation is generating the file format that contains
    * data objects, and the API to interact with this form as well as the object
    * repository.
-   * 
+   *
    * Object repository is a simple map between object ids to their location on
    * the disk.
    */
-  void (*generateTypes)(Writer::Container* container, Parser::Types* types);
+  void (*generateTypes)(Writer::Directory* dir, Parser::Types* types);
 };
 
 struct Binding* CBinding;

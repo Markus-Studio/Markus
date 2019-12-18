@@ -31,7 +31,7 @@ def main():
     os.chdir(get_git_root())
     build()
     generateReport()
-    print("A full report was saved to coverage-report.html")
+    print("A full report was saved to ./coverage-report.html")
 
 if __name__ == "__main__":
     sys.exit(main())
