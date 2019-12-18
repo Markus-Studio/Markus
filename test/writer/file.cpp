@@ -1,3 +1,4 @@
+#include <iostream>
 #include "writer/file.hpp"
 
 #include "../test.hpp"
@@ -93,6 +94,33 @@ TEST("File: write number") {
   File file;
   file << 123;
   CHECK(file.str() == "123");
+}
+
+TEST("File: sync") {
+  File file;
+  file << "A";
+
+  std::ofstream disk;
+  disk.open("/tmp/markus-test-writer-01.txt", std::ios::out | std::ios::trunc);
+
+  CHECK(disk.is_open());
+
+  file.keepSync(&disk);
+
+  file << 123;
+  file << "B";
+  file << "C";
+  file << "\n";
+  file.close();
+
+  CHECK(!disk.is_open());
+
+  std::ifstream contentStream;
+  std::stringstream stream;
+  contentStream.open("/tmp/markus-test-writer-01.txt", std::ios::in);
+  stream << contentStream.rdbuf();
+
+  CHECK(stream.str() == "A123BC\n");
 }
 
 }  // namespace

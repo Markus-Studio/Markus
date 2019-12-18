@@ -20,19 +20,30 @@ class File {
   /**
    * File streams that are synced with this file.
    */
-  std::vector<std::ofstream> files;
-
-  /**
-   * Links this file against a real file on disk with the given path.
-   */
-  void addPath(std::string path);
+  std::vector<std::ofstream*> files;
 
   /**
    * Whatever this file is closed or not.
    */
   bool closed;
 
+  /**
+   * Temperory buffer to write the data to the files.
+   */
+  std::stringstream buffer;
+
+  /**
+   * Write the temprory buffer to each synced file.
+   */
+  void flush();
+
  public:
+  /**
+   * Adds the given file stream to the files list so we will pipe everything to
+   * given stream as well.
+   */
+  void keepSync(std::ofstream* stream);
+
   /**
    * Writes the current content of this file into the given stream.
    */
