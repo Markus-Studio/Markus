@@ -1,6 +1,8 @@
 #include "writer/directory.hpp"
 
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -78,6 +80,23 @@ bool markus_mkpath(std::string path) {
   return true;
 }
 
+std::string join_path(std::string dir, std::string filename) {
+  return dir + filename;
+}
+
+inline void file_keepSync(std::string dirPath,
+                          std::string filename,
+                          File* memFile) {
+  std::string filePath = join_path(dirPath, filename);
+  std::ofstream* file = new std::ofstream();
+  file->open(filePath, std::ios::out | std::ios::trunc);
+  if (!file->is_open()) {
+    std::cerr << "Cannot access " << filePath << std::endl;
+    exit(-1);
+  }
+  memFile->keepSync(file);
+}
+
 void Directory::bind(std::string path) {
   if (path == fsPath)
     return;
@@ -85,13 +104,65 @@ void Directory::bind(std::string path) {
   // Check and see if we're not binded to any directory at the moment.
   assert(fsPath == "");
 
-  const char* cPath = path.c_str();
-  struct stat info;
-
   // Check if twe have access.
   if (!markus_mkpath(path)) {
-    std::cout << "Cannot access " << path << std::endl;
+    std::cerr << "Cannot access " << path << std::endl;
     exit(-1);
   }
+
+  std::map<std::string, File*>::iterator filesIter;
+  std::map<std::string, Directory*>::iterator dirsIter;
+  ;
+
+  for (filesIter = files.begin(); filesIter != files.end(); ++filesIter)
+    file_keepSync(path, filesIter->first, filesIter->second);
+
+  for (dirsIter = dirs.begin(); dirsIter != dirs.end(); ++dirsIter) {
+    std::string dirPath = join_path(path, filesIter->first);
+    dirsIter->second->bind(dirPath);
+  }
 }
+
+Directory::Directory() {}
+
+Directory::Directory(std::string path) {
+  bind(path);
+}
+
+File* Directory::createFile(std::string name) {
+  assert(!has(name));
+  File* file = new File();
+  if (!fsPath.empty())
+    file_keepSync(fsPath, name, file);
+  files.insert(std::pair<std::string, File*>(name, file));
+  return file;
+}
+
+void Directory::addFile(std::string name, File* file) {
+  assert(!has(name));
+  if (!fsPath.empty())
+    file_keepSync(fsPath, name, file);
+  files.insert(std::pair<std::string, File*>(name, file));
+}
+
+Directory* Directory::createDirectory(std::string name) {
+  assert(!has(name));
+  Directory* dir = new Directory();
+  if (!fsPath.empty())
+    dir->bind(join_path(fsPath, name));
+  dirs.insert(std::pair<std::string, Directory*>(name, dir));
+  return dir;
+}
+
+void Directory::addDirectory(std::string name, Directory* dir) {
+  assert(!has(name));
+  if (!fsPath.empty())
+    dir->bind(join_path(fsPath, name));
+  dirs.insert(std::pair<std::string, Directory*>(name, dir));
+}
+
+inline bool Directory::has(std::string name) {
+  return files.count(name) > 0 || dirs.count(name) > 0;
+}
+
 }  // namespace Writer

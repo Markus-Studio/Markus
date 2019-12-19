@@ -1,6 +1,7 @@
 #ifndef __MARKUS_WRITER_DIRECTORY__
 #define __MARKUS_WRITER_DIRECTORY__
 
+#include <map>
 #include <string>
 
 #include "writer/file.hpp"
@@ -20,6 +21,16 @@ class Directory {
    * Bind this directory to the file system.
    */
   void bind(std::string path);
+
+  /**
+   * Map of all the files in the current directory.
+   */
+  std::map<std::string, File*> files;
+
+  /**
+   * Directories in the current directory.
+   */
+  std::map<std::string, Directory*> dirs;
 
  public:
   /**
@@ -52,6 +63,11 @@ class Directory {
    * Adds the given **in memory** directory to this dir.
    */
   void addDirectory(std::string name, Directory* dir);
+
+  /**
+   * Returns whatever the given name exists in this directory.
+   */
+  bool has(std::string name);
 };
 }  // namespace Writer
 
