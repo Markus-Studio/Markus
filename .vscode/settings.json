@@ -111,5 +111,6 @@
     "C_Cpp.clang_format_fallbackStyle": "Chromium",
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
-    "editor.detectIndentation": true
+    "editor.detectIndentation": true,
+    "terminal.integrated.rendererType": "experimentalWebgl"
 }

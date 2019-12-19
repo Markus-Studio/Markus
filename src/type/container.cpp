@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "type/array.hpp"
 #include "type/atomic.hpp"
 #include "type/object.hpp"
 #include "type/union.hpp"
@@ -61,10 +62,40 @@ bool Container::isObject() {
   return kind == TYPE_KIND_OBJECT;
 }
 
+Container::Container(Array* a) {
+  kind = TYPE_KIND_ARRAY;
+  type = a;
+}
+
+Array* Container::asArray() {
+  assert(kind == TYPE_KIND_ARRAY);
+  return (Array*)type;
+}
+
+bool Container::isArray() {
+  return kind == TYPE_KIND_ARRAY;
+}
+
+bool Container::is(Container* type) {
+  switch (type->kind) {
+    case TYPE_KIND_NEVER:
+      return false;
+    case TYPE_KIND_ATOMIC:
+      return is(type->asAtomic());
+    case TYPE_KIND_UNION:
+      return is(type->asUnion());
+    case TYPE_KIND_OBJECT:
+      return is(type->asObject());
+    case TYPE_KIND_ARRAY:
+      return is(type->asArray());
+  }
+}
+
 bool Container::is(Atomic* type) {
   switch (kind) {
     case TYPE_KIND_NEVER:
     case TYPE_KIND_OBJECT:
+    case TYPE_KIND_ARRAY:
       return false;
     case TYPE_KIND_ATOMIC:
       return asAtomic()->is(type);
@@ -76,6 +107,7 @@ bool Container::is(Atomic* type) {
 bool Container::is(Union* type) {
   switch (kind) {
     case TYPE_KIND_NEVER:
+    case TYPE_KIND_ARRAY:
       return false;
     case TYPE_KIND_ATOMIC:
       return asAtomic()->is(type);
@@ -90,12 +122,19 @@ bool Container::is(Object* type) {
   switch (kind) {
     case TYPE_KIND_NEVER:
     case TYPE_KIND_ATOMIC:
+    case TYPE_KIND_ARRAY:
       return false;
     case TYPE_KIND_OBJECT:
       return asObject()->is(type);
     case TYPE_KIND_UNION:
       return asUnion()->is(type);
   }
+}
+
+bool Container::is(Array* type) {
+  if (kind == TYPE_KIND_ARRAY)
+    return asArray()->is(type);
+  return false;
 }
 
 }  // namespace Type

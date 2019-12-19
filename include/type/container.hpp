@@ -6,12 +6,14 @@ namespace Type {
 class Object;
 class Atomic;
 class Union;
+class Array;
 
 enum TypeKind {
   TYPE_KIND_NEVER,
   TYPE_KIND_ATOMIC,
   TYPE_KIND_UNION,
-  TYPE_KIND_OBJECT
+  TYPE_KIND_OBJECT,
+  TYPE_KIND_ARRAY
 };
 
 /**
@@ -91,6 +93,26 @@ class Container {
   bool isObject();
 
   /**
+   * Construct a new container from an array type.
+   */
+  Container(Array* type);
+
+  /**
+   * Returns the contained type as an array type.
+   */
+  Array* asArray();
+
+  /**
+   * Check if the container is containing an array type.
+   */
+  bool isArray();
+
+  /**
+   * Returns the result of `contained is type.contained`.
+   */
+  bool is(Container* type);
+
+  /**
    * Return the result of evaluating `contained is type`,
    * whereas type is an atomic.
    */
@@ -107,6 +129,12 @@ class Container {
    * whereas type is an object.
    */
   bool is(Object* type);
+
+  /**
+   * Return the result of evaluating `contained is type`,
+   * whereas type is an array.
+   */
+  bool is(Array* type);
 };
 
 }  // namespace Type
