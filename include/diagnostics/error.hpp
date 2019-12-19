@@ -21,7 +21,8 @@ enum ErrorNo {
   E_NAME_ALREADY_IN_USE,
   E_CIRCULAR_BASE,
   E_CANNOT_RESOLVE_NAME,
-  E_BASE_MUST_BE_OBJECT
+  E_BASE_MUST_BE_OBJECT,
+  E_CIRCULAR_FIELD_IS_NOT_NULL
 };
 
 /**
@@ -115,6 +116,11 @@ class Error {
    * Constructs a new cannot resolve name error.
    */
   static Error* cannotResolveName(Parser::Token* token);
+
+  /**
+   * Constructs a new circular field must be null.
+   */
+  static Error* circularField(std::string typeName, std::string fieldName);
 };
 }  // namespace Diagnostics
 

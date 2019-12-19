@@ -103,4 +103,11 @@ Error* Error::cannotResolveName(Parser::Token* token) {
   return new Error(E_CANNOT_RESOLVE_NAME, fmt.str());
 }
 
+Error* Error::circularField(std::string typeName, std::string fieldName) {
+  std::stringstream fmt;
+  fmt << "Error: " << typeName << " has a non-nullable circular field "
+      << fieldName << ".";
+  return new Error(E_CIRCULAR_FIELD_IS_NOT_NULL, fmt.str());
+}
+
 }  // namespace Diagnostics

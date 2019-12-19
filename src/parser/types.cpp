@@ -149,12 +149,18 @@ void Types::parse(Scanner* scanner,
     std::string typeName, name;
     Type::Container* type;
     Token* nameToken;
+    bool nullable = false;
     bool result = false;
 
     if (!(*it)->isIdentifier())
       return Controller::report(Error::unexpectedToken(*it, "type name"));
 
     typeName = (*it++)->getWord();
+
+    if (**it == "?") {
+      nullable = true;
+      it++;
+    }
 
     if (!(*it)->isIdentifier())
       return Controller::report(Error::unexpectedToken(*it, "identifier"));
@@ -171,17 +177,15 @@ void Types::parse(Scanner* scanner,
       return Controller::report(Error::cannotResolveName(*it));
 
     if (type->isObject())
-      result = obj->set(name, type->asObject(), false);
+      result = obj->set(name, type->asObject(), nullable);
     else if (type->isAtomic())
-      result = obj->set(name, type->asAtomic(), false);
+      result = obj->set(name, type->asAtomic(), nullable);
 
     if (!result)
       return Controller::report(Error::nameAlreadyInUse(nameToken));
 
-    if (checkSeenByName(seen, typeName)) {
-      // TODO(qti3e) A circular field must be nullable.
-      std::cout << " Field " << name << " is circular." << std::endl;
-    }
+    if (!nullable && checkSeenByName(seen, typeName))
+      return Controller::report(Error::circularField(obj->getName(), name));
   }
 }
 
