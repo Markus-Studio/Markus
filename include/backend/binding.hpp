@@ -15,7 +15,7 @@ struct Binding {
    * First pass in the compiler is to genreate the runtime, which is a constant
    * set of functions or headers that are used in the library.
    */
-  void (*generageRuntime)(Writer::Directory* dir);
+  void (*generateRuntime)(Writer::Directory* dir);
 
   /**
    * Second pass in the compilation is generating the file format that contains
@@ -28,7 +28,11 @@ struct Binding {
   void (*generateTypes)(Writer::Directory* dir, Parser::Types* types);
 };
 
-struct Binding* CBinding;
+/**
+ * Create a binding for C backend.
+ */
+struct Binding createCBinding();
+
 }  // namespace Backend
 
 #endif

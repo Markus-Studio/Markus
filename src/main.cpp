@@ -4,11 +4,13 @@
 #include <string>
 #include <vector>
 
+#include "backend/binding.hpp"
 #include "diagnostics/controller.hpp"
 #include "diagnostics/error.hpp"
 #include "parser/scanner.hpp"
 #include "parser/tokenizer.hpp"
 #include "parser/types.hpp"
+#include "writer/directory.hpp"
 
 using namespace std;
 
@@ -32,6 +34,14 @@ int main(int argc, char* argv[]) {
   Parser::Scanner scanner(tokens);
   Parser::Types types(&scanner);
 
-  if (Diagnostics::Controller::hasError())
+  if (Diagnostics::Controller::hasError()) {
     Diagnostics::Controller::dumpAll();
+    return -1;
+  }
+
+  Writer::Directory output("/tmp/markus-output");
+
+  struct Backend::Binding c = Backend::createCBinding();
+  c.generateRuntime(&output);
+  c.generateTypes(&output, &types);
 }
