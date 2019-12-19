@@ -81,7 +81,10 @@ bool markus_mkpath(std::string path) {
 }
 
 std::string join_path(std::string dir, std::string filename) {
-  return dir + filename;
+  int size = dir.size();
+  if (dir[size - 1] == '/')
+    return dir + filename;
+  return dir + '/' + filename;
 }
 
 inline void file_keepSync(std::string dirPath,
@@ -110,9 +113,10 @@ void Directory::bind(std::string path) {
     exit(-1);
   }
 
+  fsPath = path;
+
   std::map<std::string, File*>::iterator filesIter;
   std::map<std::string, Directory*>::iterator dirsIter;
-  ;
 
   for (filesIter = files.begin(); filesIter != files.end(); ++filesIter)
     file_keepSync(path, filesIter->first, filesIter->second);
@@ -123,13 +127,17 @@ void Directory::bind(std::string path) {
   }
 }
 
-Directory::Directory() {}
+Directory::Directory() {
+  closed = false;
+}
 
 Directory::Directory(std::string path) {
+  closed = false;
   bind(path);
 }
 
 File* Directory::createFile(std::string name) {
+  assert(!closed);
   assert(!has(name));
   File* file = new File();
   if (!fsPath.empty())
@@ -139,6 +147,7 @@ File* Directory::createFile(std::string name) {
 }
 
 void Directory::addFile(std::string name, File* file) {
+  assert(!closed);
   assert(!has(name));
   if (!fsPath.empty())
     file_keepSync(fsPath, name, file);
@@ -146,6 +155,7 @@ void Directory::addFile(std::string name, File* file) {
 }
 
 Directory* Directory::createDirectory(std::string name) {
+  assert(!closed);
   assert(!has(name));
   Directory* dir = new Directory();
   if (!fsPath.empty())
@@ -155,6 +165,7 @@ Directory* Directory::createDirectory(std::string name) {
 }
 
 void Directory::addDirectory(std::string name, Directory* dir) {
+  assert(!closed);
   assert(!has(name));
   if (!fsPath.empty())
     dir->bind(join_path(fsPath, name));
@@ -163,6 +174,19 @@ void Directory::addDirectory(std::string name, Directory* dir) {
 
 inline bool Directory::has(std::string name) {
   return files.count(name) > 0 || dirs.count(name) > 0;
+}
+
+void Directory::close() {
+  closed = true;
+
+  std::map<std::string, File*>::iterator filesIter;
+  std::map<std::string, Directory*>::iterator dirsIter;
+
+  for (filesIter = files.begin(); filesIter != files.end(); ++filesIter)
+    filesIter->second->close();
+
+  for (dirsIter = dirs.begin(); dirsIter != dirs.end(); ++dirsIter)
+    dirsIter->second->close();
 }
 
 }  // namespace Writer

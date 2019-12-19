@@ -119,6 +119,7 @@ TEST("File: sync") {
   std::ifstream contentStream;
   std::stringstream stream;
   contentStream.open("/tmp/markus-test-writer-01.txt", std::ios::in);
+  CHECK(contentStream.is_open());
   stream << contentStream.rdbuf();
 
   CHECK(stream.str() == "A123BC\n");

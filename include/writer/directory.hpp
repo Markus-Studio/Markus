@@ -32,6 +32,11 @@ class Directory {
    */
   std::map<std::string, Directory*> dirs;
 
+  /**
+   * Whatever the current directory is closed or not.
+   */
+  bool closed;
+
  public:
   /**
    * Creates a new in memory directory.
@@ -68,6 +73,11 @@ class Directory {
    * Returns whatever the given name exists in this directory.
    */
   bool has(std::string name);
+
+  /**
+   * Close the current directory.
+   */
+  void close();
 };
 }  // namespace Writer
 
