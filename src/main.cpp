@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "backend/assets.hpp"
 #include "backend/binding.hpp"
 #include "diagnostics/controller.hpp"
 #include "diagnostics/error.hpp"
@@ -38,6 +39,9 @@ int main(int argc, char* argv[]) {
     Diagnostics::Controller::dumpAll();
     return -1;
   }
+
+  std::cout << Backend::Assets::getAssetsDirectory()->has("file.cpp")
+            << std::endl;
 
   Writer::Directory output("/tmp/markus-output");
 
