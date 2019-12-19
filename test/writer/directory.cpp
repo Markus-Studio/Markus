@@ -38,4 +38,34 @@ TEST("Directory: sync") {
 
   CHECK(stream.str() == "A123BC\n");
 }
+
+TEST("Directory: sync2") {
+  Directory dir("/tmp/markus-test-2");
+  File* file = dir.file("hello");
+  *file << "Test\n";
+  dir.close();
+
+  std::ifstream contentStream;
+  std::stringstream stream;
+  contentStream.open("/tmp/markus-test-2/hello", std::ios::in);
+  CHECK(contentStream.is_open());
+  stream << contentStream.rdbuf();
+  CHECK(stream.str() == "Test\n");
+}
+
+TEST("Directory: file() and dir()") {
+  Directory dir, x, *x2, *y, *y2;
+  dir.addDirectory("x", &x);
+  x2 = dir.dir("x");
+  x.file("file.txt");
+  CHECK(x2->has("file.txt"));
+
+  y = dir.dir("y");
+  y->file("hello.txt");
+  y2 = dir.dir("y");
+  CHECK(y2->has("hello.txt"));
+
+  CHECK(dir.has("x"));
+  CHECK(dir.has("y"));
+}
 }  // namespace

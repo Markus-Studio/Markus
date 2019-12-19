@@ -78,6 +78,18 @@ class Directory {
    * Close the current directory.
    */
   void close();
+
+  /**
+   * Return the file with the given name in the current directory,
+   * creates a new file if it doesn't exists .
+   */
+  File* file(std::string name);
+
+  /**
+   * Returns the directory with the given name in the current directory.,
+   * creates a new directory if it doesn't exists.
+   */
+  Directory* dir(std::string name);
 };
 }  // namespace Writer
 

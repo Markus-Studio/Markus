@@ -45,7 +45,14 @@ int main(int argc, char* argv[]) {
 
   Writer::Directory output("/tmp/markus-output");
 
+  Backend::Assets::getAssetsDirectory()
+      ->file("file.cpp")
+      ->writeTo(*output.file("test.cpp"));
+
   struct Backend::Binding c = Backend::createCBinding();
+
   c.generateRuntime(&output);
   c.generateTypes(&output, &types);
+
+  output.close();
 }

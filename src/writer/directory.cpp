@@ -189,4 +189,24 @@ void Directory::close() {
     dirsIter->second->close();
 }
 
+File* Directory::file(std::string name) {
+  std::map<std::string, File*>::iterator file;
+  file = files.find(name);
+
+  if (file == files.end())
+    return createFile(name);
+
+  return file->second;
+}
+
+Directory* Directory::dir(std::string name) {
+  std::map<std::string, Directory*>::iterator dir;
+  dir = dirs.find(name);
+
+  if (dir == dirs.end())
+    return createDirectory(name);
+
+  return dir->second;
+}
+
 }  // namespace Writer

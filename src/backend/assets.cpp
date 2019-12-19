@@ -14,7 +14,7 @@ InternalAutoReg::InternalAutoReg(std::string name, const char* data) {
   dir = &directory;
 
   Writer::File* file = dir->createFile(name);
-  *file << "Hello";
+  *file << data;
 }
 }  // namespace Assets
 }  // namespace Backend

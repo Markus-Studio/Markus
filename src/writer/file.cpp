@@ -4,20 +4,20 @@
 
 namespace Writer {
 void File::keepSync(std::ofstream* stream) {
-  *stream << inMemory.rdbuf();
+  *stream << inMemory.str();
   files.push_back(stream);
 }
 
 void File::writeTo(std::stringstream& stream) {
-  stream << inMemory.rdbuf();
+  stream << inMemory.str();
 }
 
 void File::writeTo(std::ofstream& stream) {
-  stream << inMemory.rdbuf();
+  stream << inMemory.str();
 }
 
 void File::writeTo(File& file) {
-  file << inMemory.rdbuf();
+  file << inMemory.str();
 }
 
 std::string File::str() {
@@ -57,10 +57,15 @@ void File::operator<<(int number) {
 }
 
 void File::flush() {
+  std::string str = buffer.str();
+
+  if (str.empty())
+    return;
+
   std::vector<std::ofstream*>::iterator it = files.begin();
 
   for (; it != files.end(); ++it) {
-    (**it) << buffer.str();
+    (**it) << str;
     (*it)->flush();
   }
 
@@ -70,6 +75,7 @@ void File::flush() {
 void File::close() {
   closed = true;
   std::vector<std::ofstream*>::iterator it = files.begin();
+  flush();
 
   for (; it != files.end(); ++it)
     (*it)->close();
