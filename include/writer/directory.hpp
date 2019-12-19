@@ -10,9 +10,20 @@ namespace Writer {
  * A directory contains a set of files or another directories.
  */
 class Directory {
+ private:
+  /**
+   * Path of the current directory in the real file system.
+   */
+  std::string fsPath;
+
+  /**
+   * Bind this directory to the file system.
+   */
+  void bind(std::string path);
+
  public:
   /**
-   * Creates a new directory.
+   * Creates a new in memory directory.
    */
   Directory();
 
@@ -38,7 +49,7 @@ class Directory {
   Directory* createDirectory(std::string name);
 
   /**
-   * Adds the given directory to this dir.
+   * Adds the given **in memory** directory to this dir.
    */
   void addDirectory(std::string name, Directory* dir);
 };
