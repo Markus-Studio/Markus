@@ -11,7 +11,7 @@ Program::Program(Parser::Types* types) {
 
   for (typeName = typeNames.begin(); typeName != typeNames.end(); ++typeName) {
     Type::Container* type = types->resolve(*typeName);
-    if (!type->isObject() || !types->isBuiltIn(*typeName))
+    if (!type->isObject() || types->isBuiltIn(*typeName))
       continue;
     Type::Object* objType = type->asObject();
     this->types.push_back(objType);
