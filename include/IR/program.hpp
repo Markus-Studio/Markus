@@ -40,7 +40,7 @@ class Program {
   /**
    * Array of all of the types.
    */
-  Type::Array typesArray;
+  Type::Array* typesArray;
 
  public:
   /**
