@@ -18,7 +18,6 @@ class Float {
   /**
    * Parse the string and construct a new Float.
    */
-
   Float(std::string string);
 
   /**
