@@ -80,7 +80,7 @@ void Types::builtins() {
   // Geo type can be used to store locations.
   Type::Object* geo = new Type::Object("geo");
   geo->set("lat", typeFloat, false);
-  geo->set("lng", typeFloat, false);
+  geo->set("long", typeFloat, false);
 
   add("int", new Type::Container(typeInt));
   add("float", new Type::Container(typeFloat));
@@ -220,6 +220,11 @@ std::vector<std::string> Types::getTypeNames() {
     keys.push_back(it->first);
 
   return keys;
+}
+
+bool Types::isBuiltIn(std::string name) {
+  return (name == "int" || name == "geo" || name == "user" || name == "bool" ||
+          name == "time" || name == "float" || name == "string");
 }
 
 }  // namespace Parser

@@ -8,11 +8,12 @@
 namespace Type {
 // Forward declaration.
 class Atomic;
-class Array;
 
 /**
  * An union type is a markus type that is the union of different
  * types such as a set of atomics and objects.
+ * An union can not contain an array, Shape of every element in an union must
+ * be the same.
  */
 class Union {
  private:
@@ -25,11 +26,6 @@ class Union {
    * Set of all object members that are in this union.
    */
   std::list<Object*> objectMembers;
-
-  /**
-   * Set of all array members that are in this union.
-   */
-  std::list<Array*> arrayMembers;
 
  public:
   /**
