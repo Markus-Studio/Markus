@@ -1,5 +1,6 @@
 #include "IR/program.hpp"
-#include <assets.hpp>
+
+#include <assert.h>
 
 namespace IR {
 Program::Program(Parser::Types* types) {
