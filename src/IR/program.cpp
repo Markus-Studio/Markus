@@ -1,4 +1,5 @@
 #include "IR/program.hpp"
+#include <assets.hpp>
 
 namespace IR {
 Program::Program(Parser::Types* types) {
