@@ -2,8 +2,7 @@
 #define __MARKUS_IR_PERMISSION__
 
 namespace IR {
-class Permission {
-};
-}
+class Permission {};
+}  // namespace IR
 
 #endif

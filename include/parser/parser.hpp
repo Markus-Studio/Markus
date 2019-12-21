@@ -2,7 +2,11 @@
 #define __MARKUS_PARSER_PARSER__
 
 #include <string>
+
 #include "IR/program.hpp"
+#include "parser/scanner.hpp"
+#include "parser/tokenizer.hpp"
+#include "parser/types.hpp"
 
 namespace Parser {
 /**
