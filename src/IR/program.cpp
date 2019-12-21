@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "parser/permission.hpp"
 #include "parser/types.hpp"
 
 namespace IR {
@@ -26,7 +27,16 @@ Program::Program(Parser::Scanner* scanner) {
   }
 
   typesArray = new Type::Array(new Type::Container(&objects));
+
   // --- Permissions.
+  std::vector<std::string> permissionNames = scanner->getPermissionNames();
+  std::vector<std::string>::iterator permissionName = permissionNames.begin();
+
+  for (; permissionName != permissionNames.end(); ++permissionName) {
+    Parser::TokenVec* tokens = scanner->lookupPermission(*permissionName);
+    IR::Permission* permission = Parser::parsePermission(this, tokens);
+    permissions.push_back(permission);
+  }
 }
 
 Type::Object* Program::getType(std::string name) {
