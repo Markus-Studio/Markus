@@ -68,6 +68,16 @@ class Program {
    * Returns an union containing all of types that are User.
    */
   Type::Union* unionOfUsers();
+
+  /**
+   * Return whatever this program contains a permission with the given name.
+   */
+  bool hasPermission(std::string name);
+
+  /**
+   * Return the Permission IR of the permission with the given name.
+   */
+  Permission* getPermission(std::string name);
 };
 }  // namespace IR
 

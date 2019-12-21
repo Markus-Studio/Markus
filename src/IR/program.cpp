@@ -37,6 +37,8 @@ Program::Program(Parser::Scanner* scanner) {
     IR::Permission* permission = Parser::parsePermission(this, tokens);
     permissions.push_back(permission);
   }
+
+  // Queries.
 }
 
 Type::Object* Program::getType(std::string name) {
@@ -45,6 +47,7 @@ Type::Object* Program::getType(std::string name) {
     if ((*it)->getName() == name)
       return *it;
   assert(0);
+  return NULL;
 }
 
 Type::Array* Program::arrayOfTypes() {
@@ -53,6 +56,23 @@ Type::Array* Program::arrayOfTypes() {
 
 Type::Union* Program::unionOfUsers() {
   return &users;
+}
+
+bool Program::hasPermission(std::string name) {
+  std::list<Permission*>::iterator it = permissions.begin();
+  for (; it != permissions.end(); ++it)
+    if ((*it)->getName() == name)
+      return true;
+  return false;
+}
+
+Permission* Program::getPermission(std::string name) {
+  std::list<Permission*>::iterator it = permissions.begin();
+  for (; it != permissions.end(); ++it)
+    if ((*it)->getName() == name)
+      return *it;
+  assert(0);
+  return NULL;
 }
 
 }  // namespace IR
