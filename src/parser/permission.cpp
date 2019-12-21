@@ -1,8 +1,8 @@
 #include "parser/permission.hpp"
 
-#include "diagnostics/controller.hpp"
-
 #include <assert.h>
+
+#include "diagnostics/controller.hpp"
 
 namespace Parser {
 IR::Permission* parsePermission(IR::Program* program, TokenVec* tokens) {

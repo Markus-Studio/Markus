@@ -4,13 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "backend/assets.hpp"
-#include "backend/binding.hpp"
 #include "diagnostics/controller.hpp"
-#include "diagnostics/error.hpp"
-#include "parser/scanner.hpp"
-#include "parser/tokenizer.hpp"
-#include "parser/types.hpp"
+#include "parser/parser.hpp"
 #include "writer/directory.hpp"
 
 using namespace std;
@@ -31,28 +26,14 @@ int main(int argc, char* argv[]) {
   std::stringstream buffer;
   buffer << t.rdbuf();
 
-  Parser::TokenVec tokens = Parser::tokenize(buffer.str());
-  Parser::Scanner scanner(tokens);
-  Parser::Types types(&scanner);
+  IR::Program* program = Parser::createProgram(buffer.str());
 
   if (Diagnostics::Controller::hasError()) {
     Diagnostics::Controller::dumpAll();
     return -1;
   }
 
-  std::cout << Backend::Assets::getAssetsDirectory()->has("file.cpp")
-            << std::endl;
+  std::cout << program->hasPermission("Person") << std::endl;
 
-  Writer::Directory output("/tmp/markus-output");
-
-  Backend::Assets::getAssetsDirectory()
-      ->file("file.cpp")
-      ->writeTo(*output.file("test.cpp"));
-
-  struct Backend::Binding c = Backend::createCBinding();
-
-  c.generateRuntime(&output);
-  c.generateTypes(&output, &types);
-
-  output.close();
+  return 0;
 }

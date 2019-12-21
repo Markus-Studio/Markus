@@ -75,7 +75,7 @@ query@{User} canvasWeightSum(Canvas $canvas) {
 query@{User} canvasDoneWeightSum(Canvas $canvas) {
   is(Task),
   eq(.column.canvas, $canvas),
-  eq(.done, true)
+  eq(.done, true),
   sum(.weight)
 }
 

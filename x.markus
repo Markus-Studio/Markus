@@ -1,14 +1,7 @@
-type A: B, C {
-    int a;
-    int b;
+type Person {
+    string name;
 }
 
-type B {
-    int x;
-    int y;
-    A p;
-}
-
-type C: B {
-    int z;
+permission Person {
+    is(Person)
 }
