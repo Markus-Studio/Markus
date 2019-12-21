@@ -4,7 +4,6 @@ namespace Parser {
 IR::Program* createProgram(std::string code) {
   Parser::TokenVec tokens = Parser::tokenize(code);
   Parser::Scanner scanner(tokens);
-  Parser::Types types(&scanner);
-  return new IR::Program(&types);
+  return new IR::Program(&scanner);
 }
 }  // namespace Parser

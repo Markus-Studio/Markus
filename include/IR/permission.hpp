@@ -3,10 +3,10 @@
 
 #include <string>
 
-#include "IR/program.hpp"
-#include "IR/query.hpp"
-
 namespace IR {
+class Program;
+class Query;
+
 class Permission {
  private:
   /**

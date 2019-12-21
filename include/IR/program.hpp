@@ -3,7 +3,8 @@
 
 #include <list>
 
-#include "parser/types.hpp"
+#include "IR/permission.hpp"
+#include "parser/scanner.hpp"
 #include "type/array.hpp"
 #include "type/object.hpp"
 #include "type/union.hpp"
@@ -21,6 +22,11 @@ class Program {
    * The types in this program.
    */
   std::list<Type::Object*> types;
+
+  /**
+   * The permissions in this program.
+   */
+  std::list<Permission*> permissions;
 
   /**
    * The built-in user type.
@@ -46,7 +52,7 @@ class Program {
   /**
    * Constructs a new program.
    */
-  Program(Parser::Types* types);
+  Program(Parser::Scanner* scanner);
 
   /**
    * Returns a type with the given name.
