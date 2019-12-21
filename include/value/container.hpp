@@ -16,8 +16,7 @@ enum ValueKind {
   VALUE_KIND_FLOAT,
   VALUE_KIND_BOOL,
   VALUE_KIND_STRING,
-  VALUE_KIND_VARIABLE,
-  VALUE_KIND_FIELD
+  VALUE_KIND_VARIABLE
 };
 
 /**
@@ -35,7 +34,7 @@ class Container {
    */
   void* value;
 
-  public:
+ public:
   /**
    * Construct a container containing an integer literal.
    */
@@ -64,42 +63,62 @@ class Container {
   /**
    * Returns whatever the contained value is an integer or not.
    */
-  bool isInt();
+  inline bool isInt();
 
   /**
    * Returns whatever the contained value is a float or not.
    */
-  bool isFloat();
+  inline bool isFloat();
 
   /**
    * Returns whatever the contained value is numeric literal.
    */
-  bool isNumericLiteral();
+  inline bool isNumericLiteral();
 
   /**
    * Returns whatever the contained value is a boolean literal.
    */
-  bool isBool();
+  inline bool isBool();
 
   /**
    * Returns whatever the contained value is a string literal.
    */
-  bool isString();
+  inline bool isString();
 
   /**
    * Returns whatever the contained value is a literal or not.
    */
-  bool isLiteral();
+  inline bool isLiteral();
 
   /**
    * Returns whatever the contained value is a variable.
    */
-  bool isVariable();
+  inline bool isVariable();
 
   /**
-   * Returns type of the contained element.
+   * Return the value as an integer.
    */
-  Type::Container* getType();
+  inline Int* asInt();
+
+  /**
+   * Return the value as an int.
+   */
+  inline Float* asFloat();
+
+  /**
+   * Return the value as a boolean.
+   */
+  inline Bool* asBool();
+
+  /**
+   * Return the value as a string.
+   */
+  inline String* asString();
+
+  /**
+   * Return the value as a variable.
+   */
+  inline Variable* asVariable();
 };
 }  // namespace Value
 
