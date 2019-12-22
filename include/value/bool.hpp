@@ -1,5 +1,5 @@
-#ifndef __MARKUS_VALUE__BOOL__
-#define __MARKUS_VALUE__BOOL__
+#ifndef __MARKUS_VALUE_BOOL__
+#define __MARKUS_VALUE_BOOL__
 
 #include <string>
 
