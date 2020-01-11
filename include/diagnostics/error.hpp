@@ -22,7 +22,8 @@ enum ErrorNo {
   E_CIRCULAR_BASE,
   E_CANNOT_RESOLVE_NAME,
   E_BASE_MUST_BE_OBJECT,
-  E_CIRCULAR_FIELD_IS_NOT_NULL
+  E_CIRCULAR_FIELD_IS_NOT_NULL,
+  E_WRONG_NUMBER_OF_ARGUMENTS
 };
 
 /**
@@ -121,6 +122,11 @@ class Error {
    * Constructs a new circular field must be null.
    */
   static Error* circularField(std::string typeName, std::string fieldName);
+
+  /**
+   * Constructs a new wrong number of arguments error.
+   */
+  static Error* wrongNumberOfArguments(int expected, int passed);
 };
 }  // namespace Diagnostics
 

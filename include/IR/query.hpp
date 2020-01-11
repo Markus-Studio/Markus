@@ -2,6 +2,7 @@
 #define __MARKUS_IR_QUERY__
 
 #include <list>
+#include <string>
 #include <vector>
 
 #include "IR/filter.hpp"
@@ -29,6 +30,11 @@ class Query {
   std::vector<Type::Container*> parameters;
 
   /**
+   * Name of parameters in order.
+   */
+  std::vector<std::string> parameterNames;
+
+  /**
    * List of every filter in this query.
    */
   std::list<Filter> filters;
@@ -47,7 +53,12 @@ class Query {
   /**
    * Add a new parameter to this query, returns the parameter id.
    */
-  int addParameter(Type::Container* type);
+  int addParameter(std::string name, Type::Container* type);
+
+  /**
+   * Returns the id of the given parameter.
+   */
+  int getParameterId(std::string name);
 
   /**
    * Returns type of the n-th parameter.
@@ -55,10 +66,9 @@ class Query {
   Type::Container* getParameterType(int n);
 
   /**
-   * Adds a `is` filter to this query, returns false on the failure the error
-   * is reported using the Diagnostics.
+   * Returns the owner of the current query.
    */
-  bool is(std::string name);
+  Program* getOwner();
 };
 }  // namespace IR
 

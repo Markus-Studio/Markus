@@ -41,6 +41,14 @@ Program::Program(Parser::Scanner* scanner) {
   // Queries.
 }
 
+bool Program::hasType(std::string name) {
+  std::list<Type::Object*>::iterator it = types.begin();
+  for (; it != types.end(); ++it)
+    if ((*it)->getName() == name)
+      return true;
+  return false;
+}
+
 Type::Object* Program::getType(std::string name) {
   std::list<Type::Object*>::iterator it = types.begin();
   for (; it != types.end(); ++it)

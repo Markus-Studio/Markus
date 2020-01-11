@@ -9,7 +9,7 @@ Variable::Variable(int id, Type::Container* type) {
 }
 
 Variable::Variable(int id, Type::Container* type, Type::Uri* member) {
-  hasVariableMember = true;
+  hasVariableMember = !member->isEmpty();
   variableId = id;
   variableType = type;
   variableMember = member;

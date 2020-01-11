@@ -110,4 +110,11 @@ Error* Error::circularField(std::string typeName, std::string fieldName) {
   return new Error(E_CIRCULAR_FIELD_IS_NOT_NULL, fmt.str());
 }
 
+Error* Error::wrongNumberOfArguments(int expected, int passed) {
+  std::stringstream fmt;
+  fmt << "Error: Wrong number of arguments passed to the function, passed "
+      << passed << " while the function expected " << expected << " arguments.";
+  return new Error(E_WRONG_NUMBER_OF_ARGUMENTS, fmt.str());
+}
+
 }  // namespace Diagnostics

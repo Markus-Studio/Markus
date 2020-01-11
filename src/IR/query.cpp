@@ -1,5 +1,7 @@
 #include "IR/query.hpp"
 
+#include <assert.h>
+
 namespace IR {
 Query::Query(Program* program) {
   owner = program;
@@ -11,17 +13,31 @@ Query::Query(Program* program, Type::Container* type) {
   resultType = type;
 }
 
-int Query::addParameter(Type::Container* type) {
+int Query::addParameter(std::string name, Type::Container* type) {
   parameters.push_back(type);
-  return parameters.size() - 1;
+  parameterNames.push_back(name);
+  return parameters.size();
+}
+
+int Query::getParameterId(std::string name) {
+  for (int i = 0; i < parameterNames.size(); ++i)
+    if (parameterNames[i] == name)
+      return i + 1;
+  return -1;
 }
 
 Type::Container* Query::getParameterType(int n) {
-  return parameters[n];
+  assert(n >= 0);
+  // The first variable is always refering to the current item.
+  if (n == 0) {
+    if (resultType->isArray())
+      return resultType->asArray()->getContainedType();
+    return resultType;
+  }
+  return parameters[n - 1];
 }
 
-// Filter builder implementation.
-
-bool Query::is(std::string name) {}
-
+Program* Query::getOwner() {
+  return owner;
+}
 }  // namespace IR

@@ -4,7 +4,8 @@
 
 namespace IR {
 Permission::Permission(Program* program, std::string name) {
-  query = new Query(program, new Type::Container(program->unionOfUsers()));
+  Type::Container* users = new Type::Container(program->unionOfUsers());
+  query = new Query(program, users);
   this->name = name;
 }
 

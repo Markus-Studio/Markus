@@ -77,82 +77,82 @@ class Container {
   /**
    * Returns whatever the contained value is an integer or not.
    */
-  inline bool isInt();
+  bool isInt();
 
   /**
    * Returns whatever the contained value is a float or not.
    */
-  inline bool isFloat();
+  bool isFloat();
 
   /**
    * Returns whatever the contained value is numeric literal.
    */
-  inline bool isNumericLiteral();
+  bool isNumericLiteral();
 
   /**
    * Returns whatever the contained value is a boolean literal.
    */
-  inline bool isBool();
+  bool isBool();
 
   /**
    * Returns whatever the contained value is a string literal.
    */
-  inline bool isString();
+  bool isString();
 
   /**
    * Returns whatever the contained value is a literal or not.
    */
-  inline bool isLiteral();
+  bool isLiteral();
 
   /**
    * Returns whatever the contained value is a variable.
    */
-  inline bool isVariable();
+  bool isVariable();
 
   /**
    * Returns whatever the contained value is a call expression or not.
    */
-  inline bool isCall();
+  bool isCall();
 
   /**
    * Returns whatever the contained value us a type value.
    */
-  inline bool isType();
+  bool isType();
 
   /**
    * Return the value as an integer.
    */
-  inline Int* asInt();
+  Int* asInt();
 
   /**
    * Return the value as an int.
    */
-  inline Float* asFloat();
+  Float* asFloat();
 
   /**
    * Return the value as a boolean.
    */
-  inline Bool* asBool();
+  Bool* asBool();
 
   /**
    * Return the value as a string.
    */
-  inline String* asString();
+  String* asString();
 
   /**
    * Return the value as a variable.
    */
-  inline Variable* asVariable();
+  Variable* asVariable();
 
   /**
    * Return the value as a call expression.
    */
-  inline Call* asCall();
+  Call* asCall();
 
   /**
    * Return the value as a type expression.
    */
-  inline TypeValue* asType();
+  TypeValue* asType();
 };
 }  // namespace Value
 

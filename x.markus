@@ -3,5 +3,7 @@ type Person {
 }
 
 permission Person {
-    is(Person)
+    is(Person),
+    p(5),
+    h(x)
 }

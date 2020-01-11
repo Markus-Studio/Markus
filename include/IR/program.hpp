@@ -55,7 +55,12 @@ class Program {
   Program(Parser::Scanner* scanner);
 
   /**
-   * Returns a type with the given name.
+   * Returns whatever there is a type with the given name in this program.
+   */
+  bool hasType(std::string name);
+
+  /**
+   * Returns the type with the given name.
    */
   Type::Object* getType(std::string name);
 
