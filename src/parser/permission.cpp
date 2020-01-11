@@ -21,7 +21,7 @@ IR::Permission* parsePermission(IR::Program* program, TokenVec* tokens) {
   std::string name = (*iterator++)->getWord();
   IR::Permission* result = new IR::Permission(program, name);
 
-  parseQuery(result->getQuery(), iterator);
+  parseQueryBody(result->getQuery(), iterator);
 
   return result;
 }

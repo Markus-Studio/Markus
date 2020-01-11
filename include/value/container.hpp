@@ -2,9 +2,11 @@
 #define __MARKUS_VALUE_CONTAINER__
 
 #include "value/bool.hpp"
+#include "value/call.hpp"
 #include "value/float.hpp"
 #include "value/int.hpp"
 #include "value/string.hpp"
+#include "value/type.hpp"
 #include "value/variable.hpp"
 
 namespace Value {
@@ -16,7 +18,9 @@ enum ValueKind {
   VALUE_KIND_FLOAT,
   VALUE_KIND_BOOL,
   VALUE_KIND_STRING,
-  VALUE_KIND_VARIABLE
+  VALUE_KIND_VARIABLE,
+  VALUE_KIND_CALL,
+  VALUE_KIND_TYPE
 };
 
 /**
@@ -61,6 +65,16 @@ class Container {
   Container(Variable* value);
 
   /**
+   * Construct a new container containing a call expression.
+   */
+  Container(Call* call);
+
+  /**
+   * Construct a new container containing a type value.
+   */
+  Container(TypeValue* type);
+
+  /**
    * Returns whatever the contained value is an integer or not.
    */
   inline bool isInt();
@@ -96,6 +110,16 @@ class Container {
   inline bool isVariable();
 
   /**
+   * Returns whatever the contained value is a call expression or not.
+   */
+  inline bool isCall();
+
+  /**
+   * Returns whatever the contained value us a type value.
+   */
+  inline bool isType();
+
+  /**
    * Return the value as an integer.
    */
   inline Int* asInt();
@@ -119,6 +143,16 @@ class Container {
    * Return the value as a variable.
    */
   inline Variable* asVariable();
+
+  /**
+   * Return the value as a call expression.
+   */
+  inline Call* asCall();
+
+  /**
+   * Return the value as a type expression.
+   */
+  inline TypeValue* asType();
 };
 }  // namespace Value
 

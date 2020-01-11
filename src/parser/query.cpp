@@ -1,8 +1,9 @@
 #include "parser/query.hpp"
+
 #include "diagnostics/controller.hpp"
 
 namespace Parser {
-bool parseQuery(IR::Query* query, std::vector<Token*>::iterator& iterator) {
+bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
   if (**iterator != "{") {
     Diagnostics::Controller::report(
         Diagnostics::Error::unexpectedToken(*iterator, "{"));
@@ -16,7 +17,5 @@ bool parseQuery(IR::Query* query, std::vector<Token*>::iterator& iterator) {
   // fn->addParameter(...);
   // fn->addParameter(...);
   // fn->validate();
-
-
 }
-}
+}  // namespace Parser

@@ -8,7 +8,7 @@ namespace Parser {
 /**
  * Parse a permission and emit an Permission IR.
  */
-bool parseQuery(IR::Query* query, std::vector<Token*>::iterator& tokens);
+bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& tokens);
 }  // namespace Parser
 
 #endif

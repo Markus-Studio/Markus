@@ -28,6 +28,16 @@ Container::Container(Variable* v) {
   value = v;
 }
 
+Container::Container(Call* v) {
+  kind = VALUE_KIND_CALL;
+  value = v;
+}
+
+Container::Container(TypeValue* v) {
+  kind = VALUE_KIND_TYPE;
+  value = v;
+}
+
 bool Container::isInt() {
   return kind == VALUE_KIND_INT;
 }
@@ -56,6 +66,14 @@ bool Container::isVariable() {
   return kind == VALUE_KIND_VARIABLE;
 }
 
+bool Container::isCall() {
+  return kind == VALUE_KIND_CALL;
+}
+
+bool Container::isType() {
+  return kind == VALUE_KIND_TYPE;
+}
+
 Int* Container::asInt() {
   assert(kind == VALUE_KIND_INT);
   return (Int*)value;
@@ -79,5 +97,15 @@ String* Container::asString() {
 Variable* Container::asVariable() {
   assert(kind == VALUE_KIND_VARIABLE);
   return (Variable*)value;
+}
+
+Call* Container::asCall() {
+  assert(kind == VALUE_KIND_CALL);
+  return (Call*)value;
+}
+
+TypeValue* Container::asType() {
+  assert(kind == VALUE_KIND_TYPE);
+  return (TypeValue*)value;
 }
 }  // namespace Value
