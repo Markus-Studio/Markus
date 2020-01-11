@@ -31,6 +31,11 @@ class Container {
    */
   void* type;
 
+  /**
+   * Cache of the getShape().
+   */
+  int shapeCache = -1;
+
  public:
   /**
    * Returns the kind of type this container is containing.
@@ -135,6 +140,11 @@ class Container {
    * whereas type is an array.
    */
   bool is(Array* type);
+
+  /**
+   * Returns the shape of this type.
+   */
+  int getShape();
 };
 
 }  // namespace Type
