@@ -166,4 +166,23 @@ Container* Container::query(Uri uri) {
   assert(0);
 }
 
+bool Container::isNil() {
+  switch (kind) {
+    case TYPE_KIND_NEVER:
+      return true;
+
+    case TYPE_KIND_ATOMIC:
+    case TYPE_KIND_OBJECT:
+      return false;
+
+    case TYPE_KIND_ARRAY:
+      return asArray()->getContainedType()->isNil();
+
+    case TYPE_KIND_UNION:
+      return asUnion()->isEmpty();
+  }
+
+  assert(0);
+}
+
 }  // namespace Type

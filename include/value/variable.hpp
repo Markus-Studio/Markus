@@ -30,6 +30,11 @@ class Variable {
    */
   Type::Uri* variableMember;
 
+  /**
+   * Cache of the getType().
+   */
+  Type::Container* typeCache;
+
  public:
   /**
    * Constructs a new reference to a variable.

@@ -6,6 +6,7 @@ Variable::Variable(int id, Type::Container* type) {
   variableId = id;
   variableType = type;
   variableMember = new Type::Uri();
+  typeCache = NULL;
 }
 
 Variable::Variable(int id, Type::Container* type, Type::Uri* member) {
@@ -13,6 +14,7 @@ Variable::Variable(int id, Type::Container* type, Type::Uri* member) {
   variableId = id;
   variableType = type;
   variableMember = member;
+  typeCache = NULL;
 }
 
 bool Variable::hasMember() {
@@ -24,9 +26,11 @@ Type::Container* Variable::getBaseType() {
 }
 
 Type::Container* Variable::getType() {
+  if (typeCache != NULL)
+    return typeCache;
   if (!hasVariableMember)
-    return variableType;
-  return variableType->query(*variableMember);
+    return typeCache = variableType;
+  return typeCache = variableType->query(*variableMember);
 }
 
 Type::Uri* Variable::getMember() {

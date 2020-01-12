@@ -142,7 +142,15 @@ class Container {
    */
   int getShape();
 
+  /**
+   * Returns type of the field using the given uri.
+   */
   Container* query(Uri uri);
+
+  /**
+   * Returns whatever we contain a nil type.
+   */
+  bool isNil();
 };
 
 }  // namespace Type
