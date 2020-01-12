@@ -26,6 +26,12 @@ bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
     if (c == NULL)
       return false;
 
+    if (!c->isCall())
+      return false;
+
+    if (!query->addPipeline(c->asCall()))
+      return false;
+
     if (**iterator == "}") {
       break;
     }

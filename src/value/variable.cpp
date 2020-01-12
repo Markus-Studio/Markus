@@ -24,8 +24,9 @@ Type::Container* Variable::getBaseType() {
 }
 
 Type::Container* Variable::getType() {
-  // TODO(qti3e)
-  return variableType;
+  if (!hasVariableMember)
+    return variableType;
+  return variableType->query(*variableMember);
 }
 
 Type::Uri* Variable::getMember() {
