@@ -31,11 +31,6 @@ class Container {
    */
   void* type;
 
-  /**
-   * Cache of the getShape().
-   */
-  int shapeCache = -1;
-
  public:
   /**
    * Returns the kind of type this container is containing.

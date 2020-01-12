@@ -36,16 +36,6 @@ class Call {
   void addArgument(Container* value);
 
   /**
-   * Verify this function call.
-   */
-  bool verify(IR::Query* query);
-
-  /**
-   * Return the return type of this call.
-   */
-  Type::Container getReturnType();
-
-  /**
    * Returns the callee name.
    */
   std::string getCalleeName();

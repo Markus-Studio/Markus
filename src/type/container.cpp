@@ -138,13 +138,10 @@ bool Container::is(Array* type) {
 }
 
 int Container::getShape() {
-  if (shapeCache >= 0)
-    return shapeCache;
-
   if (!isArray())
-    return shapeCache = 0;
+    return 0;
 
-  return shapeCache = (1 + asArray()->getContainedType()->getShape());
+  return 1 + asArray()->getContainedType()->getShape();
 }
 
 }  // namespace Type
