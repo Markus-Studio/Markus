@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include "IR/verifier.hpp"
+
 namespace IR {
 Query::Query(Program* program) {
   owner = program;
@@ -39,5 +41,15 @@ Type::Container* Query::getParameterType(int n) {
 
 Program* Query::getOwner() {
   return owner;
+}
+
+bool Query::addPipeline(Value::Call* call) {
+  struct PipelineInfo info;
+  info.inputType = resultType;
+  info.shape = resultType->getShape();
+  info.call = call;
+  pipelines.push_back(info);
+
+  return verifyCall(this, call);
 }
 }  // namespace IR

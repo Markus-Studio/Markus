@@ -1,9 +1,5 @@
 #include "value/call.hpp"
 
-#include <assert.h>
-
-#include "diagnostics/controller.hpp"
-
 namespace Value {
 Call::Call(std::string calleeName) {
   functionName = calleeName;

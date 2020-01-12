@@ -5,11 +5,17 @@
 #include <string>
 #include <vector>
 
-#include "IR/filter.hpp"
 #include "IR/program.hpp"
 #include "type/container.hpp"
+#include "value/call.hpp"
 
 namespace IR {
+struct PipelineInfo {
+  Type::Container* inputType;
+  int shape;
+  Value::Call* call;
+};
+
 /**
  * The intermediate representation for any query in the system.
  */
@@ -35,9 +41,9 @@ class Query {
   std::vector<std::string> parameterNames;
 
   /**
-   * List of every filter in this query.
+   * List of pipelines in this query.
    */
-  std::list<Filter> filters;
+  std::list<PipelineInfo> pipelines;
 
  public:
   /**
@@ -69,6 +75,11 @@ class Query {
    * Returns the owner of the current query.
    */
   Program* getOwner();
+
+  /**
+   * Add the given pipeline to this query.
+   */
+  bool addPipeline(Value::Call* call);
 };
 }  // namespace IR
 

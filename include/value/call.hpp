@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "IR/query.hpp"
-
 namespace Value {
 class Container;
 
