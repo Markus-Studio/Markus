@@ -5,6 +5,7 @@
 #include <string>
 
 #include "parser/tokenizer.hpp"
+#include "value/container.hpp"
 
 namespace Diagnostics {
 
@@ -23,7 +24,8 @@ enum ErrorNo {
   E_CANNOT_RESOLVE_NAME,
   E_BASE_MUST_BE_OBJECT,
   E_CIRCULAR_FIELD_IS_NOT_NULL,
-  E_WRONG_NUMBER_OF_ARGUMENTS
+  E_WRONG_NUMBER_OF_ARGUMENTS,
+  E_WRONG_ARGUMENT_TYPE
 };
 
 /**
@@ -127,6 +129,12 @@ class Error {
    * Constructs a new wrong number of arguments error.
    */
   static Error* wrongNumberOfArguments(int expected, int passed);
+
+  /**
+   * Constructs a new wrong argument type error.
+   */
+  static Error* wrongArgumentType(enum Value::ValueKind expected,
+                                  Value::Container* value);
 };
 }  // namespace Diagnostics
 

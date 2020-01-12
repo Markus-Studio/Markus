@@ -19,6 +19,12 @@ bool is(Query* query, Value::Call* call) {
     return false;
   }
 
+  if (!arguments[0]->isType()) {
+    Controller::report(
+        Error::wrongArgumentType(Value::VALUE_KIND_TYPE, arguments[0]));
+    return false;
+  }
+
   return true;
 }
 }  // namespace Verify

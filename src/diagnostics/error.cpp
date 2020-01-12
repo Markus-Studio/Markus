@@ -117,4 +117,21 @@ Error* Error::wrongNumberOfArguments(int expected, int passed) {
   return new Error(E_WRONG_NUMBER_OF_ARGUMENTS, fmt.str());
 }
 
+Error* Error::wrongArgumentType(enum Value::ValueKind expected,
+                                Value::Container* value) {
+  std::string names[] = {"int",
+                         "float",
+                         "bool",
+                         "string",
+                         "variable reference",
+                         "call expression",
+                         "type reference"};
+
+  std::stringstream fmt;
+  fmt << "Error: Argument type is not matching the function signature, passed "
+      << names[value->getKind()] << " while the function expected a/an "
+      << names[expected] << ".";
+  return new Error(E_WRONG_ARGUMENT_TYPE, fmt.str());
+}
+
 }  // namespace Diagnostics

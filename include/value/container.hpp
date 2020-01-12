@@ -153,6 +153,11 @@ class Container {
    * Return the value as a type expression.
    */
   TypeValue* asType();
+
+  /**
+   * Return the kind of data this container is holding.
+   */
+  enum ValueKind getKind();
 };
 }  // namespace Value
 

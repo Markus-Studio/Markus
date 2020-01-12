@@ -108,4 +108,8 @@ TypeValue* Container::asType() {
   assert(kind == VALUE_KIND_TYPE);
   return (TypeValue*)value;
 }
+
+enum ValueKind Container::getKind() {
+  return kind;
+}
 }  // namespace Value
