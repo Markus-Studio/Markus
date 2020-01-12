@@ -62,6 +62,11 @@ class Array {
    * type contained in a container.
    */
   bool isDeep(Container* type);
+
+  /**
+   * Extract type of a field from this array type.
+   */
+  Array* query(Uri uri);
 };
 }  // namespace Type
 

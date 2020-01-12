@@ -7,6 +7,7 @@ class Object;
 class Atomic;
 class Union;
 class Array;
+class Uri;
 
 enum TypeKind {
   TYPE_KIND_NEVER,
@@ -140,6 +141,8 @@ class Container {
    * Returns the shape of this type.
    */
   int getShape();
+
+  Container* query(Uri uri);
 };
 
 }  // namespace Type

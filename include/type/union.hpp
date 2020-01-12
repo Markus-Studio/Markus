@@ -84,6 +84,11 @@ class Union {
    */
   bool is(Object* type);
 
+  /**
+   * Extract the sub-type using the given uri.
+   */
+  Container* query(Uri uri);
+
   friend class Object;
 };
 }  // namespace Type

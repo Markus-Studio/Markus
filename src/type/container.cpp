@@ -144,4 +144,26 @@ int Container::getShape() {
   return 1 + asArray()->getContainedType()->getShape();
 }
 
+Container* Container::query(Uri uri) {
+  if (uri.isEmpty())
+    return this;
+
+  switch (kind) {
+    case TYPE_KIND_NEVER:
+    case TYPE_KIND_ATOMIC:
+      return new Container();
+
+    case TYPE_KIND_ARRAY:
+      return new Container(asArray()->query(uri));
+
+    case TYPE_KIND_OBJECT:
+      return asObject()->query(uri);
+
+    case TYPE_KIND_UNION:
+      return asUnion()->query(uri);
+  }
+
+  assert(0);
+}
+
 }  // namespace Type

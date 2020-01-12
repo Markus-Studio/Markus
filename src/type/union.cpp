@@ -1,5 +1,7 @@
 #include "type/union.hpp"
 
+#include <iostream>
+
 #include "type/atomic.hpp"
 #include "type/object.hpp"
 
@@ -97,6 +99,53 @@ bool Union::is(Object* type) {
       return false;
 
   return true;
+}
+
+Container* Union::query(Uri uri) {
+  if (uri.isEmpty())
+    return new Container(this);
+
+  if (!atomicMembers.empty())
+    return new Container();
+
+  if (objectMembers.size() == 1)
+    return objectMembers.front()->query(uri);
+
+  std::list<Object*>::iterator it = objectMembers.begin();
+  Union* result = new Union();
+
+  for (; it != objectMembers.end(); ++it) {
+    Container* type = (*it)->query(uri);
+
+    if (type->isNever()) {
+      delete result;
+      return new Container();
+    }
+
+    if (type->isArray()) {
+      std::cerr << "Union cannot contain arrays." << std::endl;
+      abort();
+    }
+
+    if (type->isAtomic()) {
+      result->add(type->asAtomic());
+      continue;
+    }
+
+    if (type->isObject()) {
+      result->add(type->asObject());
+      continue;
+    }
+
+    if (type->isUnion()) {
+      result->add(type->asUnion());
+      continue;
+    }
+
+    assert(0);
+  }
+
+  return new Container(result);
 }
 
 }  // namespace Type

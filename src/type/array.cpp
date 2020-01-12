@@ -33,4 +33,10 @@ bool Array::isDeep(Container* type) {
   return contained->is(type);
 }
 
+Array* Array::query(Uri uri) {
+  if (uri.isEmpty())
+    return this;
+  return new Array(contained->query(uri));
+}
+
 }  // namespace Type
