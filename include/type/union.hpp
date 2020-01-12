@@ -1,6 +1,8 @@
 #ifndef __MARKUS_TYPE_UNION__
 #define __MARKUS_TYPE_UNION__
 
+#include <assert.h>
+
 #include <list>
 
 #include "type/object.hpp"
