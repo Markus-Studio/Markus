@@ -1,20 +1,25 @@
 #include "value/variable.hpp"
 
 namespace Value {
-Variable::Variable(int id, Type::Container* type) {
+Variable::Variable(int id, Type::Container* type, Parser::Range range) {
   hasVariableMember = false;
   variableId = id;
   variableType = type;
   variableMember = new Type::Uri();
   typeCache = NULL;
+  this->range = range;
 }
 
-Variable::Variable(int id, Type::Container* type, Type::Uri* member) {
+Variable::Variable(int id,
+                   Type::Container* type,
+                   Parser::Range range,
+                   Type::Uri* member) {
   hasVariableMember = !member->isEmpty();
   variableId = id;
   variableType = type;
   variableMember = member;
   typeCache = NULL;
+  this->range = range;
 }
 
 bool Variable::hasMember() {
@@ -35,5 +40,9 @@ Type::Container* Variable::getType() {
 
 Type::Uri* Variable::getMember() {
   return variableMember;
+}
+
+Parser::Range Variable::getRange() {
+  return range;
 }
 }  // namespace Value

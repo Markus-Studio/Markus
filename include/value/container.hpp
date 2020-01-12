@@ -1,6 +1,7 @@
 #ifndef __MARKUS_VALUE_CONTAINER__
 #define __MARKUS_VALUE_CONTAINER__
 
+#include "parser/range.hpp"
 #include "value/bool.hpp"
 #include "value/call.hpp"
 #include "value/float.hpp"
@@ -158,6 +159,11 @@ class Container {
    * Return the kind of data this container is holding.
    */
   enum ValueKind getKind();
+
+  /**
+   * Returns the range which this value is derived from in the source code.
+   */
+  Parser::Range getRange();
 };
 }  // namespace Value
 

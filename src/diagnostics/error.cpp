@@ -110,10 +110,13 @@ Error* Error::circularField(std::string typeName, std::string fieldName) {
   return new Error(E_CIRCULAR_FIELD_IS_NOT_NULL, fmt.str());
 }
 
-Error* Error::wrongNumberOfArguments(int expected, int passed) {
+Error* Error::wrongNumberOfArguments(int expected, Value::Call* call) {
+  int passed = call->getArguments().size();
   std::stringstream fmt;
   fmt << "Error: Wrong number of arguments passed to the function, passed "
-      << passed << " while the function expected " << expected << " arguments.";
+      << passed << " while the function expected " << expected
+      << " argument(s) on line " << call->getRange().getLineStart() << ":"
+      << call->getRange().getColumnStart() << ".";
   return new Error(E_WRONG_NUMBER_OF_ARGUMENTS, fmt.str());
 }
 
@@ -130,7 +133,8 @@ Error* Error::wrongArgumentType(enum Value::ValueKind expected,
   std::stringstream fmt;
   fmt << "Error: Argument type is not matching the function signature, passed "
       << names[value->getKind()] << " while the function expected a/an "
-      << names[expected] << ".";
+      << names[expected] << " on line " << value->getRange().getLineStart()
+      << ":" << value->getRange().getColumnStart() << ".";
   return new Error(E_WRONG_ARGUMENT_TYPE, fmt.str());
 }
 

@@ -1,6 +1,7 @@
 #include "parser/query.hpp"
 
 #include "diagnostics/controller.hpp"
+#include "parser/range.hpp"
 #include "value/container.hpp"
 
 namespace Parser {
@@ -10,6 +11,7 @@ inline Value::Variable* parseVariable(IR::Query* query,
 
 Value::Container* parseValue(IR::Query* query,
                              std::vector<Token*>::iterator& token);
+
 bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
   if (**iterator != "{") {
     Diagnostics::Controller::report(
@@ -51,19 +53,19 @@ bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
 Value::Container* parseValue(IR::Query* query,
                              std::vector<Token*>::iterator& token) {
   if ((*token)->isBoolLiteral()) {
-    return new Value::Container(new Value::Bool(((*token++))->getWord()));
+    return new Value::Container(new Value::Bool(*(token++)));
   }
 
   if ((*token)->isFloatLiteral()) {
-    return new Value::Container(new Value::Float((*(token++))->getWord()));
+    return new Value::Container(new Value::Float(*(token++)));
   }
 
   if ((*token)->isIntLiteral()) {
-    return new Value::Container(new Value::Int((*(token++))->getWord()));
+    return new Value::Container(new Value::Int(*(token++)));
   }
 
   if ((*token)->isStringLiteral()) {
-    return new Value::Container(new Value::String((*(token++))->getWord()));
+    return new Value::Container(new Value::String(*(token++)));
   }
 
   if (**token == "." && (*(token + 1))->isIdentifierWord()) {
@@ -87,11 +89,12 @@ Value::Container* parseValue(IR::Query* query,
       }
 
       return new Value::Container(new Value::TypeValue(
-          new Type::Container(query->getOwner()->getType(name->getWord()))));
+          new Type::Container(query->getOwner()->getType(name->getWord())),
+          *Range::fromToken(name)));
     }
 
     token++;  // Eat "("
-    Value::Call* call = new Value::Call(name->getWord());
+    Value::Call* call = new Value::Call(name);
 
     while (**token != ")") {
       if (**token == "}") {
@@ -110,6 +113,7 @@ Value::Container* parseValue(IR::Query* query,
       call->addArgument(arg);
 
       if (**token == ")") {
+        call->expandRange(*Range::fromToken(*token));
         ++token;
         break;
       }
@@ -133,20 +137,23 @@ inline Value::Variable* parseVariable(IR::Query* query,
                                       std::vector<Token*>::iterator& token,
                                       int variableId) {
   std::vector<std::string> uriParts;
+  Range range = *Range::fromToken(*(token - (variableId == 0 ? 0 : 1)));
 
   while (**token == ".") {
     if (!(*(token + 1))->isIdentifierWord())
       break;
 
     token++;
+    range = range + *Range::fromToken(*token);
     uriParts.push_back((*(token++))->getWord());
   }
 
   if (uriParts.size() == 0)
-    return new Value::Variable(variableId, query->getParameterType(variableId));
+    return new Value::Variable(variableId, query->getParameterType(variableId),
+                               range);
 
   return new Value::Variable(variableId, query->getParameterType(variableId),
-                             new Type::Uri(uriParts));
+                             range, new Type::Uri(uriParts));
 }
 
 }  // namespace Parser

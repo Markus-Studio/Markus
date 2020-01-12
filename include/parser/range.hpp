@@ -31,6 +31,11 @@ class Range {
 
  public:
   /**
+   * Default constructor.
+   */
+  Range();
+
+  /**
    * Constructs a new range from the given token.
    */
   static Range* fromToken(Token* token);

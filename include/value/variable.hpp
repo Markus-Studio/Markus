@@ -1,6 +1,7 @@
 #ifndef __MARKUS_VALUE__VARIABLE__
 #define __MARKUS_VALUE__VARIABLE__
 
+#include "parser/range.hpp"
 #include "type/container.hpp"
 #include "type/uri.hpp"
 
@@ -35,16 +36,24 @@ class Variable {
    */
   Type::Container* typeCache;
 
+  /**
+   * The source code range that contains this value.
+   */
+  Parser::Range range;
+
  public:
   /**
    * Constructs a new reference to a variable.
    */
-  Variable(int id, Type::Container* type);
+  Variable(int id, Type::Container* type, Parser::Range range);
 
   /**
    * Constructs a new reference to a variable with a member selection.
    */
-  Variable(int id, Type::Container* type, Type::Uri* member);
+  Variable(int id,
+           Type::Container* type,
+           Parser::Range range,
+           Type::Uri* member);
 
   /**
    * Returns true if there is a member selected on this variable.
@@ -67,6 +76,11 @@ class Variable {
    * Returns uri of the selected member.
    */
   Type::Uri* getMember();
+
+  /**
+   * Returns the range which this value is derived from in the source code.
+   */
+  Parser::Range getRange();
 };
 }  // namespace Value
 

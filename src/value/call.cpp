@@ -1,8 +1,16 @@
 #include "value/call.hpp"
 
+#include <assert.h>
+
 namespace Value {
 Call::Call(std::string calleeName) {
   functionName = calleeName;
+}
+
+Call::Call(Parser::Token* token) {
+  assert(token->isIdentifier());
+  functionName = token->getWord();
+  range = *Parser::Range::fromToken(token);
 }
 
 void Call::addArgument(Container* value) {
@@ -20,4 +28,11 @@ std::vector<Container*> Call::getArguments() {
   return vec;
 }
 
+void Call::expandRange(Parser::Range r) {
+  range = range + r;
+}
+
+Parser::Range Call::getRange() {
+  return range;
+}
 }  // namespace Value

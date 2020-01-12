@@ -7,5 +7,5 @@ type Student: Person, user {}
 type Teacher: Person, user {}
 
 permission Person {
-    is(Person)
+    is(Person, Student)
 }

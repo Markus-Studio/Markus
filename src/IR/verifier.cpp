@@ -15,7 +15,7 @@ bool is(Query* query, Value::Call* call) {
   std::vector<Value::Container*> arguments = call->getArguments();
 
   if (arguments.size() != 1) {
-    Controller::report(Error::wrongNumberOfArguments(1, arguments.size()));
+    Controller::report(Error::wrongNumberOfArguments(1, call));
     return false;
   }
 

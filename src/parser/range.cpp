@@ -1,11 +1,18 @@
 #include "parser/range.hpp"
 
 namespace Parser {
+Range::Range() {
+  lineEnd = 0;
+  lineStart = 0;
+  columnEnd = 0;
+  columnStart = 0;
+}
+
 Range* Range::fromToken(Token* token) {
   Range* range = new Range();
   range->lineEnd = range->lineStart = token->getLine();
   range->columnStart = token->getColumn();
-  range->columnEnd = range->columnStart + token->getWord().length;
+  range->columnEnd = range->columnStart + token->getWord().length();
   return range;
 }
 

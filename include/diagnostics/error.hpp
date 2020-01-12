@@ -5,6 +5,7 @@
 #include <string>
 
 #include "parser/tokenizer.hpp"
+#include "value/call.hpp"
 #include "value/container.hpp"
 
 namespace Diagnostics {
@@ -128,7 +129,7 @@ class Error {
   /**
    * Constructs a new wrong number of arguments error.
    */
-  static Error* wrongNumberOfArguments(int expected, int passed);
+  static Error* wrongNumberOfArguments(int expected, Value::Call* call);
 
   /**
    * Constructs a new wrong argument type error.

@@ -112,4 +112,23 @@ TypeValue* Container::asType() {
 enum ValueKind Container::getKind() {
   return kind;
 }
+
+Parser::Range Container::getRange() {
+  switch (kind) {
+    case VALUE_KIND_BOOL:
+      return asBool()->getRange();
+    case VALUE_KIND_INT:
+      return asInt()->getRange();
+    case VALUE_KIND_FLOAT:
+      return asFloat()->getRange();
+    case VALUE_KIND_STRING:
+      return asString()->getRange();
+    case VALUE_KIND_TYPE:
+      return asType()->getRange();
+    case VALUE_KIND_VARIABLE:
+      return asVariable()->getRange();
+    case VALUE_KIND_CALL:
+      return asCall()->getRange();
+  }
+}
 }  // namespace Value
