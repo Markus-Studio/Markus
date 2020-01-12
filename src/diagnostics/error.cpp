@@ -103,6 +103,14 @@ Error* Error::cannotResolveName(Parser::Token* token) {
   return new Error(E_CANNOT_RESOLVE_NAME, fmt.str());
 }
 
+Error* Error::cannotResolveName(Value::Call* call) {
+  std::stringstream fmt;
+  fmt << "Error: Cannot resolve name " << call->getCalleeName() << " on line "
+      << call->getRange().getLineStart() << ":"
+      << call->getRange().getColumnStart() << ".";
+  return new Error(E_CANNOT_RESOLVE_NAME, fmt.str());
+}
+
 Error* Error::circularField(std::string typeName, std::string fieldName) {
   std::stringstream fmt;
   fmt << "Error: " << typeName << " has a non-nullable circular field "
@@ -136,6 +144,14 @@ Error* Error::wrongArgumentType(enum Value::ValueKind expected,
       << names[expected] << " on line " << value->getRange().getLineStart()
       << ":" << value->getRange().getColumnStart() << ".";
   return new Error(E_WRONG_ARGUMENT_TYPE, fmt.str());
+}
+
+Error* Error::variableExpectedCurrent(Value::Variable* value) {
+  std::stringstream fmt;
+  fmt << "Error: Expected a reference to the current value on line "
+      << value->getRange().getLineStart() << ":"
+      << value->getRange().getColumnStart() << ".";
+  return new Error(E_VARIABLE_EXPECTED_CURRENT, fmt.str());
 }
 
 }  // namespace Diagnostics

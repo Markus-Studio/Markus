@@ -26,7 +26,8 @@ enum ErrorNo {
   E_BASE_MUST_BE_OBJECT,
   E_CIRCULAR_FIELD_IS_NOT_NULL,
   E_WRONG_NUMBER_OF_ARGUMENTS,
-  E_WRONG_ARGUMENT_TYPE
+  E_WRONG_ARGUMENT_TYPE,
+  E_VARIABLE_EXPECTED_CURRENT
 };
 
 /**
@@ -122,6 +123,11 @@ class Error {
   static Error* cannotResolveName(Parser::Token* token);
 
   /**
+   * Constructs a new cannot resolve name error from a call expression.
+   */
+  static Error* cannotResolveName(Value::Call* call);
+
+  /**
    * Constructs a new circular field must be null.
    */
   static Error* circularField(std::string typeName, std::string fieldName);
@@ -136,6 +142,11 @@ class Error {
    */
   static Error* wrongArgumentType(enum Value::ValueKind expected,
                                   Value::Container* value);
+
+  /**
+   * Constructs a new variable expected current error.
+   */
+  static Error* variableExpectedCurrent(Value::Variable* value);
 };
 }  // namespace Diagnostics
 

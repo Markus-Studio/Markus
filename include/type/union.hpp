@@ -92,6 +92,7 @@ class Union {
   Container* query(Uri uri);
 
   friend class Object;
+  friend class Container;
 };
 }  // namespace Type
 

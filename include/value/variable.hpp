@@ -78,6 +78,11 @@ class Variable {
   Type::Uri* getMember();
 
   /**
+   * Returns the variable id.
+   */
+  int getId();
+
+  /**
    * Returns the range which this value is derived from in the source code.
    */
   Parser::Range getRange();

@@ -50,6 +50,6 @@ bool Query::addPipeline(Value::Call* call) {
   info.call = call;
   pipelines.push_back(info);
 
-  return verifyCall(this, call);
+  return verifyCall(this, call, resultType);
 }
 }  // namespace IR

@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include <iostream>
+
 #include "type/array.hpp"
 #include "type/atomic.hpp"
 #include "type/object.hpp"
@@ -183,6 +185,53 @@ bool Container::isNil() {
   }
 
   assert(0);
+}
+
+void Container::dump() {
+  if (isNil()) {
+    std::cout << "NIL" << std::endl;
+    return;
+  }
+
+  switch (kind) {
+    case TYPE_KIND_NEVER:
+      std::cout << "NEVER" << std::endl;
+      return;
+
+    case TYPE_KIND_ATOMIC:
+      std::cout << asAtomic()->getName() << std::endl;
+      return;
+
+    case TYPE_KIND_OBJECT:
+      std::cout << asObject()->getName() << std::endl;
+      return;
+
+    case TYPE_KIND_ARRAY:
+      std::cout << "Array<" << std::endl;
+      asArray()->getContainedType()->dump();
+      std::cout << ">" << std::endl;
+      return;
+
+    case TYPE_KIND_UNION: {
+      std::cout << "Union<" << std::endl;
+      Union* u = asUnion();
+      Container c = Container();
+      std::list<Atomic*>::iterator aIt = u->atomicMembers.begin();
+      std::list<Object*>::iterator oIt = u->objectMembers.begin();
+      for (; aIt != u->atomicMembers.end(); ++aIt) {
+        c.kind = TYPE_KIND_ATOMIC;
+        c.type = *aIt;
+        c.dump();
+      }
+
+      for (; oIt != u->objectMembers.end(); ++oIt) {
+        c.kind = TYPE_KIND_OBJECT;
+        c.type = *oIt;
+        c.dump();
+      }
+      std::cout << ">" << std::endl;
+    }
+  }
 }
 
 }  // namespace Type

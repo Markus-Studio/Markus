@@ -42,6 +42,10 @@ Type::Uri* Variable::getMember() {
   return variableMember;
 }
 
+int Variable::getId() {
+  return variableId;
+}
+
 Parser::Range Variable::getRange() {
   return range;
 }

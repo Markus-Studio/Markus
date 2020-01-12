@@ -151,6 +151,11 @@ class Container {
    * Returns whatever we contain a nil type.
    */
   bool isNil();
+
+  /**
+   * Dump the type to the stdio.
+   */
+  void dump();
 };
 
 }  // namespace Type
