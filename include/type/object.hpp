@@ -27,7 +27,7 @@ struct ObjectField {
   /**
    * Type container for this field's type.
    */
-  Container type;
+  Container* type;
 };
 
 /**
@@ -149,12 +149,12 @@ class Object {
   /**
    * Query type of the field with the name.
    */
-  Container query(std::string name);
+  Container* query(std::string name);
 
   /**
    * Query type of the field with the given uri.
    */
-  Container query(Uri uri);
+  Container* query(Uri uri);
 
   /**
    * Evaluates `this is obj` and returns the result.

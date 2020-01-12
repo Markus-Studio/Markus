@@ -18,7 +18,7 @@ TEST("Object") {
   Uri u1("o", "a");
   Uri u2("o", "b");
   Uri u3("o", "c");
-  Container c;
+  Container* c;
 
   CHECK(o1.getName() == "test");
   CHECK(o2.getName() == "object");
@@ -55,28 +55,28 @@ TEST("Object") {
   CHECK(o4.has(u3) == false);
 
   c = o1.query("a");
-  CHECK(c.isAtomic());
-  CHECK(c.asAtomic()->getName() == "x");
+  CHECK(c->isAtomic());
+  CHECK(c->asAtomic()->getName() == "x");
 
   c = o3.query("b");
-  CHECK(c.isAtomic());
-  CHECK(c.asAtomic()->getName() == "y");
+  CHECK(c->isAtomic());
+  CHECK(c->asAtomic()->getName() == "y");
 
   c = o3.query("xxx");
-  CHECK(c.isNever());
+  CHECK(c->isNever());
 
   c = o4.query(u1);
-  CHECK(c.isAtomic());
-  CHECK(c.asAtomic()->getName() == "x");
+  CHECK(c->isAtomic());
+  CHECK(c->asAtomic()->getName() == "x");
 
   c = o4.query(u2);
-  CHECK(c.isAtomic());
-  CHECK(c.asAtomic()->getName() == "y");
+  CHECK(c->isAtomic());
+  CHECK(c->asAtomic()->getName() == "y");
 
   c = o4.query(u3);
-  CHECK(c.isNever());
+  CHECK(c->isNever());
 
   c = o3.query(u3);
-  CHECK(c.isNever());
+  CHECK(c->isNever());
 }
 }  // namespace

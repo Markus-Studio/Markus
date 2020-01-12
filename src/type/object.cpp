@@ -75,7 +75,7 @@ void Object::addBase(Object* base) {
 bool Object::set(std::string key, Atomic* type, bool nullable) {
   if (has(key))
     return false;
-  struct ObjectField field = {key, nullable, Container(type)};
+  struct ObjectField field = {key, nullable, new Container(type)};
   fields.push_back(field);
   return true;
 }
@@ -83,7 +83,7 @@ bool Object::set(std::string key, Atomic* type, bool nullable) {
 bool Object::set(std::string key, Object* type, bool nullable) {
   if (has(key))
     return false;
-  struct ObjectField field = {key, nullable, Container(type)};
+  struct ObjectField field = {key, nullable, new Container(type)};
   fields.push_back(field);
   return true;
 }
@@ -112,8 +112,8 @@ bool Object::has(Uri uri) {
   if (uri.size() == 1)
     return has(uri.getFirstUnit());
 
-  Container container = query(uri);
-  return !container.isNever();
+  Container* container = query(uri);
+  return !container->isNever();
 }
 
 std::vector<Object*> Object::getBases() {
@@ -160,8 +160,8 @@ std::vector<Object*> Object::getAllBases() {
   return allBasesCache = result;
 }
 
-Container Object::query(std::string name) {
-  Container container;
+Container* Object::query(std::string name) {
+  Container* result;
 
   std::vector<struct ObjectField>::iterator it;
   for (it = fields.begin(); it != fields.end(); ++it)
@@ -170,29 +170,29 @@ Container Object::query(std::string name) {
 
   std::vector<Object*>::iterator bIt;
   for (bIt = bases.begin(); bIt != bases.end(); ++bIt)
-    if (!(container = (*bIt)->query(name)).isNever())
-      return container;
+    if (!(result = (*bIt)->query(name))->isNever())
+      return result;
 
-  return container;
+  return new Container();
 }
 
-Container Object::query(Uri uri) {
+Container* Object::query(Uri uri) {
   if (uri.isEmpty())
-    return Container(this);
+    return new Container(this);
 
   if (uri.size() == 1)
     return query(uri.getFirstUnit());
 
-  Container container = query(uri.getFirstUnit());
+  Container* container = query(uri.getFirstUnit());
   uri = uri.popFirst();
 
-  if (container.isNever())
+  if (container->isNever())
     return container;
 
-  if (container.isObject())
-    return container.asObject()->query(uri);
+  if (container->isObject())
+    return container->asObject()->query(uri);
 
-  return Container();
+  return new Container();
 }
 
 bool Object::is(Object* obj) {
