@@ -18,6 +18,7 @@
 
 namespace Parser {
 using namespace Diagnostics;
+Types::Types() {}
 
 Types::Types(Scanner* scanner) {
   builtins();

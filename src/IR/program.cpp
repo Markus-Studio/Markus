@@ -3,21 +3,20 @@
 #include <assert.h>
 
 #include "parser/permission.hpp"
-#include "parser/types.hpp"
 
 namespace IR {
 Program::Program(Parser::Scanner* scanner) {
   // --- Types.
-  Parser::Types types(scanner);
+  parserTypes = Parser::Types(scanner);
 
-  user = types.resolve("user")->asObject();
+  user = parserTypes.resolve("user")->asObject();
 
-  std::vector<std::string> typeNames = types.getTypeNames();
+  std::vector<std::string> typeNames = parserTypes.getTypeNames();
   std::vector<std::string>::iterator typeName;
 
   for (typeName = typeNames.begin(); typeName != typeNames.end(); ++typeName) {
-    Type::Container* type = types.resolve(*typeName);
-    if (!type->isObject() || types.isBuiltIn(*typeName))
+    Type::Container* type = parserTypes.resolve(*typeName);
+    if (!type->isObject() || parserTypes.isBuiltIn(*typeName))
       continue;
     Type::Object* objType = type->asObject();
     this->types.push_back(objType);
@@ -81,6 +80,12 @@ Permission* Program::getPermission(std::string name) {
       return *it;
   assert(0);
   return NULL;
+}
+
+Type::Container* Program::resolveBuiltin(std::string name) {
+  if (!parserTypes.isBuiltIn(name))
+    return new Type::Container();
+  return parserTypes.resolve(name);
 }
 
 }  // namespace IR

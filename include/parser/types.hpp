@@ -51,6 +51,11 @@ class Types {
 
  public:
   /**
+   * Default constructor.
+   */
+  Types();
+
+  /**
    * Construct a new type space with builtin types and thoese in the
    * scanner.
    */

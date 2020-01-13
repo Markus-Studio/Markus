@@ -5,6 +5,7 @@
 
 #include "IR/permission.hpp"
 #include "parser/scanner.hpp"
+#include "parser/types.hpp"
 #include "type/array.hpp"
 #include "type/object.hpp"
 #include "type/union.hpp"
@@ -48,6 +49,12 @@ class Program {
    */
   Type::Array* typesArray;
 
+  /**
+   * Result of parsing the types, we use it to resolve builtin
+   * types.
+   */
+  Parser::Types parserTypes;
+
  public:
   /**
    * Constructs a new program.
@@ -83,6 +90,11 @@ class Program {
    * Return the Permission IR of the permission with the given name.
    */
   Permission* getPermission(std::string name);
+
+  /**
+   * Resolve a built-in type.
+   */
+  Type::Container* resolveBuiltin(std::string name);
 };
 }  // namespace IR
 
