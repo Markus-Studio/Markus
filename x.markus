@@ -2,11 +2,13 @@ type Person {
     string name;
 }
 
-type Student: Person, user {}
+type Student: Person, user {
+    string some;
+}
 
 type Teacher: Person, user {}
 
 permission Person {
-    select(.nameX),
-    select(.name)
+    is(Student),
+    select(.some)
 }

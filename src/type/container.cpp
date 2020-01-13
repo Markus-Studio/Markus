@@ -168,6 +168,39 @@ Container* Container::query(Uri uri) {
   assert(0);
 }
 
+Container* Container::extract(Container* baseType) {
+  switch (kind) {
+    case TYPE_KIND_NEVER:
+      return this;
+
+    case TYPE_KIND_ATOMIC:
+    case TYPE_KIND_OBJECT:
+      if (this->is(baseType))
+        return this;
+      return new Container();
+
+    case TYPE_KIND_ARRAY:
+      return new Container(
+          new Array(asArray()->getContainedType()->extract(baseType)));
+
+    case TYPE_KIND_UNION:
+      Union* result = new Union();
+      Union* u = asUnion();
+      Container c = Container();
+      std::list<Atomic*>::iterator aIt = u->atomicMembers.begin();
+      c.kind = TYPE_KIND_ATOMIC;
+      for (c.type = *aIt; aIt != u->atomicMembers.end(); ++aIt, c.type = *aIt)
+        if (c.is(baseType))
+          result->add(*aIt);
+      std::list<Object*>::iterator oIt = u->objectMembers.begin();
+      c.kind = TYPE_KIND_OBJECT;
+      for (c.type = *oIt; oIt != u->objectMembers.end(); ++oIt, c.type = *oIt)
+        if (c.is(baseType))
+          result->add(*oIt);
+      return new Container(result);
+  }
+}
+
 bool Container::isNil() {
   switch (kind) {
     case TYPE_KIND_NEVER:

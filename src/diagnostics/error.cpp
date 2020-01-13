@@ -154,4 +154,12 @@ Error* Error::variableExpectedCurrent(Value::Variable* value) {
   return new Error(E_VARIABLE_EXPECTED_CURRENT, fmt.str());
 }
 
+Error* Error::fieldDoesNotExists(Value::Variable* value) {
+  std::stringstream fmt;
+  fmt << "Error: The field does not exists on the base type on line "
+      << value->getRange().getLineStart() << ":"
+      << value->getRange().getColumnStart() << ".";
+  return new Error(E_FIELD_DOES_NOT_EXISTS, fmt.str());
+}
+
 }  // namespace Diagnostics

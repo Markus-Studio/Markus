@@ -148,6 +148,12 @@ class Container {
   Container* query(Uri uri);
 
   /**
+   * Creates and returns a new type that is sub-type of the current type and is
+   * driven from the baseType.
+   */
+  Container* extract(Container* baseType);
+
+  /**
    * Returns whatever we contain a nil type.
    */
   bool isNil();

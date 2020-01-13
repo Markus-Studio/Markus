@@ -27,7 +27,8 @@ enum ErrorNo {
   E_CIRCULAR_FIELD_IS_NOT_NULL,
   E_WRONG_NUMBER_OF_ARGUMENTS,
   E_WRONG_ARGUMENT_TYPE,
-  E_VARIABLE_EXPECTED_CURRENT
+  E_VARIABLE_EXPECTED_CURRENT,
+  E_FIELD_DOES_NOT_EXISTS
 };
 
 /**
@@ -147,6 +148,11 @@ class Error {
    * Constructs a new variable expected current error.
    */
   static Error* variableExpectedCurrent(Value::Variable* value);
+
+  /**
+   * Constructs a new field does not exists error.
+   */
+  static Error* fieldDoesNotExists(Value::Variable* value);
 };
 }  // namespace Diagnostics
 

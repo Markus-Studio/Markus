@@ -29,6 +29,12 @@ using namespace Diagnostics;
     return false;                                                    \
   }
 
+#define EXPECT_ARG_VAR_EXISTS(n)                                               \
+  if (arguments[n]->asVariable()->getType()->isNil()) {                        \
+    Controller::report(Error::fieldDoesNotExists(arguments[n]->asVariable())); \
+    return false;                                                              \
+  }
+
 namespace Verify {
 bool is(Query* query, Value::Call* call, Type::Container*& resultType) {
   assert(call->getCalleeName() == "is");
@@ -36,6 +42,7 @@ bool is(Query* query, Value::Call* call, Type::Container*& resultType) {
 
   EXPECT_ARG_NUM(1);
   EXPECT_ARG_TYPE(0, Value::VALUE_KIND_TYPE);
+  resultType = resultType->extract(arguments[0]->asType()->getType());
 
   return true;
 }
@@ -46,9 +53,9 @@ bool select(Query* query, Value::Call* call, Type::Container*& resultType) {
 
   EXPECT_ARG_NUM(1);
   EXPECT_ARG_CURRENT(0);
+  EXPECT_ARG_VAR_EXISTS(0);
 
   resultType = arguments[0]->asVariable()->getType();
-
   return true;
 }
 
