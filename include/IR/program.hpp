@@ -2,6 +2,7 @@
 #define __MARKUS_IR_PROGRAM__
 
 #include <list>
+#include <map>
 
 #include "IR/permission.hpp"
 #include "parser/scanner.hpp"
@@ -28,6 +29,11 @@ class Program {
    * The permissions in this program.
    */
   std::list<Permission*> permissions;
+
+  /**
+   * List of all the queries defined in this program.
+   */
+  std::map<std::string, Query*> queries;
 
   /**
    * The built-in user type.
@@ -90,6 +96,16 @@ class Program {
    * Return the Permission IR of the permission with the given name.
    */
   Permission* getPermission(std::string name);
+
+  /**
+   * Returns true if there is a query in this program with the given name.
+   */
+  bool hasQuery(std::string name);
+
+  /**
+   * Returns the query with the given name that is defined in this program.
+   */
+  Query* getQuery(std::string name);
 
   /**
    * Resolve a built-in type.

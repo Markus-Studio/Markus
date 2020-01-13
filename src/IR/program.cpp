@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "parser/permission.hpp"
+#include "parser/query.hpp"
 
 namespace IR {
 Program::Program(Parser::Scanner* scanner) {
@@ -34,10 +35,20 @@ Program::Program(Parser::Scanner* scanner) {
   for (; permissionName != permissionNames.end(); ++permissionName) {
     Parser::TokenVec* tokens = scanner->lookupPermission(*permissionName);
     IR::Permission* permission = Parser::parsePermission(this, tokens);
-    permissions.push_back(permission);
+    if (permission != NULL)
+      permissions.push_back(permission);
   }
 
-  // Queries.
+  // --- Queries.
+  std::vector<std::string> queryNames = scanner->getQueryNames();
+  std::vector<std::string>::iterator queryName = queryNames.begin();
+
+  for (; queryName != queryNames.end(); ++queryName) {
+    Parser::TokenVec* tokens = scanner->lookupQuery(*queryName);
+    IR::Query* query = Parser::parseQuery(this, tokens);
+    if (query != NULL)
+      queries.insert(std::pair<std::string, IR::Query*>(*queryName, query));
+  }
 }
 
 bool Program::hasType(std::string name) {
@@ -80,6 +91,19 @@ Permission* Program::getPermission(std::string name) {
       return *it;
   assert(0);
   return NULL;
+}
+
+bool Program::hasQuery(std::string name) {
+  return queries.count(name) == 1;
+}
+
+Query* Program::getQuery(std::string name) {
+  std::map<std::string, Query*>::iterator it = queries.find(name);
+  if (it == queries.end()) {
+    assert(0);
+    return NULL;
+  }
+  return it->second;
 }
 
 Type::Container* Program::resolveBuiltin(std::string name) {

@@ -8,7 +8,17 @@ type Student: Person, user {
 
 type Teacher: Person, user {}
 
+type Sell {
+    string city;
+    int price;
+}
+
 permission Person {
     is(Student),
     select(.some)
+}
+
+query XXX {
+    is(Sell),
+    sum(.price)
 }

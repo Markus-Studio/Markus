@@ -2,15 +2,30 @@
 
 #include "diagnostics/controller.hpp"
 #include "parser/range.hpp"
-#include "value/container.hpp"
 
 namespace Parser {
-inline Value::Variable* parseVariable(IR::Query* query,
-                                      std::vector<Token*>::iterator& token,
-                                      int variableId);
+IR::Query* parseQuery(IR::Program* program, TokenVec* tokens) {
+  std::vector<Token*>::iterator iterator = tokens->begin();
+  assert(**iterator == "query");
 
-Value::Container* parseValue(IR::Query* query,
-                             std::vector<Token*>::iterator& token);
+  ++iterator;
+
+  if (!(*iterator)->isIdentifier()) {
+    Diagnostics::Controller::report(
+        Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
+    return NULL;
+  }
+
+  std::string name = (*iterator++)->getWord();
+  IR::Query* result = new IR::Query(program);
+
+  // TODO(qti3e) Parse the permission section.
+  result->addParameter("%user", new Type::Container(program->unionOfUsers()));
+
+  parseQueryBody(result, iterator);
+
+  return result;
+}
 
 bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
   if (**iterator != "{") {
@@ -133,9 +148,9 @@ Value::Container* parseValue(IR::Query* query,
   return NULL;
 }
 
-inline Value::Variable* parseVariable(IR::Query* query,
-                                      std::vector<Token*>::iterator& token,
-                                      int variableId) {
+Value::Variable* parseVariable(IR::Query* query,
+                               std::vector<Token*>::iterator& token,
+                               int variableId) {
   std::vector<std::string> uriParts;
   Range range = *Range::fromToken(*(token - (variableId == 0 ? 0 : 1)));
 
