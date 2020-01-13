@@ -162,4 +162,23 @@ Error* Error::fieldDoesNotExists(Value::Variable* value) {
   return new Error(E_FIELD_DOES_NOT_EXISTS, fmt.str());
 }
 
+Error* Error::wrongInputType(Value::Call* call, std::string type) {
+  std::stringstream fmt;
+  fmt << "Error: Input type does not match the pipeline signature, pipeline "
+         "expected "
+      << type << " on line " << call->getRange().getLineStart() << ":"
+      << call->getRange().getColumnStart() << ".";
+  return new Error(E_WRONG_INPUT_TYPE, fmt.str());
+}
+
+Error* Error::wrongInputShape(Value::Call* call, int expected, int actual) {
+  std::stringstream fmt;
+  fmt << "Error: Input shape does not match the pipeline signature, pipeline "
+         "expected "
+      << expected << "-dimensional type while it received a " << actual
+      << "-dimensional type on line " << call->getRange().getLineStart() << ":"
+      << call->getRange().getColumnStart() << ".";
+  return new Error(E_WRONG_INPUT_SHAPE, fmt.str());
+}
+
 }  // namespace Diagnostics

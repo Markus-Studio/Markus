@@ -28,7 +28,9 @@ enum ErrorNo {
   E_WRONG_NUMBER_OF_ARGUMENTS,
   E_WRONG_ARGUMENT_TYPE,
   E_VARIABLE_EXPECTED_CURRENT,
-  E_FIELD_DOES_NOT_EXISTS
+  E_FIELD_DOES_NOT_EXISTS,
+  E_WRONG_INPUT_TYPE,
+  E_WRONG_INPUT_SHAPE
 };
 
 /**
@@ -153,6 +155,16 @@ class Error {
    * Constructs a new field does not exists error.
    */
   static Error* fieldDoesNotExists(Value::Variable* value);
+
+  /**
+   * Constructs a new wrong input type error.
+   */
+  static Error* wrongInputType(Value::Call* call, std::string type);
+
+  /**
+   * Constructs a new wrong input shape error.
+   */
+  static Error* wrongInputShape(Value::Call* call, int expected, int actual);
 };
 }  // namespace Diagnostics
 

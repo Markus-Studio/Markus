@@ -31,11 +31,8 @@ int Query::getParameterId(std::string name) {
 Type::Container* Query::getParameterType(int n) {
   assert(n >= 0);
   // The first variable is always refering to the current item.
-  if (n == 0) {
-    if (resultType->isArray())
-      return resultType->asArray()->getContainedType();
+  if (n == 0)
     return resultType;
-  }
   return parameters[n - 1];
 }
 
@@ -51,5 +48,9 @@ bool Query::addPipeline(Value::Call* call) {
   pipelines.push_back(info);
 
   return verifyCall(this, call, resultType);
+}
+
+Type::Container* Query::getResultType() {
+  return resultType;
 }
 }  // namespace IR

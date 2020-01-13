@@ -80,6 +80,11 @@ class Query {
    * Add the given pipeline to this query.
    */
   bool addPipeline(Value::Call* call);
+
+  /**
+   * Returns the result type of this query.
+   */
+  Type::Container* getResultType();
 };
 }  // namespace IR
 

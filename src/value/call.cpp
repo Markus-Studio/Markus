@@ -28,6 +28,10 @@ std::vector<Container*> Call::getArguments() {
   return vec;
 }
 
+int Call::numArguments() {
+  return arguments.size();
+}
+
 void Call::expandRange(Parser::Range r) {
   range = range + r;
 }

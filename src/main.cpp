@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "IR/query.hpp"
 #include "diagnostics/controller.hpp"
 #include "parser/parser.hpp"
 #include "writer/directory.hpp"
@@ -34,6 +35,7 @@ int main(int argc, char* argv[]) {
   }
 
   std::cout << program->hasPermission("Person") << std::endl;
+  program->getPermission("Person")->getQuery()->getResultType()->dump();
 
   return 0;
 }

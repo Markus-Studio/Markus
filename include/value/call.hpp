@@ -57,6 +57,11 @@ class Call {
   std::vector<Container*> getArguments();
 
   /**
+   * Return number of arguments.
+   */
+  int numArguments();
+
+  /**
    * Expands the range to contain the given range.
    */
   void expandRange(Parser::Range r);
