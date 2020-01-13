@@ -3,20 +3,22 @@
 
 #include "value/variable.hpp"
 
-namespace Indexing {
-enum MetaKind {
-  META_KIND_SORT,
-  META_KIND_INDEX_CMP,
-  META_KIND_INDEX_EXACT,
-};
+namespace Indexer {
+enum MetaKind { META_KIND_SORT, META_KIND_INDEX };
+
+enum MetaOperator { OP_LT, OP_GT, OP_LTE, OP_GTE, OP_EQ, OP_NEQ };
 
 class Meta {
  private:
   enum MetaKind kind;
 
+  enum MetaOperator op;
   Value::Variable* field;
-
   Value::Variable* value;
+
+  static Meta* Index(enum MetaOperator op,
+                     Value::Variable* lhs,
+                     Value::Variable* rhs);
 
  public:
   static Meta* EQ(Value::Variable* lhs, Value::Variable* rhs);
@@ -27,6 +29,6 @@ class Meta {
   static Meta* GTE(Value::Variable* lhs, Value::Variable* rhs);
   static Meta* Sort(Value::Variable* field);
 };
-}  // namespace Indexing
+}  // namespace Indexer
 
 #endif

@@ -6,7 +6,12 @@
 #include "IR/query.hpp"
 #include "indexer/meta.hpp"
 
-namespace Indexing {
+namespace Indexer {
+/**
+ * The indexer engine is responsible for keeping track of indexes that are
+ * useful to fetch the data in queries, the engine generates what we call
+ * the Index Graph.
+ */
 class Engine {
  private:
   std::multimap<IR::Query*, Meta*> queryMetaData;
@@ -14,6 +19,6 @@ class Engine {
  public:
   void addQueryMeta(IR::Query* query, Meta* meta);
 };
-}  // namespace Indexing
+}  // namespace Indexer
 
 #endif
