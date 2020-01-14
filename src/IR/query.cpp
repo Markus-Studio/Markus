@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "IR/program.hpp"
 #include "IR/verifier.hpp"
 
 namespace IR {

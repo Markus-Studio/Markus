@@ -7,6 +7,8 @@
 
 namespace IR {
 Program::Program(Parser::Scanner* scanner) {
+  indexerEngine = new Indexer::Engine();
+
   // --- Types.
   parserTypes = Parser::Types(scanner);
 
@@ -110,6 +112,10 @@ Type::Container* Program::resolveBuiltin(std::string name) {
   if (!parserTypes.isBuiltIn(name))
     return new Type::Container();
   return parserTypes.resolve(name);
+}
+
+Indexer::Engine* Program::getIndexer() {
+  return indexerEngine;
 }
 
 }  // namespace IR

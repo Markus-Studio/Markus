@@ -2,8 +2,10 @@
 
 #include <assert.h>
 
+#include "IR/program.hpp"
 #include "IR/query.hpp"
 #include "diagnostics/controller.hpp"
+#include "indexer/meta.hpp"
 #include "value/container.hpp"
 
 namespace IR {
@@ -52,6 +54,47 @@ bool sum1(Query* query, Value::Call* call, Type::Container*& resultType) {
   return true;
 }
 
+bool eq(Query* query, Value::Call* call, Type::Container*& resultType) {
+  assert(call->getCalleeName() == "eq");
+  std::vector<Value::Container*> arguments = call->getArguments();
+  EXPECT_ARG_NUM(2);
+
+  // At least one of the arguments must be a field.
+  if (!(IS_FIELD(0) || IS_FIELD(1)))
+    EXPECT_ARG_CURRENT(0);
+
+  // We don't accept type reference as an argument.
+  EXPECT_TYPE(!IS_TYPE_REF(0), "field");
+  EXPECT_TYPE(!IS_TYPE_REF(1), "field");
+
+  if (IS_VAR_OR_FIELD(0))
+    EXPECT_ARG_VAR_EXISTS(0);
+
+  if (IS_VAR_OR_FIELD(1))
+    EXPECT_ARG_VAR_EXISTS(1);
+
+  int field = IS_FIELD(0) ? 0 : 1;
+  int value = field == 0 ? 1 : 0;
+  Type::Container* fieldType = arguments[field]->getType(query);
+  Type::Container* valueType = arguments[value]->getType(query);
+  if (fieldType->isArray())
+    fieldType = fieldType->asArray()->getContainedType();
+
+  if (!valueType->is(fieldType)) {
+    Controller::report(
+        Error::typesNotUseableTogether(arguments[0], arguments[1]));
+    return false;
+  }
+
+  // Index the field.
+  if (IS_VAR(value))
+    query->getOwner()->getIndexer()->addQueryMeta(
+        query, Indexer::Meta::EQ(arguments[0]->asVariable(),
+                                 arguments[1]->asVariable()));
+
+  return true;
+}
+
 }  // namespace Verify
 
 bool verifyCall(Query* query, Value::Call* call, Type::Container*& resultType) {
@@ -66,6 +109,9 @@ bool verifyCall(Query* query, Value::Call* call, Type::Container*& resultType) {
   if (functionName == "sum")
     return (call->numArguments() == 1) ? Verify::sum1(query, call, resultType)
                                        : Verify::sum0(query, call, resultType);
+
+  if (functionName == "eq")
+    return Verify::eq(query, call, resultType);
 
   Controller::report(Error::cannotResolveName(call));
   return false;

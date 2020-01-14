@@ -16,12 +16,14 @@
     return false;                                               \
   }
 
-#define EXPECT_ARG_CURRENT(n)                                        \
-  EXPECT_ARG_TYPE(n, Value::VALUE_KIND_VARIABLE);                    \
-  if (arguments[n]->asVariable()->getId() != 0) {                    \
-    Controller::report(                                              \
-        Error::variableExpectedCurrent(arguments[n]->asVariable())); \
-    return false;                                                    \
+#define EXPECT_ARG_CURRENT(n)                                          \
+  {                                                                    \
+    EXPECT_ARG_TYPE(n, Value::VALUE_KIND_VARIABLE);                    \
+    if (arguments[n]->asVariable()->getId() != 0) {                    \
+      Controller::report(                                              \
+          Error::variableExpectedCurrent(arguments[n]->asVariable())); \
+      return false;                                                    \
+    }                                                                  \
   }
 
 #define EXPECT_ARG_VAR_EXISTS(n)                                               \
@@ -41,6 +43,18 @@
 
 #define IS_NUMBER(container) \
   (IS_BUILTIN(container, "int") || IS_BUILTIN(container, "float"))
+
+#define IS_FIELD(n) \
+  (arguments[n]->isVariable() && arguments[n]->asVariable()->getId() == 0)
+
+#define IS_VAR(n) \
+  (arguments[n]->isVariable() && arguments[n]->asVariable()->getId() != 0)
+
+#define IS_VAR_OR_FIELD(n) (arguments[n]->isVariable())
+
+#define IS_LITERAL(n) (arguments[n]->isLiteral())
+
+#define IS_TYPE_REF(n) (arguments[n]->isType())
 
 #define EXPECT_TYPE(check, type)                           \
   if (!(check)) {                                          \

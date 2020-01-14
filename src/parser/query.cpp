@@ -1,5 +1,6 @@
 #include "parser/query.hpp"
 
+#include "IR/program.hpp"
 #include "diagnostics/controller.hpp"
 #include "parser/range.hpp"
 

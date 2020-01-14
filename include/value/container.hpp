@@ -1,7 +1,9 @@
 #ifndef __MARKUS_VALUE_CONTAINER__
 #define __MARKUS_VALUE_CONTAINER__
 
+#include "IR/query.hpp"
 #include "parser/range.hpp"
+#include "type/container.hpp"
 #include "value/bool.hpp"
 #include "value/call.hpp"
 #include "value/float.hpp"
@@ -164,6 +166,11 @@ class Container {
    * Returns the range which this value is derived from in the source code.
    */
   Parser::Range getRange();
+
+  /**
+   * Returns type of the value according to the current query.
+   */
+  Type::Container* getType(IR::Query* query);
 };
 }  // namespace Value
 

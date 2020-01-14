@@ -20,5 +20,5 @@ permission Person {
 
 query XXX {
     is(Sell),
-    sum(.price)
+    eq(%user.name, .city)
 }

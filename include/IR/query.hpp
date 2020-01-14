@@ -5,11 +5,12 @@
 #include <string>
 #include <vector>
 
-#include "IR/program.hpp"
 #include "type/container.hpp"
 #include "value/call.hpp"
 
 namespace IR {
+class Program;
+
 struct PipelineInfo {
   Type::Container* inputType;
   int shape;

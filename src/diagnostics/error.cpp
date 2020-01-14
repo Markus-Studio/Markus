@@ -181,4 +181,15 @@ Error* Error::wrongInputShape(Value::Call* call, int expected, int actual) {
   return new Error(E_WRONG_INPUT_SHAPE, fmt.str());
 }
 
+Error* Error::typesNotUseableTogether(Value::Container* lhs,
+                                      Value::Container* rhs) {
+  std::stringstream fmt;
+  fmt << "Error: Types of two values (" << lhs->getRange().getLineStart() << ":"
+      << lhs->getRange().getColumnStart() << " and "
+      << rhs->getRange().getLineStart() << ":"
+      << rhs->getRange().getColumnStart()
+      << " ) cannot be used together in that context.";
+  return new Error(E_TYPES_NOT_USEABLE_TOGETHER, fmt.str());
+}
+
 }  // namespace Diagnostics

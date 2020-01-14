@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include "IR/program.hpp"
+
 namespace Value {
 Container::Container(Int* v) {
   kind = VALUE_KIND_INT;
@@ -129,6 +131,25 @@ Parser::Range Container::getRange() {
       return asVariable()->getRange();
     case VALUE_KIND_CALL:
       return asCall()->getRange();
+  }
+}
+
+Type::Container* Container::getType(IR::Query* query) {
+  switch (kind) {
+    case VALUE_KIND_BOOL:
+      return query->getOwner()->resolveBuiltin("bool");
+    case VALUE_KIND_INT:
+      return query->getOwner()->resolveBuiltin("int");
+    case VALUE_KIND_FLOAT:
+      return query->getOwner()->resolveBuiltin("float");
+    case VALUE_KIND_STRING:
+      return query->getOwner()->resolveBuiltin("string");
+    case VALUE_KIND_TYPE:
+      return asType()->getType();
+    case VALUE_KIND_VARIABLE:
+      return asVariable()->getType();
+    case VALUE_KIND_CALL:
+      return new Type::Container();  // TODO(qti3e)
   }
 }
 }  // namespace Value

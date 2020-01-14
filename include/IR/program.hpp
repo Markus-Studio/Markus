@@ -5,6 +5,7 @@
 #include <map>
 
 #include "IR/permission.hpp"
+#include "indexer/engine.hpp"
 #include "parser/scanner.hpp"
 #include "parser/types.hpp"
 #include "type/array.hpp"
@@ -61,6 +62,11 @@ class Program {
    */
   Parser::Types parserTypes;
 
+  /**
+   * The indexer engine for this program.
+   */
+  Indexer::Engine* indexerEngine;
+
  public:
   /**
    * Constructs a new program.
@@ -111,6 +117,11 @@ class Program {
    * Resolve a built-in type.
    */
   Type::Container* resolveBuiltin(std::string name);
+
+  /**
+   * Returns the indexer engine.
+   */
+  Indexer::Engine* getIndexer();
 };
 }  // namespace IR
 

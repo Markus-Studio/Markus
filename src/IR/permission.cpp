@@ -1,5 +1,6 @@
 #include "IR/permission.hpp"
 
+#include "IR/program.hpp"
 #include "IR/query.hpp"
 
 namespace IR {

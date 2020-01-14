@@ -30,7 +30,8 @@ enum ErrorNo {
   E_VARIABLE_EXPECTED_CURRENT,
   E_FIELD_DOES_NOT_EXISTS,
   E_WRONG_INPUT_TYPE,
-  E_WRONG_INPUT_SHAPE
+  E_WRONG_INPUT_SHAPE,
+  E_TYPES_NOT_USEABLE_TOGETHER
 };
 
 /**
@@ -165,6 +166,12 @@ class Error {
    * Constructs a new wrong input shape error.
    */
   static Error* wrongInputShape(Value::Call* call, int expected, int actual);
+
+  /**
+   * Constructs a new types not usable together error.
+   */
+  static Error* typesNotUseableTogether(Value::Container* lhs,
+                                        Value::Container* rhs);
 };
 }  // namespace Diagnostics
 
