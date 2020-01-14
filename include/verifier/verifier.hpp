@@ -79,4 +79,22 @@ bool verifyCall(IR::Query* query,
     return false;                                                     \
   }
 
+#define EXPECT_ARG_FIELD(n)                            \
+  {                                                    \
+    EXPECT_ARG_KIND(n, Value::VALUE_KIND_VARIABLE);    \
+    if (arguments[n]->asVariable()->getId() != 0) {    \
+      Diagnostics::Controller::report(                 \
+          Diagnostics::Error::variableExpectedCurrent( \
+              arguments[n]->asVariable()));            \
+      return false;                                    \
+    }                                                  \
+  }
+
+#define EXPECT_ARG_FIELD_EXISTS(n)                                           \
+  if (arguments[n]->asVariable()->getType()->isNil()) {                      \
+    Diagnostics::Controller::report(                                         \
+        Diagnostics::Error::fieldDoesNotExists(arguments[n]->asVariable())); \
+    return false;                                                            \
+  }
+
 #endif

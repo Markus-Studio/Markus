@@ -15,10 +15,9 @@ type Sell {
 
 permission Person {
     is(Student),
-    select(.some)
+    select(.name)
 }
 
 query XXX {
-    is(Sell),
-    eq(%user.name, .city)
+    is(Sell)
 }
