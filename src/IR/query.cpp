@@ -54,4 +54,10 @@ bool Query::addPipeline(Value::Call* call) {
 Type::Container* Query::getResultType() {
   return resultType;
 }
+
+std::vector<PipelineInfo> Query::getPipelines() {
+  std::vector<PipelineInfo> result;
+  result.assign(pipelines.begin(), pipelines.end());
+  return result;
+}
 }  // namespace IR

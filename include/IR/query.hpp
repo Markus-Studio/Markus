@@ -86,6 +86,11 @@ class Query {
    * Returns the result type of this query.
    */
   Type::Container* getResultType();
+
+  /**
+   * Return all of the pipelines in this query.
+   */
+  std::vector<PipelineInfo> getPipelines();
 };
 }  // namespace IR
 
