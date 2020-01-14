@@ -118,4 +118,28 @@ Indexer::Engine* Program::getIndexer() {
   return indexerEngine;
 }
 
+std::vector<std::string> Program::getTypeNames() {
+  std::vector<std::string> names;
+  std::list<Type::Object*>::iterator it = types.begin();
+  for (; it != types.end(); ++it)
+    names.push_back((*it)->getName());
+  return names;
+}
+
+std::vector<std::string> Program::getPermissionNames() {
+  std::vector<std::string> names;
+  std::list<Permission*>::iterator it = permissions.begin();
+  for (; it != permissions.end(); ++it)
+    names.push_back((*it)->getName());
+  return names;
+}
+
+std::vector<std::string> Program::getQueryNames() {
+  std::vector<std::string> names;
+  std::map<std::string, Query*>::iterator it = queries.begin();
+  for (; it != queries.end(); ++it)
+    names.push_back(it->first);
+  return names;
+}
+
 }  // namespace IR

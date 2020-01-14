@@ -10,6 +10,7 @@ include_directories(include)
 
 file(GLOB_RECURSE BIN_CPP_FILES "src/*/**.cpp")
 file(GLOB_RECURSE TEST_CPP_FILES "test/*/**.cpp")
+file(GLOB_RECURSE DUMPER_CPP_FILES "suit/dumper/**.cpp")
 
 if(BUILD_BINARY)
     add_executable(markus src/main.cpp ${BIN_CPP_FILES})
@@ -17,6 +18,7 @@ endif(BUILD_BINARY)
 
 if(BUILD_TESTS)
     add_executable(markus-test test/test.cpp ${BIN_CPP_FILES} ${TEST_CPP_FILES})
+    add_executable(markus-dump suite/dumper/main.cpp ${BIN_CPP_FILES} ${DUMPER_CPP_FILES})
 endif(BUILD_TESTS)
 
 if(BUILD_FOR_COVERAGE)

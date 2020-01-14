@@ -122,6 +122,21 @@ class Program {
    * Returns the indexer engine.
    */
   Indexer::Engine* getIndexer();
+
+  /**
+   * Return name of types defined in this program.
+   */
+  std::vector<std::string> getTypeNames();
+
+  /**
+   * Return name of permissions defined in this program.
+   */
+  std::vector<std::string> getPermissionNames();
+
+  /**
+   * Return name of queries defined in this source.
+   */
+  std::vector<std::string> getQueryNames();
 };
 }  // namespace IR
 

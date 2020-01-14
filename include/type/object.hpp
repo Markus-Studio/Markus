@@ -167,6 +167,11 @@ class Object {
   bool is(Union* u);
 
   /**
+   * Returns whatever the given field is nullable or not.
+   */
+  bool isNullable(std::string key);
+
+  /**
    * Returns name of owned fields in this type.
    */
   std::vector<std::string> getOwnedFields();

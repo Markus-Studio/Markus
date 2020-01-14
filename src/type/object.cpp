@@ -216,6 +216,16 @@ bool Object::is(Union* u) {
   return false;
 }
 
+bool Object::isNullable(std::string key) {
+  std::vector<struct ObjectField>::iterator it;
+  for (it = fields.begin(); it != fields.end(); ++it)
+    if (it->key == key)
+      return it->nullable;
+  // TODO(qti3e) ask parents.
+  assert(0);
+  return false;
+}
+
 std::vector<std::string> Object::getOwnedFields() {
   std::vector<std::string> names;
   std::vector<struct ObjectField>::iterator it;
