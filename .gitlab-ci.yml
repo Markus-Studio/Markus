@@ -9,8 +9,12 @@ build:
   artifacts:
     paths:
       - ./bin/markus-test
+      - ./bin/markus-dump
 
 test:
   stage: test
   script:
     - ./bin/markus-test
+    - apt-get update -qy
+    - apt-get install -y python-dev python-pip
+    - python suite/test.py
