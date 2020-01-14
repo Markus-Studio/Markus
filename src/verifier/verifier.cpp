@@ -23,12 +23,21 @@ PipelineAutoReg::PipelineAutoReg(std::string name,
 bool verifyCall(IR::Query* query,
                 Value::Call* call,
                 Type::Container*& resultType) {
+  int argNum = -1;
   std::list<Pipeline>::iterator pipeline = pipelinesRef->begin();
+
   for (; pipeline != pipelinesRef->end(); ++pipeline) {
-    std::cout << (*pipeline).name << (*pipeline).numArgs << std::endl;
+    if ((*pipeline).name == call->getCalleeName()) {
+      argNum = (*pipeline).numArgs;
+      if (argNum == call->numArguments()) {
+        return (*pipeline).cb(query, call->getArguments(), resultType);
+      }
+    }
   }
 
-  Diagnostics::Controller::report(Diagnostics::Error::cannotResolveName(call));
+  Diagnostics::Controller::report(
+      argNum < 0 ? Diagnostics::Error::cannotResolveName(call)
+                 : Diagnostics::Error::wrongNumberOfArguments(argNum, call));
   return false;
 }
 

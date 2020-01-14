@@ -72,4 +72,11 @@ bool verifyCall(IR::Query* query,
 #define MARKUS_PIPELINE(name, numArgs) \
   MARKUS_PIPELINE3(MARKUS_CONCAT(name, numArgs), name, numArgs)
 
+#define EXPECT_ARG_KIND(n, kind)                                      \
+  if (arguments[n]->getKind() != (kind)) {                            \
+    Diagnostics::Controller::report(                                  \
+        Diagnostics::Error::wrongArgumentType((kind), arguments[n])); \
+    return false;                                                     \
+  }
+
 #endif
