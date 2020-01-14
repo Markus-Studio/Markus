@@ -165,6 +165,11 @@ class Object {
    * Evaluates `this is u` and returns the result.
    */
   bool is(Union* u);
+
+  /**
+   * Returns name of owned fields in this type.
+   */
+  std::vector<std::string> getOwnedFields();
 };
 }  // namespace Type
 

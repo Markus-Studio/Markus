@@ -216,4 +216,12 @@ bool Object::is(Union* u) {
   return false;
 }
 
+std::vector<std::string> Object::getOwnedFields() {
+  std::vector<std::string> names;
+  std::vector<struct ObjectField>::iterator it;
+  for (it = fields.begin(); it != fields.end(); ++it)
+    names.push_back(it->key);
+  return names;
+}
+
 }  // namespace Type

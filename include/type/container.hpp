@@ -1,6 +1,8 @@
 #ifndef __MARKUS_TYPE_CONTAINER__
 #define __MARKUS_TYPE_CONTAINER__
 
+#include <string>
+
 namespace Type {
 // Forward declaration.
 class Object;
@@ -157,6 +159,11 @@ class Container {
    * Returns whatever we contain a nil type.
    */
   bool isNil();
+
+  /**
+   * Create a string representation of the type.
+   */
+  std::string toString();
 
   /**
    * Dump the type to the stdio.
