@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "IR/program.hpp"
-#include "IR/verifier.hpp"
+#include "verifier/verifier.hpp"
 
 namespace IR {
 Query::Query(Program* program) {
@@ -48,7 +48,7 @@ bool Query::addPipeline(Value::Call* call) {
   info.call = call;
   pipelines.push_back(info);
 
-  return verifyCall(this, call, resultType);
+  return Verifier::verifyCall(this, call, resultType);
 }
 
 Type::Container* Query::getResultType() {
