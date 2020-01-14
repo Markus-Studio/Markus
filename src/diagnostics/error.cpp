@@ -44,8 +44,9 @@ Error* Error::unexpectedToken(Parser::Token* token) {
 
 Error* Error::unexpectedToken(Parser::Token* token, std::string expected) {
   std::stringstream fmt;
-  fmt << "Error: Unexpected token found on line " << token->getLine() << ":"
-      << token->getColumn() << " expected " << expected << ".";
+  fmt << "Error: Unexpected token '" << token->getWord() << "' found on line "
+      << token->getLine() << ":" << token->getColumn() << " expected "
+      << expected << ".";
   return new Error(E_UNEXPECTED_TOKEN, fmt.str());
 }
 

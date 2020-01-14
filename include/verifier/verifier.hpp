@@ -17,7 +17,10 @@ struct Pipeline {
   /**
    * The callback function that is used to verify the pipeline.
    */
-  bool (*cb)(IR::Query*, std::vector<Value::Container*>, Type::Container*&);
+  bool (*cb)(IR::Query*,
+             Value::Call* call,
+             std::vector<Value::Container*>,
+             Type::Container*&);
 
   /**
    * Number of arguments that must be passed to the callback.
@@ -37,6 +40,7 @@ struct PipelineAutoReg {
   PipelineAutoReg(std::string name,
                   int numArgs,
                   bool (*cb)(IR::Query*,
+                             Value::Call*,
                              std::vector<Value::Container*>,
                              Type::Container*&));
 };
@@ -54,15 +58,17 @@ bool verifyCall(IR::Query* query,
 #define MARKUS_CONCAT2(a, b) a##b
 #define MARKUS_CONCAT(a, b) MARKUS_CONCAT2(a, b)
 
-#define MARKUS_PIPELINE2(FN_NAME, REG_NAME, NAME, NUM_ARGS)                \
-  bool FN_NAME(IR::Query* query, std::vector<Value::Container*> arguments, \
-               Type::Container*& resultType);                              \
-                                                                           \
-  namespace {                                                              \
-  Verifier::PipelineAutoReg REG_NAME(#NAME, NUM_ARGS, &FN_NAME);           \
-  }                                                                        \
-                                                                           \
-  bool FN_NAME(IR::Query* query, std::vector<Value::Container*> arguments, \
+#define MARKUS_PIPELINE2(FN_NAME, REG_NAME, NAME, NUM_ARGS)      \
+  bool FN_NAME(IR::Query* query, Value::Call* call,              \
+               std::vector<Value::Container*> arguments,         \
+               Type::Container*& resultType);                    \
+                                                                 \
+  namespace {                                                    \
+  Verifier::PipelineAutoReg REG_NAME(#NAME, NUM_ARGS, &FN_NAME); \
+  }                                                              \
+                                                                 \
+  bool FN_NAME(IR::Query* query, Value::Call* call,              \
+               std::vector<Value::Container*> arguments,         \
                Type::Container*& resultType)
 
 #define MARKUS_PIPELINE3(FN_NAME, NAME, NUM_ARGS)                           \
@@ -95,6 +101,32 @@ bool verifyCall(IR::Query* query,
     Diagnostics::Controller::report(                                         \
         Diagnostics::Error::fieldDoesNotExists(arguments[n]->asVariable())); \
     return false;                                                            \
+  }
+
+#define IS_BUILTIN(container, type) \
+  ((container)->is(query->getOwner()->resolveBuiltin(type)))
+
+#define IS_NUMBER(container) \
+  (IS_BUILTIN(container, "int") || IS_BUILTIN(container, "float"))
+
+#define IS_FIELD(n) \
+  (arguments[n]->isVariable() && arguments[n]->asVariable()->getId() == 0)
+
+#define IS_VAR(n) \
+  (arguments[n]->isVariable() && arguments[n]->asVariable()->getId() != 0)
+
+#define EXPECT_TYPE(check, type)                         \
+  if (!(check)) {                                        \
+    Diagnostics::Controller::report(                     \
+        Diagnostics::Error::wrongInputType(call, type)); \
+    return false;                                        \
+  }
+
+#define EXPECT_TYPE_SHAPE(type, n)                                         \
+  if ((type)->getShape() != n) {                                           \
+    Diagnostics::Controller::report(                                       \
+        Diagnostics::Error::wrongInputShape(call, n, (type)->getShape())); \
+    return false;                                                          \
   }
 
 #endif

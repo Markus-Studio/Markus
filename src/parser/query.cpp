@@ -130,7 +130,6 @@ Value::Container* parseValue(IR::Query* query,
 
       if (**token == ")") {
         call->expandRange(*Range::fromToken(*token));
-        ++token;
         break;
       }
 
@@ -142,6 +141,9 @@ Value::Container* parseValue(IR::Query* query,
 
       ++token;
     }
+
+    if (**token == ")")
+      token++;
 
     return new Value::Container(call);
   }

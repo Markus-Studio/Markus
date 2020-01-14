@@ -9,6 +9,7 @@ static std::list<Pipeline>* pipelinesRef;
 PipelineAutoReg::PipelineAutoReg(std::string name,
                                  int numArgs,
                                  bool (*cb)(IR::Query*,
+                                            Value::Call*,
                                             std::vector<Value::Container*>,
                                             Type::Container*&)) {
   static std::list<Pipeline> pipelines;
@@ -30,7 +31,7 @@ bool verifyCall(IR::Query* query,
     if ((*pipeline).name == call->getCalleeName()) {
       argNum = (*pipeline).numArgs;
       if (argNum == call->numArguments()) {
-        return (*pipeline).cb(query, call->getArguments(), resultType);
+        return (*pipeline).cb(query, call, call->getArguments(), resultType);
       }
     }
   }
