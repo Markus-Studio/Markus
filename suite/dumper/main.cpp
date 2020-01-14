@@ -69,7 +69,7 @@ void dumpQueries(IR::Program* program) {
   std::vector<std::string> names = program->getQueryNames();
   std::sort(names.begin(), names.end());
 
-  std::cout << "---QUERYIES---" << std::endl;
+  std::cout << "---QUERIES---" << std::endl;
   for (int i = 0; i < names.size(); ++i) {
     IR::Query* query = program->getQuery(names[i]);
     Type::Container* userType =
@@ -81,7 +81,7 @@ void dumpQueries(IR::Program* program) {
     if (i + 1 != names.size())
       std::cout << std::endl;
   }
-  std::cout << "/--QUERYIES---" << std::endl;
+  std::cout << "/--QUERIES---" << std::endl;
 }
 
 void dump(IR::Program* program) {

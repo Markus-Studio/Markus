@@ -1,0 +1,17 @@
+---TYPES---
+---Point2D---
+OWN x TYPE float
+OWN y TYPE float
+/--Point2D---
+
+---Point3D---
+BASE Point2D
+OWN z TYPE float
+/--Point3D---
+/--TYPES---
+
+---PERMISSIONS---
+/--PERMISSIONS---
+
+---QUERIES---
+/--QUERIES---

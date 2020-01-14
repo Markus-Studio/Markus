@@ -1,0 +1,10 @@
+type Point2D {
+  float x;
+  float y;
+}
+
+type Point3D: Point2D {
+  float z;
+}
+
+query All {}
