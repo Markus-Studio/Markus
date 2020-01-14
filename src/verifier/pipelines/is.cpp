@@ -6,5 +6,5 @@ MARKUS_PIPELINE(is, 1) {
   Type::Container* type = arguments[0]->asType()->getType();
   resultType = resultType->extract(type);
 
-  return false;
+  return true;
 }
