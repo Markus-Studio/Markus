@@ -1,0 +1,19 @@
+type Product {
+  float price;
+  string name;
+}
+
+type City: geo {
+  string name;
+}
+
+type Sell {
+  Product product;
+  City location;
+  time date;
+}
+
+query SellsByCity {
+  is(Sell),
+  groupBy(.location)
+}
