@@ -10,7 +10,7 @@ Bool::Bool(std::string word) {
 Bool::Bool(Parser::Token* token) {
   assert(token->isBoolLiteral());
   value = token->getWord() == "true";
-  range = *Parser::Range::fromToken(token);
+  range = Parser::Range::fromToken(token);
 }
 
 bool Bool::getValue() {

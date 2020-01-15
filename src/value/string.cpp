@@ -10,7 +10,7 @@ String::String(std::string string) {
 String::String(Parser::Token* token) {
   assert(token->isStringLiteral());
   value = token->getWord();
-  range = *Parser::Range::fromToken(token);
+  range = Parser::Range::fromToken(token);
 }
 
 std::string String::getValue() {

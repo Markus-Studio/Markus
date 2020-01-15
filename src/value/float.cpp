@@ -10,7 +10,7 @@ Float::Float(std::string string) {
 Float::Float(Parser::Token* token) {
   assert(token->isFloatLiteral());
   value = std::stof(token->getWord());
-  range = *Parser::Range::fromToken(token);
+  range = Parser::Range::fromToken(token);
 }
 
 float Float::getValue() {

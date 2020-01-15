@@ -10,7 +10,7 @@ Call::Call(std::string calleeName) {
 Call::Call(Parser::Token* token) {
   assert(token->isIdentifier());
   functionName = token->getWord();
-  range = *Parser::Range::fromToken(token);
+  range = Parser::Range::fromToken(token);
 }
 
 void Call::addArgument(Container* value) {

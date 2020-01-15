@@ -106,7 +106,7 @@ Value::Container* parseValue(IR::Query* query,
 
       return new Value::Container(new Value::TypeValue(
           new Type::Container(query->getOwner()->getType(name->getWord())),
-          *Range::fromToken(name)));
+          Range::fromToken(name)));
     }
 
     token++;  // Eat "("
@@ -129,7 +129,7 @@ Value::Container* parseValue(IR::Query* query,
       call->addArgument(arg);
 
       if (**token == ")") {
-        call->expandRange(*Range::fromToken(*token));
+        call->expandRange(Range::fromToken(*token));
         break;
       }
 
@@ -155,14 +155,14 @@ Value::Variable* parseVariable(IR::Query* query,
                                std::vector<Token*>::iterator& token,
                                int variableId) {
   std::vector<std::string> uriParts;
-  Range range = *Range::fromToken(*(token - (variableId == 0 ? 0 : 1)));
+  Range range = Range::fromToken(*(token - (variableId == 0 ? 0 : 1)));
 
   while (**token == ".") {
     if (!(*(token + 1))->isIdentifierWord())
       break;
 
     token++;
-    range = range + *Range::fromToken(*token);
+    range = range + Range::fromToken(*token);
     uriParts.push_back((*(token++))->getWord());
   }
 

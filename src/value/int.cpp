@@ -10,7 +10,7 @@ Int::Int(std::string string) {
 Int::Int(Parser::Token* token) {
   assert(token->isIntLiteral());
   value = std::stoi(token->getWord());
-  range = *Parser::Range::fromToken(token);
+  range = Parser::Range::fromToken(token);
 }
 
 int Int::getValue() {
