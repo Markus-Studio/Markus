@@ -1,0 +1,27 @@
+---TYPES---
+---Product---
+OWN price TYPE float
+OWN name TYPE string
+/--Product---
+
+---Sell---
+OWN product TYPE Product
+OWN date TYPE time
+/--Sell---
+/--TYPES---
+
+---PERMISSIONS---
+/--PERMISSIONS---
+
+---QUERIES---
+---TotalPrice---
+USER NIL
+TYPE Array<Product | Sell>
+-->is
+TYPE Array<Product>
+-->select
+TYPE Array<float>
+-->sum
+RESULT float
+/--TotalPrice---
+/--QUERIES---

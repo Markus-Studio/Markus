@@ -45,6 +45,14 @@ void dumpQuery(AST::Query* query) {
     AST::PipelineInfo pipeline = pipelines[i];
     std::cout << "TYPE " << pipeline.inputType->toString() << std::endl;
     std::cout << "-->" << pipeline.call->getCalleeName() << std::endl;
+    std::vector<Value::Container*> arguments = pipeline.call->getArguments();
+    for (int j = 0; j < arguments.size(); ++j) {
+      if (arguments[j]->isQuery()) {
+        std::cout << "---SUB-QUERY---" << std::endl;
+        dumpQuery(arguments[j]->asQuery());
+        std::cout << "/--SUB-QUERY---" << std::endl;
+      }
+    }
   }
   std::cout << "RESULT " << query->getResultType()->toString() << std::endl;
 }

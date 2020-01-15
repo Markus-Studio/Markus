@@ -1,0 +1,15 @@
+type Product {
+  float price;
+  string name;
+}
+
+type Sell {
+  Product product;
+  time date;
+}
+
+query TotalPrice {
+  is(Product),
+  select(.price),
+  sum()
+}

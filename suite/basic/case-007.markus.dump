@@ -1,0 +1,37 @@
+float
+---TYPES---
+---City---
+BASE geo
+OWN name TYPE string
+/--City---
+
+---Product---
+OWN price TYPE float
+OWN name TYPE string
+/--Product---
+
+---Sell---
+OWN product TYPE Product
+OWN location TYPE City
+OWN date TYPE time
+/--Sell---
+/--TYPES---
+
+---PERMISSIONS---
+/--PERMISSIONS---
+
+---QUERIES---
+---TotalSoldPerCity---
+USER NIL
+TYPE Array<City | Product | Sell>
+-->is
+TYPE Array<Sell>
+-->groupBy
+---SUB-QUERY---
+TYPE Array<Sell>
+-->sum
+RESULT float
+/--SUB-QUERY---
+RESULT Array<Group<City, float>>
+/--TotalSoldPerCity---
+/--QUERIES---

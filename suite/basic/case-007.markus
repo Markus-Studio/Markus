@@ -1,0 +1,21 @@
+type Product {
+  float price;
+  string name;
+}
+
+type City: geo {
+  string name;
+}
+
+type Sell {
+  Product product;
+  City location;
+  time date;
+}
+
+query TotalSoldPerCity {
+  is(Sell),
+  groupBy(.location, {
+    sum(.product.price)
+  })
+}
