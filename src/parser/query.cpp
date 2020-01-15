@@ -128,7 +128,6 @@ Value::Container* parseValue(AST::Query* query,
         if (subQuery != NULL) {
           arg = new Value::Container(subQuery);
           parseQueryBody(subQuery, token);
-          subQuery->getResultType()->dump();
         } else {
           Diagnostics::Controller::report(
               Diagnostics::Error::unexpectedToken(*token));

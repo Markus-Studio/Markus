@@ -1,6 +1,5 @@
 #include "verifier/verifier.hpp"
 
-#include <iostream>
 #include <list>
 
 namespace Verifier {
