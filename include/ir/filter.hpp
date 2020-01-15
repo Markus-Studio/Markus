@@ -29,7 +29,7 @@ class Filter {
   /**
    * Indicates if this is a binary filter or not.
    */
-  bool isBinary;
+  bool _isBinary;
 
   /**
    * The field that the filter is being executed on.
@@ -45,6 +45,11 @@ class Filter {
    * The filter operation.
    */
   enum FilterOperator op;
+
+  /**
+   * Default constructor.
+   */
+  Filter();
 
  public:
   /**
@@ -95,7 +100,7 @@ class Filter {
 
   /**
    * Check to see if this (binary) filter is applied to the given uri or not.
-   * 
+   *
    * Field        URI            Result
    * ---------- + ----------  => ----------
    * .A           .B             False
@@ -104,7 +109,7 @@ class Filter {
    * .A.B         .A.C           False
    * .A.B         .A.B.C         True
    * .A.B.C       .A.B.D         False
-   * 
+   *
    */
   bool isEffecting(Type::Uri uri);
 };

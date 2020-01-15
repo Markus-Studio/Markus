@@ -5,6 +5,10 @@
 #include "ast/program.hpp"
 
 namespace Value {
+Container::Container() {
+  value = NULL;
+}
+
 Container::Container(Int* v) {
   kind = VALUE_KIND_INT;
   value = v;
@@ -84,6 +88,10 @@ bool Container::isType() {
 
 bool Container::isQuery() {
   return kind == VALUE_KIND_QUERY;
+}
+
+bool Container::isField() {
+  return kind == VALUE_KIND_VARIABLE && asVariable()->getId() == 0;
 }
 
 Int* Container::asInt() {

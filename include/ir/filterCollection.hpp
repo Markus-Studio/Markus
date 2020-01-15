@@ -2,6 +2,7 @@
 #define __MARKUS_IR_FILTER_COLLECTION__
 
 #include <vector>
+
 #include "ir/filter.hpp"
 
 namespace IR {

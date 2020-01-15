@@ -44,6 +44,11 @@ class Container {
 
  public:
   /**
+   * Default constructor.
+   */
+  Container();
+
+  /**
    * Construct a container containing an integer literal.
    */
   Container(Int* value);
@@ -132,6 +137,11 @@ class Container {
    * Returns whatever the contained value is a query.
    */
   bool isQuery();
+
+  /**
+   * Returns true if the value is a field reference.
+   */
+  bool isField();
 
   /**
    * Return the value as an integer.
