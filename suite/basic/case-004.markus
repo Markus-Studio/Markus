@@ -1,0 +1,22 @@
+type Point2D {
+  float x;
+  float y;
+}
+
+type Point3D: Point2D {
+  float z;
+}
+
+type IntPoint2D {
+  int x;
+  int y;
+}
+
+query JustX {
+  select(.x)
+}
+
+query JustIntX {
+  is(IntPoint2D),
+  select(.x)
+}

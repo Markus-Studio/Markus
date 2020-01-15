@@ -1,4 +1,4 @@
-type Point2D {
+type Point2D { # A comment.
   float x;
   float y;
 }

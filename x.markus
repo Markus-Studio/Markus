@@ -19,7 +19,5 @@ permission Person {
 }
 
 query XXX {
-    is(Sell),
-    select(.price),
-    sum()
+    is(Sell)
 }

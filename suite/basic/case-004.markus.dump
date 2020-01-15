@@ -1,0 +1,37 @@
+---TYPES---
+---IntPoint2D---
+OWN x TYPE int
+OWN y TYPE int
+/--IntPoint2D---
+
+---Point2D---
+OWN x TYPE float
+OWN y TYPE float
+/--Point2D---
+
+---Point3D---
+BASE Point2D
+OWN z TYPE float
+/--Point3D---
+/--TYPES---
+
+---PERMISSIONS---
+/--PERMISSIONS---
+
+---QUERIES---
+---JustIntX---
+USER NIL
+TYPE Array<IntPoint2D | Point2D | Point3D>
+-->is
+TYPE Array<IntPoint2D>
+-->select
+RESULT Array<int>
+/--JustIntX---
+
+---JustX---
+USER NIL
+TYPE Array<IntPoint2D | Point2D | Point3D>
+-->select
+RESULT Array<int | float>
+/--JustX---
+/--QUERIES---
