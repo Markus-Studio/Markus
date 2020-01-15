@@ -65,4 +65,28 @@ error:
   return filter;
 }
 
+Filter Filter::Unary(Value::Call* call) {
+  Filter filter;
+  filter._isBinary = false;
+
+  std::string name = call->getCalleeName();
+  std::vector<Value::Container*> arguments = call->getArguments();
+
+  if (arguments.size() != 1)
+    goto error;
+
+  filter.value = *arguments[0];
+
+  if (name == "is") {
+    filter.op = FILTER_IS;
+    return filter;
+  }
+
+error:
+  std::cerr << "Cannot create a unary filter from a call to " << name
+            << std::endl;
+  abort();
+  return filter;
+}
+
 }  // namespace IR
