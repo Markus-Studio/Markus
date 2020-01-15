@@ -137,7 +137,8 @@ Error* Error::wrongArgumentType(enum Value::ValueKind expected,
                          "string",
                          "variable reference",
                          "call expression",
-                         "type reference"};
+                         "type reference",
+                         "query"};
 
   std::stringstream fmt;
   fmt << "Error: Argument type is not matching the function signature, passed "

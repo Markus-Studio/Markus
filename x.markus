@@ -21,7 +21,7 @@ permission Person {
 query XXX {
     is(Sell),
     eq(.city, %user.name),
-    groupBy(1, {
+    groupBy(.city, {
         sum(.price)
     })
 }

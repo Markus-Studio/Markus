@@ -88,6 +88,14 @@ bool Object::set(std::string key, Object* type, bool nullable) {
   return true;
 }
 
+bool Object::set(std::string key, Container* type, bool nullable) {
+  if (has(key))
+    return false;
+  struct ObjectField field = {key, nullable, type};
+  fields.push_back(field);
+  return true;
+}
+
 bool Object::owns(std::string key) {
   std::vector<struct ObjectField>::iterator it;
   for (it = fields.begin(); it != fields.end(); ++it)

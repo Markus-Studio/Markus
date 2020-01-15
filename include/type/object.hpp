@@ -121,6 +121,11 @@ class Object {
   bool set(std::string key, Object* type, bool nullable);
 
   /**
+   * Set a new field, returns false if the key already existed and fails.
+   */
+  bool set(std::string key, Container* type, bool nullable);
+
+  /**
    * Return true if the key exists in this object and not
    * the bases.
    */
