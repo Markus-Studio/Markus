@@ -51,6 +51,15 @@ bool Query::addPipeline(Value::Call* call) {
   return Verifier::verifyCall(this, call, resultType);
 }
 
+Query* Query::getSubQuery(Value::Call* call) {
+  if (call->getCalleeName() == "groupBy" && call->numArguments() == 1) {
+    Query* query = new Query(owner, resultType);
+    return query;
+  }
+
+  return NULL;
+}
+
 Type::Container* Query::getResultType() {
   return resultType;
 }

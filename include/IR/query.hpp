@@ -83,6 +83,13 @@ class Query {
   bool addPipeline(Value::Call* call);
 
   /**
+   * Return the sub query to be used as an argument for the call.
+   * (Of course the call is not completely parsed when it's passed
+   * to this method.)
+   */
+  Query* getSubQuery(Value::Call* call);
+
+  /**
    * Returns the result type of this query.
    */
   Type::Container* getResultType();

@@ -35,7 +35,7 @@ bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
     return false;
   }
 
-  // Eat.
+  // Eat {.
   ++iterator;
 
   while (**iterator != "}") {
@@ -62,6 +62,8 @@ bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
 
     ++iterator;
   }
+
+  ++iterator;  // Eat }
 
   return true;
 }
@@ -119,12 +121,25 @@ Value::Container* parseValue(IR::Query* query,
         return NULL;
       }
 
-      Value::Container* arg = parseValue(query, token);
-      if (arg == NULL) {
-        Diagnostics::Controller::report(
-            Diagnostics::Error::unexpectedToken(*token));
-        return NULL;
+      Value::Container* arg = NULL;
+
+      if (**token == "{") {
+        IR::Query* subQuery = query->getSubQuery(call);
+        if (subQuery != NULL) {
+          arg = new Value::Container(subQuery);
+          parseQueryBody(subQuery, token);
+          subQuery->getResultType()->dump();
+        } else {
+          Diagnostics::Controller::report(
+              Diagnostics::Error::unexpectedToken(*token));
+          return NULL;
+        }
+      } else {
+        arg = parseValue(query, token);
       }
+
+      if (arg == NULL)
+        return NULL;
 
       call->addArgument(arg);
 
@@ -148,6 +163,7 @@ Value::Container* parseValue(IR::Query* query,
     return new Value::Container(call);
   }
 
+  Diagnostics::Controller::report(Diagnostics::Error::unexpectedToken(*token));
   return NULL;
 }
 
