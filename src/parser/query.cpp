@@ -50,9 +50,8 @@ bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
     if (!query->addPipeline(c->asCall()))
       return false;
 
-    if (**iterator == "}") {
+    if (**iterator == "}")
       break;
-    }
 
     if (**iterator != ",") {
       Diagnostics::Controller::report(

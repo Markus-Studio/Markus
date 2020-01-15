@@ -54,6 +54,8 @@ bool Query::addPipeline(Value::Call* call) {
 Query* Query::getSubQuery(Value::Call* call) {
   if (call->getCalleeName() == "groupBy" && call->numArguments() == 1) {
     Query* query = new Query(owner, resultType);
+    for (int i = 0; i < parameterNames.size(); ++i)
+      query->addParameter(parameterNames[i], parameters[i]);
     return query;
   }
 
