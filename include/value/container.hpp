@@ -23,7 +23,8 @@ enum ValueKind {
   VALUE_KIND_STRING,
   VALUE_KIND_VARIABLE,
   VALUE_KIND_CALL,
-  VALUE_KIND_TYPE
+  VALUE_KIND_TYPE,
+  VALUE_KIND_QUERY
 };
 
 /**
@@ -78,6 +79,11 @@ class Container {
   Container(TypeValue* type);
 
   /**
+   * Construct a new container containing a query.
+   */
+  Container(IR::Query* query);
+
+  /**
    * Returns whatever the contained value is an integer or not.
    */
   bool isInt();
@@ -118,9 +124,14 @@ class Container {
   bool isCall();
 
   /**
-   * Returns whatever the contained value us a type value.
+   * Returns whatever the contained value is a type value.
    */
   bool isType();
+
+  /**
+   * Returns whatever the contained value is a query.
+   */
+  bool isQuery();
 
   /**
    * Return the value as an integer.
@@ -156,6 +167,11 @@ class Container {
    * Return the value as a type expression.
    */
   TypeValue* asType();
+
+  /**
+   * Return the value as a query.
+   */
+  IR::Query* asQuery();
 
   /**
    * Return the kind of data this container is holding.

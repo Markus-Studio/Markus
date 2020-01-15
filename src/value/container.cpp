@@ -40,6 +40,11 @@ Container::Container(TypeValue* v) {
   value = v;
 }
 
+Container::Container(IR::Query* query) {
+  kind = VALUE_KIND_QUERY;
+  value = query;
+}
+
 bool Container::isInt() {
   return kind == VALUE_KIND_INT;
 }
@@ -61,7 +66,8 @@ bool Container::isString() {
 }
 
 bool Container::isLiteral() {
-  return kind != VALUE_KIND_VARIABLE;
+  return kind == VALUE_KIND_INT || kind == VALUE_KIND_FLOAT ||
+         kind == VALUE_KIND_BOOL || kind == VALUE_KIND_STRING;
 }
 
 bool Container::isVariable() {
@@ -74,6 +80,10 @@ bool Container::isCall() {
 
 bool Container::isType() {
   return kind == VALUE_KIND_TYPE;
+}
+
+bool Container::isQuery() {
+  return kind == VALUE_KIND_QUERY;
 }
 
 Int* Container::asInt() {
@@ -111,6 +121,11 @@ TypeValue* Container::asType() {
   return (TypeValue*)value;
 }
 
+IR::Query* Container::asQuery() {
+  assert(kind == VALUE_KIND_QUERY);
+  return (IR::Query*)value;
+}
+
 enum ValueKind Container::getKind() {
   return kind;
 }
@@ -131,6 +146,9 @@ Parser::Range Container::getRange() {
       return asVariable()->getRange();
     case VALUE_KIND_CALL:
       return asCall()->getRange();
+    case VALUE_KIND_QUERY:
+      // TODO(qti3e)
+      return Parser::Range();
   }
 }
 
@@ -148,6 +166,8 @@ Type::Container* Container::getType(IR::Query* query) {
       return asType()->getType();
     case VALUE_KIND_VARIABLE:
       return asVariable()->getType();
+    case VALUE_KIND_QUERY:
+      return asQuery()->getResultType();
     case VALUE_KIND_CALL:
       return new Type::Container();  // TODO(qti3e)
   }
