@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "IR/query.hpp"
+#include "ast/query.hpp"
 #include "diagnostics/controller.hpp"
 #include "parser/parser.hpp"
 #include "writer/directory.hpp"
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   std::stringstream buffer;
   buffer << t.rdbuf();
 
-  IR::Program* program = Parser::createProgram(buffer.str());
+  AST::Program* program = Parser::createProgram(buffer.str());
 
   if (Diagnostics::Controller::hasError()) {
     Diagnostics::Controller::dumpAll();

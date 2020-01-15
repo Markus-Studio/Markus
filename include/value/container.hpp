@@ -1,7 +1,7 @@
 #ifndef __MARKUS_VALUE_CONTAINER__
 #define __MARKUS_VALUE_CONTAINER__
 
-#include "IR/query.hpp"
+#include "ast/query.hpp"
 #include "parser/range.hpp"
 #include "type/container.hpp"
 #include "value/bool.hpp"
@@ -81,7 +81,7 @@ class Container {
   /**
    * Construct a new container containing a query.
    */
-  Container(IR::Query* query);
+  Container(AST::Query* query);
 
   /**
    * Returns whatever the contained value is an integer or not.
@@ -171,7 +171,7 @@ class Container {
   /**
    * Return the value as a query.
    */
-  IR::Query* asQuery();
+  AST::Query* asQuery();
 
   /**
    * Return the kind of data this container is holding.
@@ -186,7 +186,7 @@ class Container {
   /**
    * Returns type of the value according to the current query.
    */
-  Type::Container* getType(IR::Query* query);
+  Type::Container* getType(AST::Query* query);
 };
 }  // namespace Value
 

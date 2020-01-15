@@ -1,10 +1,10 @@
-#ifndef __MARKUS_IR_PROGRAM__
-#define __MARKUS_IR_PROGRAM__
+#ifndef __MARKUS_AST_PROGRAM__
+#define __MARKUS_AST_PROGRAM__
 
 #include <list>
 #include <map>
 
-#include "IR/permission.hpp"
+#include "ast/permission.hpp"
 #include "indexer/engine.hpp"
 #include "parser/scanner.hpp"
 #include "parser/types.hpp"
@@ -12,7 +12,7 @@
 #include "type/object.hpp"
 #include "type/union.hpp"
 
-namespace IR {
+namespace AST {
 /**
  * The intermediate representation for a Markus program, it includes all of the
  * user-defined types, permissions, queries and actions, it can be passed to the
@@ -138,6 +138,6 @@ class Program {
    */
   std::vector<std::string> getQueryNames();
 };
-}  // namespace IR
+}  // namespace AST
 
 #endif

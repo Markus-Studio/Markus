@@ -6,7 +6,7 @@
 #include "parser/query.hpp"
 
 namespace Parser {
-IR::Permission* parsePermission(IR::Program* program, TokenVec* tokens) {
+AST::Permission* parsePermission(AST::Program* program, TokenVec* tokens) {
   std::vector<Token*>::iterator iterator = tokens->begin();
   assert(**iterator == "permission");
 
@@ -19,7 +19,7 @@ IR::Permission* parsePermission(IR::Program* program, TokenVec* tokens) {
   }
 
   std::string name = (*iterator++)->getWord();
-  IR::Permission* result = new IR::Permission(program, name);
+  AST::Permission* result = new AST::Permission(program, name);
 
   parseQueryBody(result->getQuery(), iterator);
 

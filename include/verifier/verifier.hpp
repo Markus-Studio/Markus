@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "IR/program.hpp"
-#include "IR/query.hpp"
+#include "ast/program.hpp"
+#include "ast/query.hpp"
 #include "diagnostics/controller.hpp"
 #include "type/container.hpp"
 #include "value/call.hpp"
@@ -17,7 +17,7 @@ struct Pipeline {
   /**
    * The callback function that is used to verify the pipeline.
    */
-  bool (*cb)(IR::Query*,
+  bool (*cb)(AST::Query*,
              Value::Call* call,
              std::vector<Value::Container*>,
              Type::Container*&);
@@ -39,7 +39,7 @@ struct Pipeline {
 struct PipelineAutoReg {
   PipelineAutoReg(std::string name,
                   int numArgs,
-                  bool (*cb)(IR::Query*,
+                  bool (*cb)(AST::Query*,
                              Value::Call*,
                              std::vector<Value::Container*>,
                              Type::Container*&));
@@ -48,7 +48,7 @@ struct PipelineAutoReg {
 /**
  * Verify a pipeline.
  */
-bool verifyCall(IR::Query* query,
+bool verifyCall(AST::Query* query,
                 Value::Call* call,
                 Type::Container*& resultType);
 }  // namespace Verifier
@@ -59,7 +59,7 @@ bool verifyCall(IR::Query* query,
 #define MARKUS_CONCAT(a, b) MARKUS_CONCAT2(a, b)
 
 #define MARKUS_PIPELINE2(FN_NAME, REG_NAME, NAME, NUM_ARGS)      \
-  bool FN_NAME(IR::Query* query, Value::Call* call,              \
+  bool FN_NAME(AST::Query* query, Value::Call* call,             \
                std::vector<Value::Container*> arguments,         \
                Type::Container*& resultType);                    \
                                                                  \
@@ -67,7 +67,7 @@ bool verifyCall(IR::Query* query,
   Verifier::PipelineAutoReg REG_NAME(#NAME, NUM_ARGS, &FN_NAME); \
   }                                                              \
                                                                  \
-  bool FN_NAME(IR::Query* query, Value::Call* call,              \
+  bool FN_NAME(AST::Query* query, Value::Call* call,             \
                std::vector<Value::Container*> arguments,         \
                Type::Container*& resultType)
 

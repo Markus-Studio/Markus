@@ -8,7 +8,7 @@ static std::list<Pipeline>* pipelinesRef;
 
 PipelineAutoReg::PipelineAutoReg(std::string name,
                                  int numArgs,
-                                 bool (*cb)(IR::Query*,
+                                 bool (*cb)(AST::Query*,
                                             Value::Call*,
                                             std::vector<Value::Container*>,
                                             Type::Container*&)) {
@@ -21,7 +21,7 @@ PipelineAutoReg::PipelineAutoReg(std::string name,
   pipelines.push_back(pipeline);
 }
 
-bool verifyCall(IR::Query* query,
+bool verifyCall(AST::Query* query,
                 Value::Call* call,
                 Type::Container*& resultType) {
   int argNum = -1;

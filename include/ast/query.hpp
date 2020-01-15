@@ -1,5 +1,5 @@
-#ifndef __MARKUS_IR_QUERY__
-#define __MARKUS_IR_QUERY__
+#ifndef __MARKUS_AST_QUERY__
+#define __MARKUS_AST_QUERY__
 
 #include <list>
 #include <string>
@@ -8,7 +8,7 @@
 #include "type/container.hpp"
 #include "value/call.hpp"
 
-namespace IR {
+namespace AST {
 class Program;
 
 struct PipelineInfo {
@@ -99,6 +99,6 @@ class Query {
    */
   std::vector<PipelineInfo> getPipelines();
 };
-}  // namespace IR
+}  // namespace AST
 
 #endif

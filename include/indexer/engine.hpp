@@ -3,7 +3,7 @@
 
 #include <map>
 
-#include "IR/query.hpp"
+#include "ast/query.hpp"
 #include "indexer/meta.hpp"
 
 namespace Indexer {
@@ -14,10 +14,10 @@ namespace Indexer {
  */
 class Engine {
  private:
-  std::multimap<IR::Query*, Meta*> queryMetaData;
+  std::multimap<AST::Query*, Meta*> queryMetaData;
 
  public:
-  void addQueryMeta(IR::Query* query, Meta* meta);
+  void addQueryMeta(AST::Query* query, Meta* meta);
 };
 }  // namespace Indexer
 

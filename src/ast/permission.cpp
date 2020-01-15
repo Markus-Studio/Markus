@@ -1,9 +1,9 @@
-#include "IR/permission.hpp"
+#include "ast/permission.hpp"
 
-#include "IR/program.hpp"
-#include "IR/query.hpp"
+#include "ast/program.hpp"
+#include "ast/query.hpp"
 
-namespace IR {
+namespace AST {
 Permission::Permission(Program* program, std::string name) {
   Type::Container* users = new Type::Container(program->unionOfUsers());
   query = new Query(program, users);
@@ -17,4 +17,4 @@ std::string Permission::getName() {
 Query* Permission::getQuery() {
   return query;
 }
-}  // namespace IR
+}  // namespace AST

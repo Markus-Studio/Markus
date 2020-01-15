@@ -1,11 +1,11 @@
-#include "IR/program.hpp"
+#include "ast/program.hpp"
 
 #include <assert.h>
 
 #include "parser/permission.hpp"
 #include "parser/query.hpp"
 
-namespace IR {
+namespace AST {
 Program::Program(Parser::Scanner* scanner) {
   indexerEngine = new Indexer::Engine();
 
@@ -36,7 +36,7 @@ Program::Program(Parser::Scanner* scanner) {
 
   for (; permissionName != permissionNames.end(); ++permissionName) {
     Parser::TokenVec* tokens = scanner->lookupPermission(*permissionName);
-    IR::Permission* permission = Parser::parsePermission(this, tokens);
+    AST::Permission* permission = Parser::parsePermission(this, tokens);
     if (permission != NULL)
       permissions.push_back(permission);
   }
@@ -47,9 +47,9 @@ Program::Program(Parser::Scanner* scanner) {
 
   for (; queryName != queryNames.end(); ++queryName) {
     Parser::TokenVec* tokens = scanner->lookupQuery(*queryName);
-    IR::Query* query = Parser::parseQuery(this, tokens);
+    AST::Query* query = Parser::parseQuery(this, tokens);
     if (query != NULL)
-      queries.insert(std::pair<std::string, IR::Query*>(*queryName, query));
+      queries.insert(std::pair<std::string, AST::Query*>(*queryName, query));
   }
 }
 
@@ -142,4 +142,4 @@ std::vector<std::string> Program::getQueryNames() {
   return names;
 }
 
-}  // namespace IR
+}  // namespace AST

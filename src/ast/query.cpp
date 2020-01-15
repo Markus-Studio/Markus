@@ -1,11 +1,11 @@
-#include "IR/query.hpp"
+#include "ast/query.hpp"
 
 #include <assert.h>
 
-#include "IR/program.hpp"
+#include "ast/program.hpp"
 #include "verifier/verifier.hpp"
 
-namespace IR {
+namespace AST {
 Query::Query(Program* program) {
   owner = program;
   resultType = new Type::Container(program->arrayOfTypes());
@@ -71,4 +71,4 @@ std::vector<PipelineInfo> Query::getPipelines() {
   result.assign(pipelines.begin(), pipelines.end());
   return result;
 }
-}  // namespace IR
+}  // namespace AST

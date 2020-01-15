@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "IR/program.hpp"
+#include "ast/program.hpp"
 
 namespace Value {
 Container::Container(Int* v) {
@@ -40,7 +40,7 @@ Container::Container(TypeValue* v) {
   value = v;
 }
 
-Container::Container(IR::Query* query) {
+Container::Container(AST::Query* query) {
   kind = VALUE_KIND_QUERY;
   value = query;
 }
@@ -121,9 +121,9 @@ TypeValue* Container::asType() {
   return (TypeValue*)value;
 }
 
-IR::Query* Container::asQuery() {
+AST::Query* Container::asQuery() {
   assert(kind == VALUE_KIND_QUERY);
-  return (IR::Query*)value;
+  return (AST::Query*)value;
 }
 
 enum ValueKind Container::getKind() {
@@ -152,7 +152,7 @@ Parser::Range Container::getRange() {
   }
 }
 
-Type::Container* Container::getType(IR::Query* query) {
+Type::Container* Container::getType(AST::Query* query) {
   switch (kind) {
     case VALUE_KIND_BOOL:
       return query->getOwner()->resolveBuiltin("bool");

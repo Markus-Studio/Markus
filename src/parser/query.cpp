@@ -1,11 +1,11 @@
 #include "parser/query.hpp"
 
-#include "IR/program.hpp"
+#include "ast/program.hpp"
 #include "diagnostics/controller.hpp"
 #include "parser/range.hpp"
 
 namespace Parser {
-IR::Query* parseQuery(IR::Program* program, TokenVec* tokens) {
+AST::Query* parseQuery(AST::Program* program, TokenVec* tokens) {
   std::vector<Token*>::iterator iterator = tokens->begin();
   assert(**iterator == "query");
 
@@ -18,7 +18,7 @@ IR::Query* parseQuery(IR::Program* program, TokenVec* tokens) {
   }
 
   std::string name = (*iterator++)->getWord();
-  IR::Query* result = new IR::Query(program);
+  AST::Query* result = new AST::Query(program);
 
   // TODO(qti3e) Parse the permission section.
   result->addParameter("%user", new Type::Container(program->unionOfUsers()));
@@ -28,7 +28,8 @@ IR::Query* parseQuery(IR::Program* program, TokenVec* tokens) {
   return result;
 }
 
-bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
+bool parseQueryBody(AST::Query* query,
+                    std::vector<Token*>::iterator& iterator) {
   if (**iterator != "{") {
     Diagnostics::Controller::report(
         Diagnostics::Error::unexpectedToken(*iterator, "{"));
@@ -67,7 +68,7 @@ bool parseQueryBody(IR::Query* query, std::vector<Token*>::iterator& iterator) {
   return true;
 }
 
-Value::Container* parseValue(IR::Query* query,
+Value::Container* parseValue(AST::Query* query,
                              std::vector<Token*>::iterator& token) {
   if ((*token)->isBoolLiteral()) {
     return new Value::Container(new Value::Bool(*(token++)));
@@ -123,7 +124,7 @@ Value::Container* parseValue(IR::Query* query,
       Value::Container* arg = NULL;
 
       if (**token == "{") {
-        IR::Query* subQuery = query->getSubQuery(call);
+        AST::Query* subQuery = query->getSubQuery(call);
         if (subQuery != NULL) {
           arg = new Value::Container(subQuery);
           parseQueryBody(subQuery, token);
@@ -166,7 +167,7 @@ Value::Container* parseValue(IR::Query* query,
   return NULL;
 }
 
-Value::Variable* parseVariable(IR::Query* query,
+Value::Variable* parseVariable(AST::Query* query,
                                std::vector<Token*>::iterator& token,
                                int variableId) {
   std::vector<std::string> uriParts;

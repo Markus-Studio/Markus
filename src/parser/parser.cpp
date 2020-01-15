@@ -3,7 +3,7 @@
 #include "diagnostics/controller.hpp"
 
 namespace Parser {
-IR::Program* createProgram(std::string code) {
+AST::Program* createProgram(std::string code) {
   Parser::TokenVec tokens = Parser::tokenize(code);
 
   if (Diagnostics::Controller::hasError())
@@ -14,6 +14,6 @@ IR::Program* createProgram(std::string code) {
   if (Diagnostics::Controller::hasError())
     return NULL;
 
-  return new IR::Program(&scanner);
+  return new AST::Program(&scanner);
 }
 }  // namespace Parser

@@ -5,14 +5,14 @@
 #include <string>
 #include <vector>
 
-#include "IR/query.hpp"
+#include "ast/query.hpp"
 #include "diagnostics/controller.hpp"
 #include "parser/parser.hpp"
 #include "writer/directory.hpp"
 
 using namespace std;
 
-void dumpTypes(IR::Program* program) {
+void dumpTypes(AST::Program* program) {
   std::vector<std::string> types = program->getTypeNames();
   std::sort(types.begin(), types.end());
 
@@ -39,23 +39,23 @@ void dumpTypes(IR::Program* program) {
   std::cout << "/--TYPES---" << std::endl;
 }
 
-void dumpQuery(IR::Query* query) {
-  std::vector<IR::PipelineInfo> pipelines = query->getPipelines();
+void dumpQuery(AST::Query* query) {
+  std::vector<AST::PipelineInfo> pipelines = query->getPipelines();
   for (int i = 0; i < pipelines.size(); ++i) {
-    IR::PipelineInfo pipeline = pipelines[i];
+    AST::PipelineInfo pipeline = pipelines[i];
     std::cout << "TYPE " << pipeline.inputType->toString() << std::endl;
     std::cout << "-->" << pipeline.call->getCalleeName() << std::endl;
   }
   std::cout << "RESULT " << query->getResultType()->toString() << std::endl;
 }
 
-void dumpPermissions(IR::Program* program) {
+void dumpPermissions(AST::Program* program) {
   std::vector<std::string> names = program->getPermissionNames();
   std::sort(names.begin(), names.end());
 
   std::cout << "---PERMISSIONS---" << std::endl;
   for (int i = 0; i < names.size(); ++i) {
-    IR::Permission* permission = program->getPermission(names[i]);
+    AST::Permission* permission = program->getPermission(names[i]);
     std::cout << "---" << permission->getName() << "---" << std::endl;
     dumpQuery(permission->getQuery());
     std::cout << "/--" << permission->getName() << "---" << std::endl;
@@ -65,13 +65,13 @@ void dumpPermissions(IR::Program* program) {
   std::cout << "/--PERMISSIONS---" << std::endl;
 }
 
-void dumpQueries(IR::Program* program) {
+void dumpQueries(AST::Program* program) {
   std::vector<std::string> names = program->getQueryNames();
   std::sort(names.begin(), names.end());
 
   std::cout << "---QUERIES---" << std::endl;
   for (int i = 0; i < names.size(); ++i) {
-    IR::Query* query = program->getQuery(names[i]);
+    AST::Query* query = program->getQuery(names[i]);
     Type::Container* userType =
         query->getParameterType(query->getParameterId("%user"));
     std::cout << "---" << names[i] << "---" << std::endl;
@@ -84,7 +84,7 @@ void dumpQueries(IR::Program* program) {
   std::cout << "/--QUERIES---" << std::endl;
 }
 
-void dump(IR::Program* program) {
+void dump(AST::Program* program) {
   dumpTypes(program);
   std::cout << std::endl;
   dumpPermissions(program);
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
   std::stringstream buffer;
   buffer << t.rdbuf();
 
-  IR::Program* program = Parser::createProgram(buffer.str());
+  AST::Program* program = Parser::createProgram(buffer.str());
 
   if (Diagnostics::Controller::hasError()) {
     Diagnostics::Controller::dumpAll();

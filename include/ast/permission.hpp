@@ -1,9 +1,9 @@
-#ifndef __MARKUS_IR_PERMISSION__
-#define __MARKUS_IR_PERMISSION__
+#ifndef __MARKUS_AST_PERMISSION__
+#define __MARKUS_AST_PERMISSION__
 
 #include <string>
 
-namespace IR {
+namespace AST {
 class Program;
 class Query;
 
@@ -35,6 +35,6 @@ class Permission {
    */
   Query* getQuery();
 };
-}  // namespace IR
+}  // namespace AST
 
 #endif
