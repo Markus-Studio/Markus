@@ -1,27 +1,20 @@
-type Person {
-    string name;
+type Product {
+  float price;
+  string name;
 }
 
-type Student: Person, user {
-    int some;
+type City: geo {
+  string name;
 }
-
-type Teacher: Person, user {}
 
 type Sell {
-    string city;
-    int price;
+  Product product;
+  City location;
+  time date;
 }
 
-permission Person {
-    is(Student),
-    select(.name)
-}
-
-query XXX {
-    is(Sell),
-    eq(.city, %user.name),
-    groupBy(.city, {
-        sum(.price)
-    })
+query SellsByCity {
+  is(Sell),
+  groupBy(.location),
+  groupBy(.label)
 }

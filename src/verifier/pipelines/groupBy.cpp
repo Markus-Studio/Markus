@@ -9,6 +9,8 @@ MARKUS_PIPELINE(groupBy, 1) {
       arguments[0]->asVariable()->getType()->asArray()->getContainedType();
   Type::Container* dataType = resultType;
 
+  EXPECT_TYPE_SHAPE(labelType, 0);
+
   std::string labelName = labelType->toString();
   std::string dataName = dataType->toString();
   std::string name = "Group<" + labelName + ", " + dataName + ">";
@@ -32,6 +34,8 @@ MARKUS_PIPELINE(groupBy, 2) {
   Type::Container* labelType =
       arguments[0]->asVariable()->getType()->asArray()->getContainedType();
   Type::Container* dataType = arguments[1]->asQuery()->getResultType();
+
+  EXPECT_TYPE_SHAPE(labelType, 0);
 
   std::string labelName = labelType->toString();
   std::string dataName = dataType->toString();
