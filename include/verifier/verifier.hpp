@@ -115,6 +115,10 @@ bool verifyCall(IR::Query* query,
 #define IS_VAR(n) \
   (arguments[n]->isVariable() && arguments[n]->asVariable()->getId() != 0)
 
+#define IS_VAR_OR_FIELD(n) (arguments[n]->isVariable())
+
+#define IS_TYPE_REF(n) (arguments[n]->isType())
+
 #define EXPECT_TYPE(check, type)                         \
   if (!(check)) {                                        \
     Diagnostics::Controller::report(                     \

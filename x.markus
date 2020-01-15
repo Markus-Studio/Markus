@@ -19,5 +19,6 @@ permission Person {
 }
 
 query XXX {
-    is(Sell)
+    is(Sell),
+    eq(.city, %user.name)
 }
