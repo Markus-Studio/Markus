@@ -12,20 +12,20 @@ Filter Filter::Binary(Value::Call* call) {
   filter._isBinary = true;
 
   std::string name = call->getCalleeName();
-  std::vector<Value::Container*> arguments = call->getArguments();
+  std::vector<Value::Container> arguments = call->getArguments();
   int field;
 
   if (arguments.size() != 2)
     goto error;
 
-  if (arguments[0]->isField()) {
+  if (arguments[0].isField()) {
     field = 0;
-    filter.field = *arguments[0]->asVariable()->getMember();
-    filter.value = *arguments[1];
-  } else if (arguments[1]->isField()) {
+    filter.field = *arguments[0].asVariable()->getMember();
+    filter.value = arguments[1];
+  } else if (arguments[1].isField()) {
     field = 1;
-    filter.field = *arguments[1]->asVariable()->getMember();
-    filter.value = *arguments[0];
+    filter.field = *arguments[1].asVariable()->getMember();
+    filter.value = arguments[0];
   } else {
     goto error;
   }
@@ -72,12 +72,12 @@ Filter Filter::Unary(Value::Call* call) {
   filter._isBinary = false;
 
   std::string name = call->getCalleeName();
-  std::vector<Value::Container*> arguments = call->getArguments();
+  std::vector<Value::Container> arguments = call->getArguments();
 
   if (arguments.size() != 1)
     goto error;
 
-  filter.value = *arguments[0];
+  filter.value = arguments[0];
 
   if (name == "is") {
     filter.op = FILTER_IS;

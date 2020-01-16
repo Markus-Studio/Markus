@@ -89,7 +89,7 @@ class Union {
   /**
    * Extract the sub-type using the given uri.
    */
-  Container* query(Uri uri);
+  Container query(Uri uri);
 
   friend class Object;
   friend class Container;

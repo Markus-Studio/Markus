@@ -101,12 +101,12 @@ bool Union::is(Object* type) {
   return true;
 }
 
-Container* Union::query(Uri uri) {
+Container Union::query(Uri uri) {
   if (uri.isEmpty())
-    return new Container(this);
+    return Container(this);
 
   if (!atomicMembers.empty())
-    return new Container();
+    return Container();
 
   if (objectMembers.size() == 1)
     return objectMembers.front()->query(uri);
@@ -115,37 +115,37 @@ Container* Union::query(Uri uri) {
   Union* result = new Union();
 
   for (; it != objectMembers.end(); ++it) {
-    Container* type = (*it)->query(uri);
+    Container type = (*it)->query(uri);
 
-    if (type->isNever()) {
+    if (type.isNever()) {
       delete result;
-      return new Container();
+      return Container();
     }
 
-    if (type->isArray()) {
+    if (type.isArray()) {
       std::cerr << "Union cannot contain arrays." << std::endl;
       abort();
     }
 
-    if (type->isAtomic()) {
-      result->add(type->asAtomic());
+    if (type.isAtomic()) {
+      result->add(type.asAtomic());
       continue;
     }
 
-    if (type->isObject()) {
-      result->add(type->asObject());
+    if (type.isObject()) {
+      result->add(type.asObject());
       continue;
     }
 
-    if (type->isUnion()) {
-      result->add(type->asUnion());
+    if (type.isUnion()) {
+      result->add(type.asUnion());
       continue;
     }
 
     assert(0);
   }
 
-  return new Container(result);
+  return Container(result);
 }
 
 }  // namespace Type

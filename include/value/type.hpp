@@ -14,7 +14,7 @@ class TypeValue {
   /**
    * The reference.
    */
-  Type::Container* type;
+  Type::Container type;
 
   /**
    * The source code range that contains this value.
@@ -25,12 +25,12 @@ class TypeValue {
   /**
    * Constructs a new type value.
    */
-  TypeValue(Type::Container* type, Parser::Range range);
+  TypeValue(Type::Container type, Parser::Range range);
 
   /**
    * Returns the type that this type-value is refering to.
    */
-  Type::Container* getType();
+  Type::Container getType();
 
   /**
    * Returns the range which this value is derived from in the source code.

@@ -2,6 +2,7 @@
 #define __MARKUS_IR_FILTER__
 
 #include "type/uri.hpp"
+#include "value/call.hpp"
 #include "value/container.hpp"
 
 namespace IR {

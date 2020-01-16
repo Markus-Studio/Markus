@@ -160,7 +160,7 @@ Parser::Range Container::getRange() {
   }
 }
 
-Type::Container* Container::getType(AST::Query* query) {
+Type::Container Container::getType(AST::Query* query) {
   switch (kind) {
     case VALUE_KIND_BOOL:
       return query->getOwner()->resolveBuiltin("bool");
@@ -177,7 +177,7 @@ Type::Container* Container::getType(AST::Query* query) {
     case VALUE_KIND_QUERY:
       return asQuery()->getResultType();
     case VALUE_KIND_CALL:
-      return new Type::Container();  // TODO(qti3e)
+      return Type::Container();  // TODO(qti3e)
   }
 }
 }  // namespace Value

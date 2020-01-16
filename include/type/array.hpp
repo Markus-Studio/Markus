@@ -15,18 +15,18 @@ class Array {
   /**
    * The contained type in this array type.
    */
-  Container* contained;
+  Container contained;
 
  public:
   /**
    * Constructs a new array type.
    */
-  Array(Container* container);
+  Array(Container container);
 
   /**
    * Returns the contained type.
    */
-  Container* getContainedType();
+  Container getContainedType();
 
   /**
    * Evaluates and returns the result of `this is array`.
@@ -61,7 +61,7 @@ class Array {
    * Evaluates and returns the result of `contained is type`, where type is any
    * type contained in a container.
    */
-  bool isDeep(Container* type);
+  bool isDeep(Container type);
 
   /**
    * Extract type of a field from this array type.

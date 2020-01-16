@@ -12,23 +12,23 @@ Source::Source(Parser::Scanner* scanner) {
   // --- Types.
   parserTypes = Parser::Types(scanner);
 
-  user = parserTypes.resolve("user")->asObject();
+  user = parserTypes.resolve("user").asObject();
 
   std::vector<std::string> typeNames = parserTypes.getTypeNames();
   std::vector<std::string>::iterator typeName;
 
   for (typeName = typeNames.begin(); typeName != typeNames.end(); ++typeName) {
-    Type::Container* type = parserTypes.resolve(*typeName);
-    if (!type->isObject() || parserTypes.isBuiltIn(*typeName))
+    Type::Container type = parserTypes.resolve(*typeName);
+    if (!type.isObject() || parserTypes.isBuiltIn(*typeName))
       continue;
-    Type::Object* objType = type->asObject();
+    Type::Object* objType = type.asObject();
     this->types.push_back(objType);
     objects.add(objType);
     if (objType->is(user))
       users.add(objType);
   }
 
-  typesArray = new Type::Array(new Type::Container(&objects));
+  typesArray = new Type::Array(Type::Container(&objects));
 
   // --- Permissions.
   std::vector<std::string> permissionNames = scanner->getPermissionNames();
@@ -108,9 +108,9 @@ Query* Source::getQuery(std::string name) {
   return it->second;
 }
 
-Type::Container* Source::resolveBuiltin(std::string name) {
+Type::Container Source::resolveBuiltin(std::string name) {
   if (!parserTypes.isBuiltIn(name))
-    return new Type::Container();
+    return Type::Container();
   return parserTypes.resolve(name);
 }
 

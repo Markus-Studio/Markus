@@ -9,8 +9,8 @@ PipelineAutoReg::PipelineAutoReg(std::string name,
                                  int numArgs,
                                  bool (*cb)(AST::Query*,
                                             Value::Call*,
-                                            std::vector<Value::Container*>,
-                                            Type::Container*&)) {
+                                            std::vector<Value::Container>,
+                                            Type::Container&)) {
   static std::list<Pipeline> pipelines;
   pipelinesRef = &pipelines;
   Pipeline pipeline;
@@ -22,7 +22,7 @@ PipelineAutoReg::PipelineAutoReg(std::string name,
 
 bool verifyCall(AST::Query* query,
                 Value::Call* call,
-                Type::Container*& resultType) {
+                Type::Container& resultType) {
   int argNum = -1;
   std::list<Pipeline>::iterator pipeline = pipelinesRef->begin();
 

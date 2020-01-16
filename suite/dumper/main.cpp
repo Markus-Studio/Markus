@@ -30,7 +30,7 @@ void dumpTypes(AST::Source* program) {
       if (type->isNullable(fields[j]))
         std::cout << "NULLABLE ";
       std::cout << fields[j];
-      std::cout << " TYPE " << type->query(fields[j])->toString() << std::endl;
+      std::cout << " TYPE " << type->query(fields[j]).toString() << std::endl;
     }
     std::cout << "/--" << type->getName() << "---" << std::endl;
     if (i + 1 != types.size())
@@ -43,18 +43,18 @@ void dumpQuery(AST::Query* query) {
   std::vector<AST::PipelineInfo> pipelines = query->getPipelines();
   for (int i = 0; i < pipelines.size(); ++i) {
     AST::PipelineInfo pipeline = pipelines[i];
-    std::cout << "TYPE " << pipeline.inputType->toString() << std::endl;
+    std::cout << "TYPE " << pipeline.inputType.toString() << std::endl;
     std::cout << "-->" << pipeline.call->getCalleeName() << std::endl;
-    std::vector<Value::Container*> arguments = pipeline.call->getArguments();
+    std::vector<Value::Container> arguments = pipeline.call->getArguments();
     for (int j = 0; j < arguments.size(); ++j) {
-      if (arguments[j]->isQuery()) {
+      if (arguments[j].isQuery()) {
         std::cout << "---SUB-QUERY---" << std::endl;
-        dumpQuery(arguments[j]->asQuery());
+        dumpQuery(arguments[j].asQuery());
         std::cout << "/--SUB-QUERY---" << std::endl;
       }
     }
   }
-  std::cout << "RESULT " << query->getResultType()->toString() << std::endl;
+  std::cout << "RESULT " << query->getResultType().toString() << std::endl;
 }
 
 void dumpPermissions(AST::Source* program) {
@@ -80,10 +80,10 @@ void dumpQueries(AST::Source* program) {
   std::cout << "---QUERIES---" << std::endl;
   for (int i = 0; i < names.size(); ++i) {
     AST::Query* query = program->getQuery(names[i]);
-    Type::Container* userType =
+    Type::Container userType =
         query->getParameterType(query->getParameterId("%user"));
     std::cout << "---" << names[i] << "---" << std::endl;
-    std::cout << "USER " << userType->toString() << std::endl;
+    std::cout << "USER " << userType.toString() << std::endl;
     dumpQuery(query);
     std::cout << "/--" << names[i] << "---" << std::endl;
     if (i + 1 != names.size())

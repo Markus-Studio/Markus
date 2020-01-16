@@ -12,7 +12,7 @@ namespace AST {
 class Source;
 
 struct PipelineInfo {
-  Type::Container* inputType;
+  Type::Container inputType;
   int shape;
   Value::Call* call;
 };
@@ -29,12 +29,12 @@ class Query {
   /**
    * The return type of this query.
    */
-  Type::Container* resultType;
+  Type::Container resultType;
 
   /**
    * Type of parameters.
    */
-  std::vector<Type::Container*> parameters;
+  std::vector<Type::Container> parameters;
 
   /**
    * Name of parameters in order.
@@ -55,12 +55,12 @@ class Query {
   /**
    * Constructs a new Query IR with the intialized type.
    */
-  Query(Source* program, Type::Container* type);
+  Query(Source* program, Type::Container type);
 
   /**
    * Add a new parameter to this query, returns the parameter id.
    */
-  int addParameter(std::string name, Type::Container* type);
+  int addParameter(std::string name, Type::Container type);
 
   /**
    * Returns the id of the given parameter.
@@ -70,7 +70,7 @@ class Query {
   /**
    * Returns type of the n-th parameter.
    */
-  Type::Container* getParameterType(int n);
+  Type::Container getParameterType(int n);
 
   /**
    * Returns the owner of the current query.
@@ -92,7 +92,7 @@ class Query {
   /**
    * Returns the result type of this query.
    */
-  Type::Container* getResultType();
+  Type::Container getResultType();
 
   /**
    * Return all of the pipelines in this query.

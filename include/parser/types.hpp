@@ -20,7 +20,7 @@ class Types {
   /**
    * Map each name to the corseponding type.
    */
-  std::map<std::string, Type::Container*> types;
+  std::map<std::string, Type::Container> types;
 
   /**
    * Parse a token vector that is supposed to be a type declaration
@@ -34,10 +34,10 @@ class Types {
   /**
    * Try to resolve a name in the middle of parsing another token.
    */
-  Type::Container* tryResolve(std::string name,
-                              Scanner* scanner,
-                              std::set<std::string>* seen,
-                              std::set<std::string>* parsed);
+  Type::Container tryResolve(std::string name,
+                             Scanner* scanner,
+                             std::set<std::string>* seen,
+                             std::set<std::string>* parsed);
 
   /**
    * Setup built in types, called from constructor.
@@ -47,7 +47,7 @@ class Types {
   /**
    * Adds the type to this space.
    */
-  void add(std::string name, Type::Container* container);
+  void add(std::string name, Type::Container container);
 
  public:
   /**
@@ -70,7 +70,7 @@ class Types {
    * Resolves a type using its name and return the result, if the given type
    * does not exists in this space it returns a `never` container.
    */
-  Type::Container* resolve(std::string name);
+  Type::Container resolve(std::string name);
 
   /**
    * Return a vector of the name of every type in this document.

@@ -14,7 +14,7 @@ class Variable {
   /**
    * Type of the base.
    */
-  Type::Container* variableType;
+  Type::Container variableType;
 
   /**
    * The parameter id for this variable.
@@ -32,11 +32,6 @@ class Variable {
   Type::Uri* variableMember;
 
   /**
-   * Cache of the getType().
-   */
-  Type::Container* typeCache;
-
-  /**
    * The source code range that contains this value.
    */
   Parser::Range range;
@@ -45,13 +40,13 @@ class Variable {
   /**
    * Constructs a new reference to a variable.
    */
-  Variable(int id, Type::Container* type, Parser::Range range);
+  Variable(int id, Type::Container type, Parser::Range range);
 
   /**
    * Constructs a new reference to a variable with a member selection.
    */
   Variable(int id,
-           Type::Container* type,
+           Type::Container type,
            Parser::Range range,
            Type::Uri* member);
 
@@ -64,13 +59,13 @@ class Variable {
    * Returns the type of the base, without considering selected member.
    * $point.x -> Point2D
    */
-  Type::Container* getBaseType();
+  Type::Container getBaseType();
 
   /**
    * Returns the type of this entity, considers the selected member.
    * $point.x -> float
    */
-  Type::Container* getType();
+  Type::Container getType();
 
   /**
    * Returns uri of the selected member.

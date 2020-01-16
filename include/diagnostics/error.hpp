@@ -144,7 +144,7 @@ class Error {
    * Constructs a new wrong argument type error.
    */
   static Error* wrongArgumentType(enum Value::ValueKind expected,
-                                  Value::Container* value);
+                                  Value::Container value);
 
   /**
    * Constructs a new variable expected current error.
@@ -169,8 +169,8 @@ class Error {
   /**
    * Constructs a new types not usable together error.
    */
-  static Error* typesNotUseableTogether(Value::Container* lhs,
-                                        Value::Container* rhs);
+  static Error* typesNotUseableTogether(Value::Container lhs,
+                                        Value::Container rhs);
 };
 }  // namespace Diagnostics
 

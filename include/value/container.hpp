@@ -1,18 +1,22 @@
 #ifndef __MARKUS_VALUE_CONTAINER__
 #define __MARKUS_VALUE_CONTAINER__
 
-#include "ast/query.hpp"
 #include "parser/range.hpp"
 #include "type/container.hpp"
 #include "value/bool.hpp"
-#include "value/call.hpp"
 #include "value/float.hpp"
 #include "value/int.hpp"
 #include "value/string.hpp"
 #include "value/type.hpp"
 #include "value/variable.hpp"
 
+namespace AST {
+class Query;
+}
+
 namespace Value {
+class Call;
+
 /**
  * For each kind of value there is a constant here.
  */
@@ -196,7 +200,7 @@ class Container {
   /**
    * Returns type of the value according to the current query.
    */
-  Type::Container* getType(AST::Query* query);
+  Type::Container getType(AST::Query* query);
 };
 }  // namespace Value
 

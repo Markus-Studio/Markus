@@ -17,12 +17,12 @@ MARKUS_PIPELINE(eq, 2) {
 
   int field = IS_FIELD(0) ? 0 : 1;
   int value = field == 0 ? 1 : 0;
-  Type::Container* fieldType = arguments[field]->getType(query);
-  Type::Container* valueType = arguments[value]->getType(query);
-  if (fieldType->isArray())
-    fieldType = fieldType->asArray()->getContainedType();
+  Type::Container fieldType = arguments[field].getType(query);
+  Type::Container valueType = arguments[value].getType(query);
+  if (fieldType.isArray())
+    fieldType = fieldType.asArray()->getContainedType();
 
-  if (!valueType->is(fieldType)) {
+  if (!valueType.is(fieldType)) {
     Diagnostics::Controller::report(Diagnostics::Error::typesNotUseableTogether(
         arguments[0], arguments[1]));
     return false;
@@ -31,8 +31,8 @@ MARKUS_PIPELINE(eq, 2) {
   // Index the field.
   if (IS_VAR(value))
     query->getOwner()->getIndexer()->addQueryMeta(
-        query, Indexer::Meta::EQ(arguments[0]->asVariable(),
-                                 arguments[1]->asVariable()));
+        query, Indexer::Meta::EQ(arguments[0].asVariable(),
+                                 arguments[1].asVariable()));
 
   return true;
 }

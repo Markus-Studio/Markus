@@ -35,11 +35,11 @@ Types::Types(Scanner* scanner) {
   delete parsed;
 }
 
-void Types::add(std::string name, Type::Container* container) {
+void Types::add(std::string name, Type::Container container) {
   if (has(name))
     return Controller::report(Error::nameAlreadyInUse(name));
 
-  types.insert(std::pair<std::string, Type::Container*>(name, container));
+  types.insert(std::pair<std::string, Type::Container>(name, container));
 }
 
 void Types::builtins() {
@@ -85,13 +85,13 @@ void Types::builtins() {
   geo->set("lat", typeFloat, false);
   geo->set("long", typeFloat, false);
 
-  add("int", new Type::Container(typeInt));
-  add("float", new Type::Container(typeFloat));
-  add("string", new Type::Container(typeString));
-  add("bool", new Type::Container(typeBool));
-  add("user", new Type::Container(user));
-  add("time", new Type::Container(time));
-  add("geo", new Type::Container(geo));
+  add("int", Type::Container(typeInt));
+  add("float", Type::Container(typeFloat));
+  add("string", Type::Container(typeString));
+  add("bool", Type::Container(typeBool));
+  add("user", Type::Container(user));
+  add("time", Type::Container(time));
+  add("geo", Type::Container(geo));
 }
 
 bool Types::has(std::string name) {
@@ -124,10 +124,10 @@ void Types::parse(Scanner* scanner,
 
   std::vector<Token>::iterator it = ++tokens.begin();
   it++;  // Eat name.
-  Type::Container* base;
+  Type::Container base;
 
   Type::Object* obj = new Type::Object(name);
-  add(name, new Type::Container(obj));
+  add(name, Type::Container(obj));
 
   if (*it == ":") {
     do {
@@ -135,11 +135,11 @@ void Types::parse(Scanner* scanner,
       if (!(it)->isIdentifier())
         return Controller::report(Error::unexpectedToken(*it, "identifier"));
       base = tryResolve((it)->getWord(), scanner, seen, parsed);
-      if (base->isNever())
+      if (base.isNever())
         return Controller::report(Error::cannotResolveName(*it));
-      if (!base->isObject())
+      if (!base.isObject())
         return Controller::report(Error::baseMustBeObject(*it));
-      obj->addBase(base->asObject());
+      obj->addBase(base.asObject());
       ++it;
     } while (*it == ",");
   }
@@ -149,7 +149,7 @@ void Types::parse(Scanner* scanner,
 
   while (*it != "}") {
     std::string typeName, name;
-    Type::Container* type;
+    Type::Container type;
     Token nameToken;
     bool nullable = false;
     bool result = false;
@@ -175,13 +175,13 @@ void Types::parse(Scanner* scanner,
 
     type = tryResolve(typeName, scanner, seen, parsed);
 
-    if (type->isNever())
+    if (type.isNever())
       return Controller::report(Error::cannotResolveName(*it));
 
-    if (type->isObject())
-      result = obj->set(name, type->asObject(), nullable);
-    else if (type->isAtomic())
-      result = obj->set(name, type->asAtomic(), nullable);
+    if (type.isObject())
+      result = obj->set(name, type.asObject(), nullable);
+    else if (type.isAtomic())
+      result = obj->set(name, type.asAtomic(), nullable);
 
     if (!result)
       return Controller::report(Error::nameAlreadyInUse(nameToken));
@@ -191,30 +191,30 @@ void Types::parse(Scanner* scanner,
   }
 }
 
-Type::Container* Types::tryResolve(std::string name,
-                                   Scanner* scanner,
-                                   std::set<std::string>* seen,
-                                   std::set<std::string>* parsed) {
+Type::Container Types::tryResolve(std::string name,
+                                  Scanner* scanner,
+                                  std::set<std::string>* seen,
+                                  std::set<std::string>* parsed) {
   if (has(name))
     return resolve(name);
 
   if (!scanner->hasType(name))
-    return new Type::Container();
+    return Type::Container();
 
   parse(scanner, scanner->lookupType(name), seen, parsed);
   return resolve(name);
 }
 
-Type::Container* Types::resolve(std::string name) {
-  std::map<std::string, Type::Container*>::iterator it;
+Type::Container Types::resolve(std::string name) {
+  std::map<std::string, Type::Container>::iterator it;
   it = types.find(name);
   if (it == types.end())
-    return new Type::Container();
+    return Type::Container();
   return it->second;
 }
 
 std::vector<std::string> Types::getTypeNames() {
-  std::map<std::string, Type::Container*>::iterator it;
+  std::map<std::string, Type::Container>::iterator it;
   std::vector<std::string> keys;
   keys.reserve(types.size());
 

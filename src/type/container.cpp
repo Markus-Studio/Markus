@@ -79,18 +79,18 @@ bool Container::isArray() {
   return kind == TYPE_KIND_ARRAY;
 }
 
-bool Container::is(Container* type) {
-  switch (type->kind) {
+bool Container::is(Container type) {
+  switch (type.kind) {
     case TYPE_KIND_NEVER:
       return false;
     case TYPE_KIND_ATOMIC:
-      return is(type->asAtomic());
+      return is(type.asAtomic());
     case TYPE_KIND_UNION:
-      return is(type->asUnion());
+      return is(type.asUnion());
     case TYPE_KIND_OBJECT:
-      return is(type->asObject());
+      return is(type.asObject());
     case TYPE_KIND_ARRAY:
-      return is(type->asArray());
+      return is(type.asArray());
   }
 }
 
@@ -144,20 +144,20 @@ int Container::getShape() {
   if (!isArray())
     return 0;
 
-  return 1 + asArray()->getContainedType()->getShape();
+  return 1 + asArray()->getContainedType().getShape();
 }
 
-Container* Container::query(Uri uri) {
+Container Container::query(Uri uri) {
   if (uri.isEmpty())
-    return this;
+    return *this;
 
   switch (kind) {
     case TYPE_KIND_NEVER:
     case TYPE_KIND_ATOMIC:
-      return new Container();
+      return Container();
 
     case TYPE_KIND_ARRAY:
-      return new Container(asArray()->query(uri));
+      return Container(asArray()->query(uri));
 
     case TYPE_KIND_OBJECT:
       return asObject()->query(uri);
@@ -169,20 +169,20 @@ Container* Container::query(Uri uri) {
   assert(0);
 }
 
-Container* Container::extract(Container* baseType) {
+Container Container::extract(Container baseType) {
   switch (kind) {
     case TYPE_KIND_NEVER:
-      return this;
+      return *this;
 
     case TYPE_KIND_ATOMIC:
     case TYPE_KIND_OBJECT:
       if (this->is(baseType))
-        return this;
-      return new Container();
+        return *this;
+      return Container();
 
     case TYPE_KIND_ARRAY:
-      return new Container(
-          new Array(asArray()->getContainedType()->extract(baseType)));
+      return Container(
+          new Array(asArray()->getContainedType().extract(baseType)));
 
     case TYPE_KIND_UNION:
       Union* result = new Union();
@@ -198,7 +198,7 @@ Container* Container::extract(Container* baseType) {
       for (c.type = *oIt; oIt != u->objectMembers.end(); ++oIt, c.type = *oIt)
         if (c.is(baseType))
           result->add(*oIt);
-      return new Container(result);
+      return Container(result);
   }
 }
 
@@ -212,7 +212,7 @@ bool Container::isNil() {
       return false;
 
     case TYPE_KIND_ARRAY:
-      return asArray()->getContainedType()->isNil();
+      return asArray()->getContainedType().isNil();
 
     case TYPE_KIND_UNION:
       return asUnion()->isEmpty();
@@ -238,7 +238,7 @@ std::string Container::toString() {
 
   if (isArray()) {
     stream << "Array<";
-    stream << asArray()->getContainedType()->toString();
+    stream << asArray()->getContainedType().toString();
     stream << ">";
   }
 

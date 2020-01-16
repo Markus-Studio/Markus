@@ -8,15 +8,15 @@
 namespace AST {
 Query::Query(Source* program) {
   owner = program;
-  resultType = new Type::Container(program->arrayOfTypes());
+  resultType = Type::Container(program->arrayOfTypes());
 }
 
-Query::Query(Source* program, Type::Container* type) {
+Query::Query(Source* program, Type::Container type) {
   owner = program;
   resultType = type;
 }
 
-int Query::addParameter(std::string name, Type::Container* type) {
+int Query::addParameter(std::string name, Type::Container type) {
   parameters.push_back(type);
   parameterNames.push_back(name);
   return parameters.size();
@@ -29,7 +29,7 @@ int Query::getParameterId(std::string name) {
   return -1;
 }
 
-Type::Container* Query::getParameterType(int n) {
+Type::Container Query::getParameterType(int n) {
   assert(n >= 0);
   // The first variable is always refering to the current item.
   if (n == 0)
@@ -44,7 +44,7 @@ Source* Query::getOwner() {
 bool Query::addPipeline(Value::Call* call) {
   struct PipelineInfo info;
   info.inputType = resultType;
-  info.shape = resultType->getShape();
+  info.shape = resultType.getShape();
   info.call = call;
   pipelines.push_back(info);
 
@@ -62,7 +62,7 @@ Query* Query::getSubQuery(Value::Call* call) {
   return NULL;
 }
 
-Type::Container* Query::getResultType() {
+Type::Container Query::getResultType() {
   return resultType;
 }
 

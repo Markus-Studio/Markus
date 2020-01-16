@@ -19,8 +19,8 @@ struct Pipeline {
    */
   bool (*cb)(AST::Query*,
              Value::Call* call,
-             std::vector<Value::Container*>,
-             Type::Container*&);
+             std::vector<Value::Container>,
+             Type::Container&);
 
   /**
    * Number of arguments that must be passed to the callback.
@@ -41,8 +41,8 @@ struct PipelineAutoReg {
                   int numArgs,
                   bool (*cb)(AST::Query*,
                              Value::Call*,
-                             std::vector<Value::Container*>,
-                             Type::Container*&));
+                             std::vector<Value::Container>,
+                             Type::Container&));
 };
 
 /**
@@ -50,7 +50,7 @@ struct PipelineAutoReg {
  */
 bool verifyCall(AST::Query* query,
                 Value::Call* call,
-                Type::Container*& resultType);
+                Type::Container& resultType);
 }  // namespace Verifier
 
 // ---- MACROS ----
@@ -60,16 +60,16 @@ bool verifyCall(AST::Query* query,
 
 #define MARKUS_PIPELINE2(FN_NAME, REG_NAME, NAME, NUM_ARGS)      \
   bool FN_NAME(AST::Query* query, Value::Call* call,             \
-               std::vector<Value::Container*> arguments,         \
-               Type::Container*& resultType);                    \
+               std::vector<Value::Container> arguments,          \
+               Type::Container& resultType);                     \
                                                                  \
   namespace {                                                    \
   Verifier::PipelineAutoReg REG_NAME(#NAME, NUM_ARGS, &FN_NAME); \
   }                                                              \
                                                                  \
   bool FN_NAME(AST::Query* query, Value::Call* call,             \
-               std::vector<Value::Container*> arguments,         \
-               Type::Container*& resultType)
+               std::vector<Value::Container> arguments,          \
+               Type::Container& resultType)
 
 #define MARKUS_PIPELINE3(FN_NAME, NAME, NUM_ARGS)                           \
   MARKUS_PIPELINE2(FN_NAME, MARKUS_CONCAT(pipelineAutoReg_, FN_NAME), NAME, \
@@ -79,7 +79,7 @@ bool verifyCall(AST::Query* query,
   MARKUS_PIPELINE3(MARKUS_CONCAT(name, numArgs), name, numArgs)
 
 #define EXPECT_ARG_KIND(n, kind)                                      \
-  if (arguments[n]->getKind() != (kind)) {                            \
+  if (arguments[n].getKind() != (kind)) {                             \
     Diagnostics::Controller::report(                                  \
         Diagnostics::Error::wrongArgumentType((kind), arguments[n])); \
     return false;                                                     \
@@ -88,36 +88,36 @@ bool verifyCall(AST::Query* query,
 #define EXPECT_ARG_FIELD(n)                            \
   {                                                    \
     EXPECT_ARG_KIND(n, Value::VALUE_KIND_VARIABLE);    \
-    if (arguments[n]->asVariable()->getId() != 0) {    \
+    if (arguments[n].asVariable()->getId() != 0) {     \
       Diagnostics::Controller::report(                 \
           Diagnostics::Error::variableExpectedCurrent( \
-              arguments[n]->asVariable()));            \
+              arguments[n].asVariable()));             \
       return false;                                    \
     }                                                  \
   }
 
-#define EXPECT_ARG_FIELD_EXISTS(n)                                           \
-  if (arguments[n]->asVariable()->getType()->isNil()) {                      \
-    Diagnostics::Controller::report(                                         \
-        Diagnostics::Error::fieldDoesNotExists(arguments[n]->asVariable())); \
-    return false;                                                            \
+#define EXPECT_ARG_FIELD_EXISTS(n)                                          \
+  if (arguments[n].asVariable()->getType().isNil()) {                       \
+    Diagnostics::Controller::report(                                        \
+        Diagnostics::Error::fieldDoesNotExists(arguments[n].asVariable())); \
+    return false;                                                           \
   }
 
 #define IS_BUILTIN(container, type) \
-  ((container)->is(query->getOwner()->resolveBuiltin(type)))
+  ((container).is(query->getOwner()->resolveBuiltin(type)))
 
 #define IS_NUMBER(container) \
   (IS_BUILTIN(container, "int") || IS_BUILTIN(container, "float"))
 
 #define IS_FIELD(n) \
-  (arguments[n]->isVariable() && arguments[n]->asVariable()->getId() == 0)
+  (arguments[n].isVariable() && arguments[n].asVariable()->getId() == 0)
 
 #define IS_VAR(n) \
-  (arguments[n]->isVariable() && arguments[n]->asVariable()->getId() != 0)
+  (arguments[n].isVariable() && arguments[n].asVariable()->getId() != 0)
 
-#define IS_VAR_OR_FIELD(n) (arguments[n]->isVariable())
+#define IS_VAR_OR_FIELD(n) (arguments[n].isVariable())
 
-#define IS_TYPE_REF(n) (arguments[n]->isType())
+#define IS_TYPE_REF(n) (arguments[n].isType())
 
 #define EXPECT_TYPE(check, type)                         \
   if (!(check)) {                                        \
@@ -126,11 +126,11 @@ bool verifyCall(AST::Query* query,
     return false;                                        \
   }
 
-#define EXPECT_TYPE_SHAPE(type, n)                                         \
-  if ((type)->getShape() != n) {                                           \
-    Diagnostics::Controller::report(                                       \
-        Diagnostics::Error::wrongInputShape(call, n, (type)->getShape())); \
-    return false;                                                          \
+#define EXPECT_TYPE_SHAPE(type, n)                                        \
+  if ((type).getShape() != n) {                                           \
+    Diagnostics::Controller::report(                                      \
+        Diagnostics::Error::wrongInputShape(call, n, (type).getShape())); \
+    return false;                                                         \
   }
 
 #endif

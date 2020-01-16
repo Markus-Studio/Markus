@@ -5,7 +5,7 @@
 
 namespace AST {
 Permission::Permission(Source* program, std::string name) {
-  Type::Container* users = new Type::Container(program->unionOfUsers());
+  Type::Container users = Type::Container(program->unionOfUsers());
   query = new Query(program, users);
   this->name = name;
 }

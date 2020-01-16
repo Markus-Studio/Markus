@@ -3,6 +3,7 @@
         "MARKUS"
     ],
     "files.associations": {
+        "*.json": "jsonc",
         "string": "cpp",
         "iosfwd": "cpp",
         "iostream": "cpp",
@@ -86,7 +87,8 @@
         "bit": "cpp",
         "memory_resource": "cpp",
         "cfenv": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "__functional_base_03": "cpp"
     },
     "files.exclude": {
         "**/CMakeLists.txt.user": true,

@@ -10,8 +10,8 @@ Value::Variable* parseVariable(AST::Query* query,
                                std::vector<Token>::iterator& token,
                                int variableId);
 
-Value::Container* parseValue(AST::Query* query,
-                             std::vector<Token>::iterator& token);
+Value::Container parseValue(AST::Query* query,
+                            std::vector<Token>::iterator& token);
 /**
  * Parse a permission and emit an Permission IR.
  */

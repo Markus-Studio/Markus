@@ -114,7 +114,7 @@ class Source {
   /**
    * Resolve a built-in type.
    */
-  Type::Container* resolveBuiltin(std::string name);
+  Type::Container resolveBuiltin(std::string name);
 
   /**
    * Returns the indexer engine.

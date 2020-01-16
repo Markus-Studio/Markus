@@ -6,10 +6,9 @@
 
 #include "parser/range.hpp"
 #include "parser/tokenizer.hpp"
+#include "value/container.hpp"
 
 namespace Value {
-class Container;
-
 /**
  * A function call.
  */
@@ -18,7 +17,7 @@ class Call {
   /**
    * Arguments passed to this function.
    */
-  std::vector<Container*> arguments;
+  std::vector<Container> arguments;
 
   /**
    * Callee name.
@@ -44,7 +43,7 @@ class Call {
   /**
    * Add an argument to this call value.
    */
-  void addArgument(Container* value);
+  void addArgument(Container value);
 
   /**
    * Returns the callee name.
@@ -54,7 +53,7 @@ class Call {
   /**
    * Returns a vector containing arguments passed in this function called.
    */
-  std::vector<Container*> getArguments();
+  std::vector<Container> getArguments();
 
   /**
    * Return number of arguments.

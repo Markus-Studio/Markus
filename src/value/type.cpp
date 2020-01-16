@@ -1,12 +1,12 @@
 #include "value/type.hpp"
 
 namespace Value {
-TypeValue::TypeValue(Type::Container* type, Parser::Range range) {
+TypeValue::TypeValue(Type::Container type, Parser::Range range) {
   this->type = type;
   this->range = range;
 }
 
-Type::Container* TypeValue::getType() {
+Type::Container TypeValue::getType() {
   return type;
 }
 
