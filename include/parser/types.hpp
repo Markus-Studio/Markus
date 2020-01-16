@@ -27,17 +27,17 @@ class Types {
    * and adds it to the space.
    */
   void parse(Scanner* scanner,
-             TokenVec* tokens,
-             std::set<TokenVec*>* seen,
-             std::set<TokenVec*>* parsed);
+             TokenVec tokens,
+             std::set<std::string>* seen,
+             std::set<std::string>* parsed);
 
   /**
    * Try to resolve a name in the middle of parsing another token.
    */
   Type::Container* tryResolve(std::string name,
                               Scanner* scanner,
-                              std::set<TokenVec*>* seen,
-                              std::set<TokenVec*>* parsed);
+                              std::set<std::string>* seen,
+                              std::set<std::string>* parsed);
 
   /**
    * Setup built in types, called from constructor.

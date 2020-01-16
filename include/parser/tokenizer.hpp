@@ -138,7 +138,7 @@ class Token {
 /**
  * A vector of tokens.
  */
-typedef std::vector<Token*> TokenVec;
+typedef std::vector<Token> TokenVec;
 
 /**
  * Tokenize the given string into a list of Tokens.

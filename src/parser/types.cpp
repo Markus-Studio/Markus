@@ -2,7 +2,6 @@
 
 #include <assert.h>
 
-#include <iostream>  // cout
 #include <map>
 #include <set>
 #include <string>
@@ -25,11 +24,11 @@ Types::Types(Scanner* scanner) {
 
   std::vector<std::string> names = scanner->getTypeNames();
   std::vector<std::string>::iterator it = names.begin();
-  std::set<TokenVec*> parsed;
+  std::set<std::string>* parsed = new std::set<std::string>();
 
   for (; it != names.end(); ++it) {
-    std::set<TokenVec*> seen;
-    parse(scanner, scanner->lookupType(*it), &seen, &parsed);
+    std::set<std::string>* seen = new std::set<std::string>();
+    parse(scanner, scanner->lookupType(*it), seen, parsed);
   }
 }
 
@@ -97,85 +96,84 @@ bool Types::has(std::string name) {
 }
 
 // Utility function to check a seen set by type name.
-bool checkSeenByName(std::set<TokenVec*>* seen, std::string name) {
-  std::set<Parser::TokenVec*>::iterator it = seen->begin();
-  for (; it != seen->end(); ++it)
-    if ((**it)[1]->getWord() == name)
-      return true;
-  return false;
+bool checkSeenByName(std::set<std::string>* seen, std::string name) {
+  return seen->count(name) > 0;
 }
 
 void Types::parse(Scanner* scanner,
-                  TokenVec* tokens,
-                  std::set<TokenVec*>* seen,
-                  std::set<TokenVec*>* parsed) {
+                  TokenVec tokens,
+                  std::set<std::string>* seen,
+                  std::set<std::string>* parsed) {
+  // Name of the token.
+  std::string name = tokens[1].getWord();
+
   // If we've seen this before, it's a circular reference.
-  if (seen->count(tokens))
-    return Controller::report(Error::circularBase(*seen, tokens));
+  if (seen->count(name))
+    return Controller::report(Error::circularBase(*seen, name));
 
   // If this is already parsed simply return.
-  if (parsed->count(tokens))
+  if (parsed->count(name))
     return;
 
-  seen->insert(tokens);
-  parsed->insert(tokens);
-  assert(*(*tokens)[0] == "type");
+  seen->insert(name);
+  parsed->insert(name);
+  assert((tokens)[0] == "type");
 
-  std::vector<Token*>::iterator it = ++tokens->begin();
+  std::vector<Token>::iterator it = ++tokens.begin();
+  it++;  // Eat name.
   Type::Container* base;
-  std::string name = (*it++)->getWord();
 
   Type::Object* obj = new Type::Object(name);
   add(name, new Type::Container(obj));
 
-  if (**it == ":") {
+  if (*it == ":") {
     do {
       ++it;
-      if (!(*it)->isIdentifier())
-        return Controller::report(Error::unexpectedToken(*it, "identifier"));
-      base = tryResolve((*it)->getWord(), scanner, seen, parsed);
+      if (!(it)->isIdentifier())
+        return Controller::report(Error::unexpectedToken(&*it, "identifier"));
+      base = tryResolve((it)->getWord(), scanner, seen, parsed);
       if (base->isNever())
-        return Controller::report(Error::cannotResolveName(*it));
+        return Controller::report(Error::cannotResolveName(&*it));
       if (!base->isObject())
-        return Controller::report(Error::baseMustBeObject(*it));
+        return Controller::report(Error::baseMustBeObject(&*it));
       obj->addBase(base->asObject());
       ++it;
-    } while (**it == ",");
+    } while (*it == ",");
   }
 
-  if (**it++ != "{")
-    return Controller::report(Error::unexpectedToken(*it, "{"));
+  if (*it++ != "{")
+    return Controller::report(Error::unexpectedToken(&*it, "{"));
 
-  while (**it != "}") {
+  while (*it != "}") {
     std::string typeName, name;
     Type::Container* type;
     Token* nameToken;
     bool nullable = false;
     bool result = false;
 
-    if (!(*it)->isIdentifier())
-      return Controller::report(Error::unexpectedToken(*it, "type name"));
+    if (!(it)->isIdentifier())
+      return Controller::report(Error::unexpectedToken(&*it, "type name"));
 
-    typeName = (*it++)->getWord();
+    typeName = (it++)->getWord();
 
-    if (**it == "?") {
+    if (*it == "?") {
       nullable = true;
       it++;
     }
 
-    if (!(*it)->isIdentifier())
-      return Controller::report(Error::unexpectedToken(*it, "identifier"));
+    if (!(it)->isIdentifier())
+      return Controller::report(Error::unexpectedToken(&*it, "identifier"));
 
-    nameToken = *it;
-    name = (*it++)->getWord();
+    nameToken = &*it;
+    name = (it++)->getWord();
 
-    if (*(*it++) != ";")
-      return Controller::report(Error::unexpectedToken(*it, ";"));
+    if ((*it++) != ";")
+      return Controller::report(Error::unexpectedToken(&*it, ";"));
 
     type = tryResolve(typeName, scanner, seen, parsed);
 
     if (type->isNever())
-      return Controller::report(Error::cannotResolveName(*it));
+      return Controller::report(Error::cannotResolveName(&*it));
 
     if (type->isObject())
       result = obj->set(name, type->asObject(), nullable);
@@ -192,8 +190,8 @@ void Types::parse(Scanner* scanner,
 
 Type::Container* Types::tryResolve(std::string name,
                                    Scanner* scanner,
-                                   std::set<TokenVec*>* seen,
-                                   std::set<TokenVec*>* parsed) {
+                                   std::set<std::string>* seen,
+                                   std::set<std::string>* parsed) {
   if (has(name))
     return resolve(name);
 

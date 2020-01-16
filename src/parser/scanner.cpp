@@ -14,8 +14,8 @@ namespace Parser {
 using namespace Diagnostics;
 
 // util
-inline std::vector<std::string> keys(std::map<std::string, TokenVec*> map) {
-  std::map<std::string, TokenVec*>::iterator it;
+inline std::vector<std::string> keys(std::map<std::string, TokenVec> map) {
+  std::map<std::string, TokenVec>::iterator it;
   std::vector<std::string> keys;
   keys.reserve(map.size());
 
@@ -25,9 +25,8 @@ inline std::vector<std::string> keys(std::map<std::string, TokenVec*> map) {
   return keys;
 }
 
-inline TokenVec* lookup(std::map<std::string, TokenVec*> map,
-                        std::string name) {
-  std::map<std::string, TokenVec*>::iterator it;
+inline TokenVec lookup(std::map<std::string, TokenVec> map, std::string name) {
+  std::map<std::string, TokenVec>::iterator it;
   it = map.find(name);
   assert(it != map.end());
   return it->second;
@@ -37,19 +36,19 @@ Scanner::Scanner(TokenVec tokens) {
   parse(tokens.begin(), tokens.end());
 }
 
-void Scanner::parse(std::vector<Token*>::iterator iter,
-                    std::vector<Token*>::iterator end) {
+void Scanner::parse(std::vector<Token>::iterator iter,
+                    std::vector<Token>::iterator end) {
   if (iter == end)
     return;
 
-  if (!(*iter)->isIdentifier()) {
-    Controller::report(Error::unexpectedToken(*iter, " an identifier"));
+  if (!iter->isIdentifier()) {
+    Controller::report(Error::unexpectedToken(&*iter, " an identifier"));
     return;
   }
 
   std::string word, tmp;
   Token* name;
-  std::vector<Token*>::iterator begining;
+  std::vector<Token>::iterator begining;
   begining = iter++;
 
   if (iter == end) {
@@ -57,21 +56,21 @@ void Scanner::parse(std::vector<Token*>::iterator iter,
     return;
   }
 
-  if (!(*iter)->isIdentifier()) {
-    Controller::report(Error::unexpectedToken(*iter, " an identifier"));
+  if (!iter->isIdentifier()) {
+    Controller::report(Error::unexpectedToken(&*iter, " an identifier"));
     return;
   }
 
-  name = *iter;
+  name = &*iter;
 
   bool seenBracket = false;
   std::stack<std::string> braces;
 
   while ((++iter) != end) {
-    if (!(*iter)->isPunctuation())
+    if (!(iter)->isPunctuation())
       continue;
 
-    word = (*iter)->getWord();
+    word = (iter)->getWord();
 
     if (word == "{") {
       seenBracket = true;
@@ -88,19 +87,19 @@ void Scanner::parse(std::vector<Token*>::iterator iter,
       continue;
 
     if (braces.empty()) {
-      Controller::report(Error::mismatchedBrace(*iter));
+      Controller::report(Error::mismatchedBrace(&*iter));
       return;
     }
 
     tmp = braces.top();
 
     if (word == ")" && tmp != "(") {
-      Controller::report(Error::mismatchedBrace(*iter));
+      Controller::report(Error::mismatchedBrace(&*iter));
       return;
     }
 
     if (word == "}" && tmp != "{") {
-      Controller::report(Error::mismatchedBrace(*iter));
+      Controller::report(Error::mismatchedBrace(&*iter));
       return;
     }
 
@@ -115,7 +114,7 @@ void Scanner::parse(std::vector<Token*>::iterator iter,
       Controller::report(Error::earlyEOF());
       iter--;
     }
-    Controller::report(Error::mismatchedBrace(*iter));
+    Controller::report(Error::mismatchedBrace(&*iter));
     return;
   }
 
@@ -124,31 +123,31 @@ void Scanner::parse(std::vector<Token*>::iterator iter,
     return;
   }
 
-  TokenVec* vec = new TokenVec();
-  vec->assign(begining, ++iter);
-  vec->shrink_to_fit();
-  word = (*begining)->getWord();
+  TokenVec vec;
+  vec.assign(begining, ++iter);
+  vec.shrink_to_fit();
+  word = (begining)->getWord();
   tmp = name->getWord();
 
   if (word == "query") {
     if (queries.count(tmp) > 0)
       return Controller::report(Error::nameAlreadyInUse(name));
-    queries.insert(std::pair<std::string, TokenVec*>(tmp, vec));
+    queries.insert(std::pair<std::string, TokenVec>(tmp, vec));
   } else if (word == "action") {
     if (actions.count(tmp) > 0)
       return Controller::report(Error::nameAlreadyInUse(name));
-    actions.insert(std::pair<std::string, TokenVec*>(tmp, vec));
+    actions.insert(std::pair<std::string, TokenVec>(tmp, vec));
   } else if (word == "type") {
     if (types.count(tmp) > 0)
       return Controller::report(Error::nameAlreadyInUse(name));
-    types.insert(std::pair<std::string, TokenVec*>(tmp, vec));
+    types.insert(std::pair<std::string, TokenVec>(tmp, vec));
   } else if (word == "permission") {
     if (permissions.count(tmp) > 0)
       return Controller::report(Error::nameAlreadyInUse(name));
-    permissions.insert(std::pair<std::string, TokenVec*>(tmp, vec));
+    permissions.insert(std::pair<std::string, TokenVec>(tmp, vec));
   } else
     return Controller::report(Error::unexpectedToken(
-        *begining, " either action, query, permission or type"));
+        &*begining, " either action, query, permission or type"));
 
   parse(iter, end);
 }
@@ -161,7 +160,7 @@ bool Scanner::hasType(std::string name) {
   return types.count(name) > 0;
 }
 
-TokenVec* Scanner::lookupType(std::string name) {
+TokenVec Scanner::lookupType(std::string name) {
   return lookup(types, name);
 }
 
@@ -173,7 +172,7 @@ bool Scanner::hasPermission(std::string name) {
   return permissions.count(name) > 0;
 }
 
-TokenVec* Scanner::lookupPermission(std::string name) {
+TokenVec Scanner::lookupPermission(std::string name) {
   return lookup(permissions, name);
 }
 
@@ -185,7 +184,7 @@ bool Scanner::hasQuery(std::string name) {
   return queries.count(name) > 0;
 }
 
-TokenVec* Scanner::lookupQuery(std::string name) {
+TokenVec Scanner::lookupQuery(std::string name) {
   return lookup(queries, name);
 }
 
@@ -197,7 +196,7 @@ bool Scanner::hasAction(std::string name) {
   return actions.count(name) > 0;
 }
 
-TokenVec* Scanner::lookupAction(std::string name) {
+TokenVec Scanner::lookupAction(std::string name) {
   return lookup(actions, name);
 }
 

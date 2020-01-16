@@ -6,19 +6,19 @@
 #include "parser/query.hpp"
 
 namespace Parser {
-AST::Permission* parsePermission(AST::Source* program, TokenVec* tokens) {
-  std::vector<Token*>::iterator iterator = tokens->begin();
-  assert(**iterator == "permission");
+AST::Permission* parsePermission(AST::Source* program, TokenVec tokens) {
+  std::vector<Token>::iterator iterator = tokens.begin();
+  assert(*iterator == "permission");
 
   ++iterator;
 
-  if (!(*iterator)->isIdentifier()) {
+  if (!(iterator)->isIdentifier()) {
     Diagnostics::Controller::report(
-        Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
+        Diagnostics::Error::unexpectedToken(&*iterator, "an identifier"));
     return NULL;
   }
 
-  std::string name = (*iterator++)->getWord();
+  std::string name = (iterator++)->getWord();
   AST::Permission* result = new AST::Permission(program, name);
 
   parseQueryBody(result->getQuery(), iterator);

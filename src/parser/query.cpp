@@ -5,19 +5,19 @@
 #include "parser/range.hpp"
 
 namespace Parser {
-AST::Query* parseQuery(AST::Source* program, TokenVec* tokens) {
-  std::vector<Token*>::iterator iterator = tokens->begin();
-  assert(**iterator == "query");
+AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
+  std::vector<Token>::iterator iterator = tokens.begin();
+  assert(*iterator == "query");
 
   ++iterator;
 
-  if (!(*iterator)->isIdentifier()) {
+  if (!(iterator)->isIdentifier()) {
     Diagnostics::Controller::report(
-        Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
+        Diagnostics::Error::unexpectedToken(&*iterator, "an identifier"));
     return NULL;
   }
 
-  std::string name = (*iterator++)->getWord();
+  std::string name = (iterator++)->getWord();
   AST::Query* result = new AST::Query(program);
 
   // TODO(qti3e) Parse the permission section.
@@ -28,18 +28,17 @@ AST::Query* parseQuery(AST::Source* program, TokenVec* tokens) {
   return result;
 }
 
-bool parseQueryBody(AST::Query* query,
-                    std::vector<Token*>::iterator& iterator) {
-  if (**iterator != "{") {
+bool parseQueryBody(AST::Query* query, std::vector<Token>::iterator& iterator) {
+  if (*iterator != "{") {
     Diagnostics::Controller::report(
-        Diagnostics::Error::unexpectedToken(*iterator, "{"));
+        Diagnostics::Error::unexpectedToken(&*iterator, "{"));
     return false;
   }
 
   // Eat {.
   ++iterator;
 
-  while (**iterator != "}") {
+  while (*iterator != "}") {
     Value::Container* c = parseValue(query, iterator);
 
     if (c == NULL)
@@ -51,12 +50,12 @@ bool parseQueryBody(AST::Query* query,
     if (!query->addPipeline(c->asCall()))
       return false;
 
-    if (**iterator == "}")
+    if (*iterator == "}")
       break;
 
-    if (**iterator != ",") {
+    if (*iterator != ",") {
       Diagnostics::Controller::report(
-          Diagnostics::Error::unexpectedToken(*iterator, ","));
+          Diagnostics::Error::unexpectedToken(&*iterator, ","));
       return false;
     }
 
@@ -69,37 +68,37 @@ bool parseQueryBody(AST::Query* query,
 }
 
 Value::Container* parseValue(AST::Query* query,
-                             std::vector<Token*>::iterator& token) {
-  if ((*token)->isBoolLiteral()) {
-    return new Value::Container(new Value::Bool(*(token++)));
+                             std::vector<Token>::iterator& token) {
+  if ((token)->isBoolLiteral()) {
+    return new Value::Container(new Value::Bool(&*(token++)));
   }
 
-  if ((*token)->isFloatLiteral()) {
-    return new Value::Container(new Value::Float(*(token++)));
+  if ((token)->isFloatLiteral()) {
+    return new Value::Container(new Value::Float(&*(token++)));
   }
 
-  if ((*token)->isIntLiteral()) {
-    return new Value::Container(new Value::Int(*(token++)));
+  if ((token)->isIntLiteral()) {
+    return new Value::Container(new Value::Int(&*(token++)));
   }
 
-  if ((*token)->isStringLiteral()) {
-    return new Value::Container(new Value::String(*(token++)));
+  if ((token)->isStringLiteral()) {
+    return new Value::Container(new Value::String(&*(token++)));
   }
 
-  if (**token == "." && (*(token + 1))->isIdentifierWord()) {
+  if (*token == "." && ((token + 1))->isIdentifierWord()) {
     return new Value::Container(parseVariable(query, token, 0));
   }
 
-  if ((*token)->isVariableName() || (*token)->isInternalVariableName()) {
-    Token* name = *(token++);
+  if ((token)->isVariableName() || (token)->isInternalVariableName()) {
+    Token* name = &*(token++);
     int variableId = query->getParameterId(name->getWord());
     return new Value::Container(parseVariable(query, token, variableId));
   }
 
-  if ((*token)->isIdentifier()) {
-    Token* name = *(token++);
+  if ((token)->isIdentifier()) {
+    Token* name = &*(token++);
 
-    if (**token != "(") {
+    if (*token != "(") {
       if (!query->getOwner()->hasType(name->getWord())) {
         Diagnostics::Controller::report(
             Diagnostics::Error::cannotResolveName(name));
@@ -114,23 +113,23 @@ Value::Container* parseValue(AST::Query* query,
     token++;  // Eat "("
     Value::Call* call = new Value::Call(name);
 
-    while (**token != ")") {
-      if (**token == "}") {
+    while (*token != ")") {
+      if (*token == "}") {
         Diagnostics::Controller::report(
-            Diagnostics::Error::unexpectedToken(*token, ")"));
+            Diagnostics::Error::unexpectedToken(&*token, ")"));
         return NULL;
       }
 
       Value::Container* arg = NULL;
 
-      if (**token == "{") {
+      if (*token == "{") {
         AST::Query* subQuery = query->getSubQuery(call);
         if (subQuery != NULL) {
           arg = new Value::Container(subQuery);
           parseQueryBody(subQuery, token);
         } else {
           Diagnostics::Controller::report(
-              Diagnostics::Error::unexpectedToken(*token));
+              Diagnostics::Error::unexpectedToken(&*token));
           return NULL;
         }
       } else {
@@ -142,43 +141,43 @@ Value::Container* parseValue(AST::Query* query,
 
       call->addArgument(arg);
 
-      if (**token == ")") {
-        call->expandRange(Range::fromToken(*token));
+      if (*token == ")") {
+        call->expandRange(Range::fromToken(&*token));
         break;
       }
 
-      if (**token != ",") {
+      if (*token != ",") {
         Diagnostics::Controller::report(
-            Diagnostics::Error::unexpectedToken(*token, ","));
+            Diagnostics::Error::unexpectedToken(&*token, ","));
         return NULL;
       }
 
       ++token;
     }
 
-    if (**token == ")")
+    if (*token == ")")
       token++;
 
     return new Value::Container(call);
   }
 
-  Diagnostics::Controller::report(Diagnostics::Error::unexpectedToken(*token));
+  Diagnostics::Controller::report(Diagnostics::Error::unexpectedToken(&*token));
   return NULL;
 }
 
 Value::Variable* parseVariable(AST::Query* query,
-                               std::vector<Token*>::iterator& token,
+                               std::vector<Token>::iterator& token,
                                int variableId) {
   std::vector<std::string> uriParts;
-  Range range = Range::fromToken(*(token - (variableId == 0 ? 0 : 1)));
+  Range range = Range::fromToken(&*(token - (variableId == 0 ? 0 : 1)));
 
-  while (**token == ".") {
-    if (!(*(token + 1))->isIdentifierWord())
+  while (*token == ".") {
+    if (!((token + 1))->isIdentifierWord())
       break;
 
     token++;
-    range = range + Range::fromToken(*token);
-    uriParts.push_back((*(token++))->getWord());
+    range = range + Range::fromToken(&*token);
+    uriParts.push_back(((token++))->getWord());
   }
 
   if (uriParts.size() == 0)

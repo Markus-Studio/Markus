@@ -7,7 +7,7 @@ namespace Parser {
 /**
  * Parse a permission and emit an Permission IR.
  */
-AST::Permission* parsePermission(AST::Source* program, TokenVec* tokens);
+AST::Permission* parsePermission(AST::Source* program, TokenVec tokens);
 }  // namespace Parser
 
 #endif

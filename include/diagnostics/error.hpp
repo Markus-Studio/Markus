@@ -113,8 +113,7 @@ class Error {
   /**
    * Constructs a new circular base error.
    */
-  static Error* circularBase(std::set<Parser::TokenVec*> vectors,
-                             Parser::TokenVec* currnet);
+  static Error* circularBase(std::set<std::string> seen, std::string currnet);
 
   /**
    * Constructs a new base must be object error.

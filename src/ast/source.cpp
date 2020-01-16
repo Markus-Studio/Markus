@@ -35,7 +35,7 @@ Source::Source(Parser::Scanner* scanner) {
   std::vector<std::string>::iterator permissionName = permissionNames.begin();
 
   for (; permissionName != permissionNames.end(); ++permissionName) {
-    Parser::TokenVec* tokens = scanner->lookupPermission(*permissionName);
+    Parser::TokenVec tokens = scanner->lookupPermission(*permissionName);
     AST::Permission* permission = Parser::parsePermission(this, tokens);
     if (permission != NULL)
       permissions.push_back(permission);
@@ -46,7 +46,7 @@ Source::Source(Parser::Scanner* scanner) {
   std::vector<std::string>::iterator queryName = queryNames.begin();
 
   for (; queryName != queryNames.end(); ++queryName) {
-    Parser::TokenVec* tokens = scanner->lookupQuery(*queryName);
+    Parser::TokenVec tokens = scanner->lookupQuery(*queryName);
     AST::Query* query = Parser::parseQuery(this, tokens);
     if (query != NULL)
       queries.insert(std::pair<std::string, AST::Query*>(*queryName, query));

@@ -102,8 +102,8 @@ void Token::dump() {
             << "};" << std::endl;
 }
 
-std::vector<Token*> tokenize(std::string source) {
-  std::vector<Token*> tokens;
+std::vector<Token> tokenize(std::string source) {
+  std::vector<Token> tokens;
   std::string word = "";
   int cursor = 0;
   int line = 1;
@@ -149,9 +149,9 @@ std::vector<Token*> tokenize(std::string source) {
         cursor += 1;
       }
 
-      Token* token = new Token(word, line, column,
-                               isInternal ? TOKEN_KIND_INTERNAL_VARIABLE_NAME
-                                          : TOKEN_KIND_VARIABLE_NAME);
+      Token token = Token(word, line, column,
+                          isInternal ? TOKEN_KIND_INTERNAL_VARIABLE_NAME
+                                     : TOKEN_KIND_VARIABLE_NAME);
       tokens.push_back(token);
       word = "";
       continue;
@@ -205,7 +205,7 @@ std::vector<Token*> tokenize(std::string source) {
         return tokens;
       }
 
-      Token* token = new Token(word, line, column, TOKEN_KIND_STRING_LITERAL);
+      Token token = Token(word, line, column, TOKEN_KIND_STRING_LITERAL);
       tokens.push_back(token);
       word = "";
       continue;
@@ -218,13 +218,13 @@ std::vector<Token*> tokenize(std::string source) {
         word += source[cursor++];
 
       if (word == "true" || word == "false") {
-        Token* token = new Token(word, line, column, TOKEN_KIND_BOOL_LITERAL);
+        Token token = Token(word, line, column, TOKEN_KIND_BOOL_LITERAL);
         tokens.push_back(token);
         word = "";
         continue;
       }
 
-      Token* token = new Token(word, line, column, TOKEN_KIND_IDENTIFIER);
+      Token token = Token(word, line, column, TOKEN_KIND_IDENTIFIER);
       tokens.push_back(token);
       word = "";
       continue;
@@ -232,7 +232,7 @@ std::vector<Token*> tokenize(std::string source) {
 
     if (ispunct(source[cursor])) {
       word = source[cursor];
-      Token* token = new Token(word, line, column, TOKEN_KIND_PUNCTUATION);
+      Token token = Token(word, line, column, TOKEN_KIND_PUNCTUATION);
       tokens.push_back(token);
       word = "";
       cursor += 1;
@@ -259,9 +259,9 @@ std::vector<Token*> tokenize(std::string source) {
         break;
       }
 
-      Token* token = new Token(
-          word, line, column,
-          isFloat ? TOKEN_KIND_FLOAT_LITERAL : TOKEN_KIND_INT_LITERAL);
+      Token token =
+          Token(word, line, column,
+                isFloat ? TOKEN_KIND_FLOAT_LITERAL : TOKEN_KIND_INT_LITERAL);
       word = "";
       tokens.push_back(token);
       continue;
