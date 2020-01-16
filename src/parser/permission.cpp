@@ -6,7 +6,7 @@
 #include "parser/query.hpp"
 
 namespace Parser {
-AST::Permission* parsePermission(AST::Program* program, TokenVec* tokens) {
+AST::Permission* parsePermission(AST::Source* program, TokenVec* tokens) {
   std::vector<Token*>::iterator iterator = tokens->begin();
   assert(**iterator == "permission");
 

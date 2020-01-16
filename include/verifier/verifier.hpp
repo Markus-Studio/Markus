@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "ast/program.hpp"
 #include "ast/query.hpp"
+#include "ast/source.hpp"
 #include "diagnostics/controller.hpp"
 #include "type/container.hpp"
 #include "value/call.hpp"

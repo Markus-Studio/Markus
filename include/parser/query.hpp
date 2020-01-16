@@ -20,7 +20,7 @@ bool parseQueryBody(AST::Query* query, std::vector<Token*>::iterator& tokens);
 /**
  * Parse a query declaration and return the Query IR.
  */
-AST::Query* parseQuery(AST::Program* program, TokenVec* tokens);
+AST::Query* parseQuery(AST::Source* program, TokenVec* tokens);
 }  // namespace Parser
 
 #endif

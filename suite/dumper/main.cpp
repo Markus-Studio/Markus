@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void dumpTypes(AST::Program* program) {
+void dumpTypes(AST::Source* program) {
   std::vector<std::string> types = program->getTypeNames();
   std::sort(types.begin(), types.end());
 
@@ -57,7 +57,7 @@ void dumpQuery(AST::Query* query) {
   std::cout << "RESULT " << query->getResultType()->toString() << std::endl;
 }
 
-void dumpPermissions(AST::Program* program) {
+void dumpPermissions(AST::Source* program) {
   std::vector<std::string> names = program->getPermissionNames();
   std::sort(names.begin(), names.end());
 
@@ -73,7 +73,7 @@ void dumpPermissions(AST::Program* program) {
   std::cout << "/--PERMISSIONS---" << std::endl;
 }
 
-void dumpQueries(AST::Program* program) {
+void dumpQueries(AST::Source* program) {
   std::vector<std::string> names = program->getQueryNames();
   std::sort(names.begin(), names.end());
 
@@ -92,7 +92,7 @@ void dumpQueries(AST::Program* program) {
   std::cout << "/--QUERIES---" << std::endl;
 }
 
-void dump(AST::Program* program) {
+void dump(AST::Source* program) {
   dumpTypes(program);
   std::cout << std::endl;
   dumpPermissions(program);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
   std::stringstream buffer;
   buffer << t.rdbuf();
 
-  AST::Program* program = Parser::createProgram(buffer.str());
+  AST::Source* program = Parser::createProgram(buffer.str());
 
   if (Diagnostics::Controller::hasError()) {
     Diagnostics::Controller::dumpAll();

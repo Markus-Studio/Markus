@@ -1,5 +1,5 @@
-#ifndef __MARKUS_AST_PROGRAM__
-#define __MARKUS_AST_PROGRAM__
+#ifndef __MARKUS_AST_SOURCE__
+#define __MARKUS_AST_SOURCE__
 
 #include <list>
 #include <map>
@@ -14,12 +14,10 @@
 
 namespace AST {
 /**
- * The intermediate representation for a Markus program, it includes all of the
- * user-defined types, permissions, queries and actions, it can be passed to the
- * optimization backends and then to a code generation backend to generate the
- * binary.
+ * The verified source of a markus program, it includes all of the user-defined
+ * types, permissions, queries and actions, it can be used to generate the IR.
  */
-class Program {
+class Source {
  private:
   /**
    * The types in this program.
@@ -71,7 +69,7 @@ class Program {
   /**
    * Constructs a new program.
    */
-  Program(Parser::Scanner* scanner);
+  Source(Parser::Scanner* scanner);
 
   /**
    * Returns whatever there is a type with the given name in this program.

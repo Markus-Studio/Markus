@@ -1,10 +1,10 @@
 #include "ast/permission.hpp"
 
-#include "ast/program.hpp"
 #include "ast/query.hpp"
+#include "ast/source.hpp"
 
 namespace AST {
-Permission::Permission(Program* program, std::string name) {
+Permission::Permission(Source* program, std::string name) {
   Type::Container* users = new Type::Container(program->unionOfUsers());
   query = new Query(program, users);
   this->name = name;

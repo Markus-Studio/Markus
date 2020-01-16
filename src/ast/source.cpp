@@ -1,4 +1,4 @@
-#include "ast/program.hpp"
+#include "ast/source.hpp"
 
 #include <assert.h>
 
@@ -6,7 +6,7 @@
 #include "parser/query.hpp"
 
 namespace AST {
-Program::Program(Parser::Scanner* scanner) {
+Source::Source(Parser::Scanner* scanner) {
   indexerEngine = new Indexer::Engine();
 
   // --- Types.
@@ -53,7 +53,7 @@ Program::Program(Parser::Scanner* scanner) {
   }
 }
 
-bool Program::hasType(std::string name) {
+bool Source::hasType(std::string name) {
   std::list<Type::Object*>::iterator it = types.begin();
   for (; it != types.end(); ++it)
     if ((*it)->getName() == name)
@@ -61,7 +61,7 @@ bool Program::hasType(std::string name) {
   return false;
 }
 
-Type::Object* Program::getType(std::string name) {
+Type::Object* Source::getType(std::string name) {
   std::list<Type::Object*>::iterator it = types.begin();
   for (; it != types.end(); ++it)
     if ((*it)->getName() == name)
@@ -70,15 +70,15 @@ Type::Object* Program::getType(std::string name) {
   return NULL;
 }
 
-Type::Array* Program::arrayOfTypes() {
+Type::Array* Source::arrayOfTypes() {
   return typesArray;
 }
 
-Type::Union* Program::unionOfUsers() {
+Type::Union* Source::unionOfUsers() {
   return &users;
 }
 
-bool Program::hasPermission(std::string name) {
+bool Source::hasPermission(std::string name) {
   std::list<Permission*>::iterator it = permissions.begin();
   for (; it != permissions.end(); ++it)
     if ((*it)->getName() == name)
@@ -86,7 +86,7 @@ bool Program::hasPermission(std::string name) {
   return false;
 }
 
-Permission* Program::getPermission(std::string name) {
+Permission* Source::getPermission(std::string name) {
   std::list<Permission*>::iterator it = permissions.begin();
   for (; it != permissions.end(); ++it)
     if ((*it)->getName() == name)
@@ -95,11 +95,11 @@ Permission* Program::getPermission(std::string name) {
   return NULL;
 }
 
-bool Program::hasQuery(std::string name) {
+bool Source::hasQuery(std::string name) {
   return queries.count(name) == 1;
 }
 
-Query* Program::getQuery(std::string name) {
+Query* Source::getQuery(std::string name) {
   std::map<std::string, Query*>::iterator it = queries.find(name);
   if (it == queries.end()) {
     assert(0);
@@ -108,17 +108,17 @@ Query* Program::getQuery(std::string name) {
   return it->second;
 }
 
-Type::Container* Program::resolveBuiltin(std::string name) {
+Type::Container* Source::resolveBuiltin(std::string name) {
   if (!parserTypes.isBuiltIn(name))
     return new Type::Container();
   return parserTypes.resolve(name);
 }
 
-Indexer::Engine* Program::getIndexer() {
+Indexer::Engine* Source::getIndexer() {
   return indexerEngine;
 }
 
-std::vector<std::string> Program::getTypeNames() {
+std::vector<std::string> Source::getTypeNames() {
   std::vector<std::string> names;
   std::list<Type::Object*>::iterator it = types.begin();
   for (; it != types.end(); ++it)
@@ -126,7 +126,7 @@ std::vector<std::string> Program::getTypeNames() {
   return names;
 }
 
-std::vector<std::string> Program::getPermissionNames() {
+std::vector<std::string> Source::getPermissionNames() {
   std::vector<std::string> names;
   std::list<Permission*>::iterator it = permissions.begin();
   for (; it != permissions.end(); ++it)
@@ -134,7 +134,7 @@ std::vector<std::string> Program::getPermissionNames() {
   return names;
 }
 
-std::vector<std::string> Program::getQueryNames() {
+std::vector<std::string> Source::getQueryNames() {
   std::vector<std::string> names;
   std::map<std::string, Query*>::iterator it = queries.begin();
   for (; it != queries.end(); ++it)

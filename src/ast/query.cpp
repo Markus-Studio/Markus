@@ -2,16 +2,16 @@
 
 #include <assert.h>
 
-#include "ast/program.hpp"
+#include "ast/source.hpp"
 #include "verifier/verifier.hpp"
 
 namespace AST {
-Query::Query(Program* program) {
+Query::Query(Source* program) {
   owner = program;
   resultType = new Type::Container(program->arrayOfTypes());
 }
 
-Query::Query(Program* program, Type::Container* type) {
+Query::Query(Source* program, Type::Container* type) {
   owner = program;
   resultType = type;
 }
@@ -37,7 +37,7 @@ Type::Container* Query::getParameterType(int n) {
   return parameters[n - 1];
 }
 
-Program* Query::getOwner() {
+Source* Query::getOwner() {
   return owner;
 }
 

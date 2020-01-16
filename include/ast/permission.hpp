@@ -4,7 +4,7 @@
 #include <string>
 
 namespace AST {
-class Program;
+class Source;
 class Query;
 
 class Permission {
@@ -23,7 +23,7 @@ class Permission {
   /**
    * Constructs a new permission.
    */
-  Permission(Program* program, std::string name);
+  Permission(Source* program, std::string name);
 
   /**
    * Return the name of this permission declaration.

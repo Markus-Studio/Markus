@@ -1,11 +1,11 @@
 #include "parser/query.hpp"
 
-#include "ast/program.hpp"
+#include "ast/source.hpp"
 #include "diagnostics/controller.hpp"
 #include "parser/range.hpp"
 
 namespace Parser {
-AST::Query* parseQuery(AST::Program* program, TokenVec* tokens) {
+AST::Query* parseQuery(AST::Source* program, TokenVec* tokens) {
   std::vector<Token*>::iterator iterator = tokens->begin();
   assert(**iterator == "query");
 

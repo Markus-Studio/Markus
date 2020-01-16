@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "ast/program.hpp"
+#include "ast/source.hpp"
 
 namespace Value {
 Container::Container() {

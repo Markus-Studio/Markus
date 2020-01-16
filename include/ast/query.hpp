@@ -9,7 +9,7 @@
 #include "value/call.hpp"
 
 namespace AST {
-class Program;
+class Source;
 
 struct PipelineInfo {
   Type::Container* inputType;
@@ -24,7 +24,7 @@ class Query {
   /**
    * Every query belongs to a program.
    */
-  Program* owner;
+  Source* owner;
 
   /**
    * The return type of this query.
@@ -50,12 +50,12 @@ class Query {
   /**
    * Constructs a new Query IR.
    */
-  Query(Program* program);
+  Query(Source* program);
 
   /**
    * Constructs a new Query IR with the intialized type.
    */
-  Query(Program* program, Type::Container* type);
+  Query(Source* program, Type::Container* type);
 
   /**
    * Add a new parameter to this query, returns the parameter id.
@@ -75,7 +75,7 @@ class Query {
   /**
    * Returns the owner of the current query.
    */
-  Program* getOwner();
+  Source* getOwner();
 
   /**
    * Add the given pipeline to this query.

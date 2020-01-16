@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   std::stringstream buffer;
   buffer << t.rdbuf();
 
-  AST::Program* program = Parser::createProgram(buffer.str());
+  AST::Source* program = Parser::createProgram(buffer.str());
 
   if (Diagnostics::Controller::hasError()) {
     Diagnostics::Controller::dumpAll();
