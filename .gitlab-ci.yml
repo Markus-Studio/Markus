@@ -3,9 +3,8 @@ image: gcc
 build:
   stage: build
   script:
-    - apt update && apt -y install make cmake
-    - cmake . -DBUILD_TESTS=ON
-    - make
+    - apt update && apt -y install ninja-build
+    - ninja
   artifacts:
     paths:
       - ./bin/markus-test
@@ -16,5 +15,5 @@ test:
   script:
     - ./bin/markus-test
     - apt-get update -qy
-    - apt-get install -y python-dev python-pip
+    - apt-get install -y python-dev
     - python suite/test.py

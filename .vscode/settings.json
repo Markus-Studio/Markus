@@ -105,7 +105,10 @@
         "**/catch.hpp": true,
         "**/bin": true,
         "**/*.cmake": true,
-        "**/coverage-report.html": true
+        "**/coverage-report.html": true,
+        "**/.ninja_deps": true,
+        "**/.ninja_log": true,
+        "**/libmar.a": true
     },
     "cmake.configureOnOpen": false,
     "C_Cpp.clang_format_fallbackStyle": "Chromium",
