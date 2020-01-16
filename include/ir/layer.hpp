@@ -8,10 +8,6 @@ enum LayerKind {
   // Indicates that the layers is not initialized yet.
   LAYER_NO_LAYER,
   LAYER_LIST,
-  /**
-   * The index layer connects the current layer to the next layer based on some
-   * parameters.
-   */
   LAYER_INDEX,
   /**
    * The group layer is used for the groupBy pipeline.

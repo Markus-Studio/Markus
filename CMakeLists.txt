@@ -10,8 +10,8 @@ file(GLOB_RECURSE LIB_CPP_FILES "src/*/**.cpp")
 file(GLOB_RECURSE LIB_PIPELINE_CPP_FILES "src/verifier/pipelines/**.cpp")
 file(GLOB_RECURSE TEST_CPP_FILES "test/**.cpp")
 
-add_executable(markus src/main.cpp)
-add_executable(markus-test ${TEST_CPP_FILES})
+add_executable(markus src/main.cpp ${LIB_PIPELINE_CPP_FILES})
+add_executable(markus-test ${TEST_CPP_FILES} ${LIB_PIPELINE_CPP_FILES})
 add_executable(markus-dump suite/dumper/main.cpp ${LIB_PIPELINE_CPP_FILES})
 
 # Link executables with libmar
@@ -19,7 +19,6 @@ add_library(mar STATIC ${LIB_CPP_FILES})
 target_link_libraries(markus mar)
 target_link_libraries(markus-test mar)
 target_link_libraries(markus-dump mar)
-
 
 if(BUILD_FOR_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-generate -fcoverage-mapping")

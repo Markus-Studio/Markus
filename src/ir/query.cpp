@@ -6,6 +6,7 @@ namespace IR {
 Query::Query(AST::Query* query) {
   std::vector<AST::PipelineInfo> pipelines = query->getPipelines();
   std::vector<AST::PipelineInfo>::iterator pipeline;
+
   std::vector<Type::Uri> sortedBy;
   FilterCollection filterCollection;
 

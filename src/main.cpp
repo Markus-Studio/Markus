@@ -34,11 +34,5 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  std::cout << program->hasPermission("Person") << std::endl;
-  program->getPermission("Person")->getQuery()->getResultType().dump();
-
-  std::cout << program->hasQuery("XXX") << std::endl;
-  program->getQuery("XXX")->getResultType().dump();
-
   return 0;
 }
