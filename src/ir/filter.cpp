@@ -1,5 +1,7 @@
 #include "ir/filter.hpp"
 
+#include <assert.h>
+
 #include <iostream>
 
 namespace IR {
@@ -87,6 +89,42 @@ error:
             << std::endl;
   abort();
   return filter;
+}
+
+Type::Uri Filter::getField() {
+  assert(_isBinary == true);
+  return field;
+}
+
+Value::Container Filter::getValue() {
+  return value;
+}
+
+enum FilterOperator Filter::getOperator() {
+  return op;
+}
+
+bool Filter::isStatic() {
+  if (!value.isVariable())
+    return true;
+  return value.asVariable()->getId() == 0;
+}
+
+bool Filter::isBinary() {
+  return _isBinary;
+}
+
+bool Filter::isEffecting(Type::Uri uri) {
+  assert(_isBinary == true);
+  std::vector<std::string> u1, u2;
+  u1 = uri.getUnits();
+  u2 = field.getUnits();
+
+  int size = u1.size() < u2.size() ? u1.size() : u2.size();
+  for (int i = 0; i < size; ++i)
+    if (u1[i] != u2[i])
+      return false;
+  return true;
 }
 
 }  // namespace IR
