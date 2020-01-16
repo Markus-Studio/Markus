@@ -48,12 +48,12 @@ class Query {
 
  public:
   /**
-   * Constructs a new Query IR.
+   * Constructs a new Query AST Node.
    */
   Query(Source* program);
 
   /**
-   * Constructs a new Query IR with the intialized type.
+   * Constructs a new Query AST Node with the intialized type.
    */
   Query(Source* program, Type::Container type);
 

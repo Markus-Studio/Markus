@@ -18,7 +18,7 @@ Value::Container parseValue(AST::Query* query,
 bool parseQueryBody(AST::Query* query, std::vector<Token>::iterator& tokens);
 
 /**
- * Parse a query declaration and return the Query IR.
+ * Parse a query declaration and return the Query AST Node.
  */
 AST::Query* parseQuery(AST::Source* program, TokenVec tokens);
 }  // namespace Parser
