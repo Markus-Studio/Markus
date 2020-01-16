@@ -38,7 +38,7 @@ class Range {
   /**
    * Constructs a new range from the given token.
    */
-  static Range fromToken(Token* token);
+  static Range fromToken(Token token);
 
   /**
    * Returns the begining line number.

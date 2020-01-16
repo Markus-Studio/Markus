@@ -31,7 +31,7 @@ class Float {
   /**
    * Constructs a new float value from the given token.
    */
-  Float(Parser::Token* token);
+  Float(Parser::Token token);
 
   /**
    * Return the value stored in this float instance.

@@ -7,9 +7,9 @@ Call::Call(std::string calleeName) {
   functionName = calleeName;
 }
 
-Call::Call(Parser::Token* token) {
-  assert(token->isIdentifier());
-  functionName = token->getWord();
+Call::Call(Parser::Token token) {
+  assert(token.isIdentifier());
+  functionName = token.getWord();
   range = Parser::Range::fromToken(token);
 }
 

@@ -31,7 +31,7 @@ class String {
   /**
    * Constructs a new string value from the given token.
    */
-  String(Parser::Token* token);
+  String(Parser::Token token);
 
   /**
    * Return the value.

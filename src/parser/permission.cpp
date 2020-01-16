@@ -14,7 +14,7 @@ AST::Permission* parsePermission(AST::Source* program, TokenVec tokens) {
 
   if (!(iterator)->isIdentifier()) {
     Diagnostics::Controller::report(
-        Diagnostics::Error::unexpectedToken(&*iterator, "an identifier"));
+        Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
     return NULL;
   }
 

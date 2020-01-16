@@ -130,29 +130,29 @@ void Types::parse(Scanner* scanner,
     do {
       ++it;
       if (!(it)->isIdentifier())
-        return Controller::report(Error::unexpectedToken(&*it, "identifier"));
+        return Controller::report(Error::unexpectedToken(*it, "identifier"));
       base = tryResolve((it)->getWord(), scanner, seen, parsed);
       if (base->isNever())
-        return Controller::report(Error::cannotResolveName(&*it));
+        return Controller::report(Error::cannotResolveName(*it));
       if (!base->isObject())
-        return Controller::report(Error::baseMustBeObject(&*it));
+        return Controller::report(Error::baseMustBeObject(*it));
       obj->addBase(base->asObject());
       ++it;
     } while (*it == ",");
   }
 
   if (*it++ != "{")
-    return Controller::report(Error::unexpectedToken(&*it, "{"));
+    return Controller::report(Error::unexpectedToken(*it, "{"));
 
   while (*it != "}") {
     std::string typeName, name;
     Type::Container* type;
-    Token* nameToken;
+    Token nameToken;
     bool nullable = false;
     bool result = false;
 
     if (!(it)->isIdentifier())
-      return Controller::report(Error::unexpectedToken(&*it, "type name"));
+      return Controller::report(Error::unexpectedToken(*it, "type name"));
 
     typeName = (it++)->getWord();
 
@@ -162,18 +162,18 @@ void Types::parse(Scanner* scanner,
     }
 
     if (!(it)->isIdentifier())
-      return Controller::report(Error::unexpectedToken(&*it, "identifier"));
+      return Controller::report(Error::unexpectedToken(*it, "identifier"));
 
-    nameToken = &*it;
+    nameToken = *it;
     name = (it++)->getWord();
 
     if ((*it++) != ";")
-      return Controller::report(Error::unexpectedToken(&*it, ";"));
+      return Controller::report(Error::unexpectedToken(*it, ";"));
 
     type = tryResolve(typeName, scanner, seen, parsed);
 
     if (type->isNever())
-      return Controller::report(Error::cannotResolveName(&*it));
+      return Controller::report(Error::cannotResolveName(*it));
 
     if (type->isObject())
       result = obj->set(name, type->asObject(), nullable);

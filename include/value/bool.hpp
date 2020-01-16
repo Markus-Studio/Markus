@@ -31,7 +31,7 @@ class Bool {
   /**
    * Constructs a new boolean from the given token.
    */
-  Bool(Parser::Token* token);
+  Bool(Parser::Token token);
 
   /**
    * Returns the value.

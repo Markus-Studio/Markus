@@ -8,11 +8,11 @@ Range::Range() {
   columnStart = 0;
 }
 
-Range Range::fromToken(Token* token) {
+Range Range::fromToken(Token token) {
   Range range;
-  range.lineEnd = range.lineStart = token->getLine();
-  range.columnStart = token->getColumn();
-  range.columnEnd = range.columnStart + token->getWord().length();
+  range.lineEnd = range.lineStart = token.getLine();
+  range.columnStart = token.getColumn();
+  range.columnEnd = range.columnStart + token.getWord().length();
   return range;
 }
 

@@ -82,17 +82,17 @@ class Error {
   /**
    * Construct a new unexpected token error.
    */
-  static Error* unexpectedToken(Parser::Token* token);
+  static Error* unexpectedToken(Parser::Token token);
 
   /**
    * Construct a new unexpected token error that also says what was expected.
    */
-  static Error* unexpectedToken(Parser::Token* token, std::string expected);
+  static Error* unexpectedToken(Parser::Token token, std::string expected);
 
   /**
    * Constructs a new mismatched brace error.
    */
-  static Error* mismatchedBrace(Parser::Token* token);
+  static Error* mismatchedBrace(Parser::Token token);
 
   /**
    * Constructs a new early end of file error.
@@ -108,7 +108,7 @@ class Error {
    * Constructs a new name already in use error from a token
    * and stating position of the error.
    */
-  static Error* nameAlreadyInUse(Parser::Token* token);
+  static Error* nameAlreadyInUse(Parser::Token token);
 
   /**
    * Constructs a new circular base error.
@@ -118,12 +118,12 @@ class Error {
   /**
    * Constructs a new base must be object error.
    */
-  static Error* baseMustBeObject(Parser::Token* token);
+  static Error* baseMustBeObject(Parser::Token token);
 
   /**
    * Constructs a new cannot resolve name error.
    */
-  static Error* cannotResolveName(Parser::Token* token);
+  static Error* cannotResolveName(Parser::Token token);
 
   /**
    * Constructs a new cannot resolve name error from a call expression.

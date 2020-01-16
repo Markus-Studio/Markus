@@ -42,12 +42,12 @@ void Scanner::parse(std::vector<Token>::iterator iter,
     return;
 
   if (!iter->isIdentifier()) {
-    Controller::report(Error::unexpectedToken(&*iter, " an identifier"));
+    Controller::report(Error::unexpectedToken(*iter, " an identifier"));
     return;
   }
 
   std::string word, tmp;
-  Token* name;
+  Token name;
   std::vector<Token>::iterator begining;
   begining = iter++;
 
@@ -57,11 +57,11 @@ void Scanner::parse(std::vector<Token>::iterator iter,
   }
 
   if (!iter->isIdentifier()) {
-    Controller::report(Error::unexpectedToken(&*iter, " an identifier"));
+    Controller::report(Error::unexpectedToken(*iter, " an identifier"));
     return;
   }
 
-  name = &*iter;
+  name = *iter;
 
   bool seenBracket = false;
   std::stack<std::string> braces;
@@ -87,19 +87,19 @@ void Scanner::parse(std::vector<Token>::iterator iter,
       continue;
 
     if (braces.empty()) {
-      Controller::report(Error::mismatchedBrace(&*iter));
+      Controller::report(Error::mismatchedBrace(*iter));
       return;
     }
 
     tmp = braces.top();
 
     if (word == ")" && tmp != "(") {
-      Controller::report(Error::mismatchedBrace(&*iter));
+      Controller::report(Error::mismatchedBrace(*iter));
       return;
     }
 
     if (word == "}" && tmp != "{") {
-      Controller::report(Error::mismatchedBrace(&*iter));
+      Controller::report(Error::mismatchedBrace(*iter));
       return;
     }
 
@@ -114,7 +114,7 @@ void Scanner::parse(std::vector<Token>::iterator iter,
       Controller::report(Error::earlyEOF());
       iter--;
     }
-    Controller::report(Error::mismatchedBrace(&*iter));
+    Controller::report(Error::mismatchedBrace(*iter));
     return;
   }
 
@@ -127,7 +127,7 @@ void Scanner::parse(std::vector<Token>::iterator iter,
   vec.assign(begining, ++iter);
   vec.shrink_to_fit();
   word = (begining)->getWord();
-  tmp = name->getWord();
+  tmp = name.getWord();
 
   if (word == "query") {
     if (queries.count(tmp) > 0)
@@ -147,7 +147,7 @@ void Scanner::parse(std::vector<Token>::iterator iter,
     permissions.insert(std::pair<std::string, TokenVec>(tmp, vec));
   } else
     return Controller::report(Error::unexpectedToken(
-        &*begining, " either action, query, permission or type"));
+        *begining, " either action, query, permission or type"));
 
   parse(iter, end);
 }

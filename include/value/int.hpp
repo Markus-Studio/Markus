@@ -31,7 +31,7 @@ class Int {
   /**
    * Constructs a new int value from the given token.
    */
-  Int(Parser::Token* token);
+  Int(Parser::Token token);
 
   /**
    * Return the value.

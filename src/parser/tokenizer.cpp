@@ -22,6 +22,8 @@ inline bool isValidIdentifierEnd(char c) {
          (c >= '0' && c <= '9') || c == '_';
 }
 
+Token::Token() {}
+
 Token::Token(std::string word, int line, int column, enum TokenKind kind) {
   this->word = word;
   this->line = line;

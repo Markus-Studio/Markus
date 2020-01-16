@@ -44,6 +44,11 @@ class Token {
 
  public:
   /**
+   * Default constructor.
+   */
+  Token();
+
+  /**
    * Constructs a new token.
    */
   Token(std::string word, int line, int column, enum TokenKind kind);

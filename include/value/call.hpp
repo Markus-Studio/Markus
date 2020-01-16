@@ -39,7 +39,7 @@ class Call {
   /**
    * Construct a new call value using the given token.
    */
-  Call(Parser::Token* token);
+  Call(Parser::Token token);
 
   /**
    * Add an argument to this call value.

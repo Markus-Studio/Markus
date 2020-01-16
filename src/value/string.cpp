@@ -7,9 +7,9 @@ String::String(std::string string) {
   value = string;
 }
 
-String::String(Parser::Token* token) {
-  assert(token->isStringLiteral());
-  value = token->getWord();
+String::String(Parser::Token token) {
+  assert(token.isStringLiteral());
+  value = token.getWord();
   range = Parser::Range::fromToken(token);
 }
 
