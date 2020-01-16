@@ -29,7 +29,10 @@ Types::Types(Scanner* scanner) {
   for (; it != names.end(); ++it) {
     std::set<std::string>* seen = new std::set<std::string>();
     parse(scanner, scanner->lookupType(*it), seen, parsed);
+    delete seen;
   }
+
+  delete parsed;
 }
 
 void Types::add(std::string name, Type::Container* container) {
