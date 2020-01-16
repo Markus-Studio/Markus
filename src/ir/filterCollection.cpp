@@ -39,4 +39,8 @@ bool FilterCollection::isEffecting(Type::Uri uri) {
       return true;
   return false;
 }
+
+bool FilterCollection::isEmpty() {
+  return filters.empty();
+}
 }  // namespace IR

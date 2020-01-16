@@ -47,6 +47,11 @@ class FilterCollection {
    * field.
    */
   bool isEffecting(Type::Uri uri);
+
+  /**
+   * Returns true if there is no item in the collection.
+   */
+  bool isEmpty();
 };
 }  // namespace IR
 

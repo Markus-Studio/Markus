@@ -1,0 +1,3 @@
+#ifndef __MARKUS_IR_LAYERS_AGGREGATION__
+#define __MARKUS_IR_LAYERS_AGGREGATION__
+#endif
