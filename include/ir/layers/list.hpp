@@ -41,7 +41,7 @@ class ListLayer {
   /**
    * Sort the list using the given field.
    */
-  void sort(Type::Uri);
+  void sort(Type::Uri axis);
 
   /**
    * Returns a vector containing all of the axis this list should be sorted by.
