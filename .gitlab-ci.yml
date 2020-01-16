@@ -3,7 +3,8 @@ image: gcc
 build:
   stage: build
   script:
-    - apt update && apt -y install ninja-build
+    - apt update && apt -y install ninja-build cmake
+    - cmake . -G Ninja
     - ninja
   artifacts:
     paths:

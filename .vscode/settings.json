@@ -108,7 +108,9 @@
         "**/coverage-report.html": true,
         "**/.ninja_deps": true,
         "**/.ninja_log": true,
-        "**/libmar.a": true
+        "**/libmar.a": true,
+        "**/rules.ninja": true,
+        "**/build.ninja": true
     },
     "cmake.configureOnOpen": false,
     "C_Cpp.clang_format_fallbackStyle": "Chromium",

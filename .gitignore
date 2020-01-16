@@ -17,3 +17,5 @@ coverage-report.html
 .ninja_deps
 .ninja_log
 libmar.a
+rules.ninja
+build.ninja
