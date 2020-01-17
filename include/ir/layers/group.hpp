@@ -29,6 +29,26 @@ class GroupLayer {
 
  public:
   /**
+   * Default constructor.
+   */
+  GroupLayer();
+
+  /**
+   * Construct a group layer with the given filter.
+   */
+  GroupLayer(FilterCollection filter);
+
+  /**
+   * Sort the axis.
+   */
+  void sort(Type::Uri axis);
+
+  /**
+   * Add the given axis to the group layer.
+   */
+  void addAxis(Type::Uri axis);
+
+  /**
    * Returns the layer filter.
    */
   FilterCollection getFilter();
