@@ -6,12 +6,13 @@
 namespace IR {
 enum AggregationKind { AGR_SUM };
 
-class Aggregation {
+class AggregationLayer {
  private:
   /**
    * The aggregation function.
    */
   enum AggregationKind kind;
+
   /**
    * The field which the aggregation is being
    */
@@ -21,7 +22,7 @@ class Aggregation {
   /**
    * The field.
    */
-  Aggregation(enum AggregationKind kind, Type::Uri field);
+  AggregationLayer(enum AggregationKind kind, Type::Uri field);
 
   /**
    * Returns the aggregation function.
