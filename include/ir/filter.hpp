@@ -66,6 +66,11 @@ class Filter {
   static Filter Unary(Value::Call* call);
 
   /**
+   * Apply the select() to a filter.
+   */
+  static void applySelected(Filter& filter, Type::Uri selected);
+
+  /**
    * Returns the field this (binary) filter is being applied upon.
    */
   Type::Uri getField();

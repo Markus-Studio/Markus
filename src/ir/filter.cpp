@@ -91,6 +91,13 @@ error:
   return filter;
 }
 
+void Filter::applySelected(Filter& filter, Type::Uri selected) {
+  if (selected.isEmpty())
+    return;
+  filter.field = filter.field.prepend(selected);
+  // TODO(qti3e) Apply selected to the value.
+}
+
 Type::Uri Filter::getField() {
   assert(_isBinary == true);
   return field;

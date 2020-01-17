@@ -3,46 +3,69 @@
 #include <iostream>
 
 namespace IR {
+
 Query::Query(AST::Query* query) {
   std::vector<AST::PipelineInfo> pipelines = query->getPipelines();
   std::vector<AST::PipelineInfo>::iterator pipeline;
 
+  Type::Uri selected;
   std::vector<Type::Uri> sortedBy;
-  FilterCollection filterCollection;
 
-  for (pipeline = pipelines.begin(); pipeline != pipelines.end(); ++pipeline) {
-    Value::Call* call = pipeline->call;
-    std::string name = call->getCalleeName();
-    std::vector<Value::Container> arguments = call->getArguments();
+  while (pipeline != pipelines.end()) {
+    Value::Call* call;
+    std::string name;
+    std::vector<Value::Container> arguments;
 
-    if (name == "sort") {
-      sortedBy.push_back(*arguments[0].asVariable()->getMember());
-      continue;
+    FilterCollection collection;
+    bool groupBy = false;
+    bool aggregation = false;
+
+    for (; pipeline != pipelines.end(); ++pipeline) {
+      call = pipeline->call;
+      name = call->getCalleeName();
+      arguments = call->getArguments();
+
+      if (name == "groupBy" || name == "sum")
+        break;
+
+      if (name == "sort") {
+        Type::Uri uri = *arguments[0].asVariable()->getMember();
+        uri.prepend(selected);
+        sortedBy.push_back(uri);
+        continue;
+      }
+
+      if (name == "eq" || name == "neq" || name == "lt" || name == "lte" ||
+          name == "gt" || name == "gte") {
+        Filter filter = Filter::Binary(call);
+        Filter::applySelected(filter, selected);
+        collection.add(filter);
+        continue;
+      }
+
+      if (name == "is") {
+        Filter filter = Filter::Unary(call);
+        Filter::applySelected(filter, selected);
+        collection.add(filter);
+        continue;
+      }
+
+      std::cerr << "The " << name
+                << " pipeline is not yet supported in the IR phase."
+                << std::endl;
+      abort();
     }
 
-    if (name == "eq" || name == "neq" || name == "lt" || name == "lte" ||
-        name == "gt" || name == "gte") {
-      filterCollection.add(Filter::Binary(call));
-      continue;
+    if (!collection.isEmpty()) {
     }
 
-    if (name == "is") {
-      filterCollection.add(Filter::Unary(call));
+    if (pipeline == pipelines.end())
+      break;
+
+    if (name == "groupBy") {
       continue;
     }
-
-    std::cerr << "The " << name
-              << " pipeline is not yet supported in the IR phase." << std::endl;
-    abort();
   }
-
-  if (filterCollection.isEmpty() && sortedBy.empty())
-    return;
-
-  Layer layer = Layer(new ListLayer(filterCollection));
-  for (int i = 0; i < sortedBy.size(); ++i)
-    layer.asListLayer()->sort(sortedBy[i]);
-  layers.push_back(layer);
 }
 
 std::vector<Layer> Query::getLayers() {
