@@ -9,9 +9,6 @@ enum LayerKind {
   LAYER_NO_LAYER,
   LAYER_LIST,
   LAYER_INDEX,
-  /**
-   * The group layer is used for the groupBy pipeline.
-   */
   LAYER_GROUP,
   /**
    * An aggregation layer deals with pipelines such as sum, avg, etc.

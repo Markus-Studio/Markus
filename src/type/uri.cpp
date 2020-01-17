@@ -35,6 +35,19 @@ Uri Uri::popFirst() {
   return temp;
 }
 
+Uri Uri::prepend(Uri uri) {
+  Uri temp = uri;
+  temp.units.insert(temp.units.end(), units.begin(), units.end());
+  return temp;
+}
+
+Uri Uri::prepend(std::string part) {
+  Uri temp;
+  temp.units.push_back(part);
+  temp.units.insert(temp.units.end(), units.begin(), units.end());
+  return temp;
+}
+
 std::vector<std::string> Uri::getUnits() {
   return units;
 }

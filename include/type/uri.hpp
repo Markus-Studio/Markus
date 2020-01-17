@@ -59,6 +59,16 @@ class Uri {
   Uri popFirst();
 
   /**
+   * Returns a new URI with the given URI being prepended to it.
+   */
+  Uri prepend(Uri uri);
+
+  /**
+   * Returns a new URI with the given part being prepended to it.
+   */
+  Uri prepend(std::string part);
+
+  /**
    * Returns an iterator over units.
    */
   std::vector<std::string> getUnits();
