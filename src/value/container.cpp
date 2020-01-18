@@ -6,6 +6,7 @@
 
 namespace Value {
 Container::Container() {
+  kind = VALUE_KIND_NO_VALUE;
   value = NULL;
 }
 
@@ -47,6 +48,10 @@ Container::Container(TypeValue* v) {
 Container::Container(AST::Query* query) {
   kind = VALUE_KIND_QUERY;
   value = query;
+}
+
+bool Container::isNil() {
+  return value == NULL || kind == VALUE_KIND_NO_VALUE;
 }
 
 bool Container::isInt() {
@@ -140,6 +145,8 @@ enum ValueKind Container::getKind() {
 
 Parser::Range Container::getRange() {
   switch (kind) {
+    case VALUE_KIND_NO_VALUE:
+      return Parser::Range();
     case VALUE_KIND_BOOL:
       return asBool()->getRange();
     case VALUE_KIND_INT:
@@ -162,6 +169,8 @@ Parser::Range Container::getRange() {
 
 Type::Container Container::getType(AST::Query* query) {
   switch (kind) {
+    case VALUE_KIND_NO_VALUE:
+      return Type::Container();
     case VALUE_KIND_BOOL:
       return query->getOwner()->resolveBuiltin("bool");
     case VALUE_KIND_INT:

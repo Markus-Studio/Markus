@@ -41,10 +41,6 @@ bool parseQueryBody(AST::Query* query, std::vector<Token>::iterator& iterator) {
   while (*iterator != "}") {
     Value::Container c = parseValue(query, iterator);
 
-    // TODO(qti3e)
-    //    if (c == NULL)
-    //      return false;
-
     if (!c.isCall())
       return false;
 
@@ -137,9 +133,8 @@ Value::Container parseValue(AST::Query* query,
         arg = parseValue(query, token);
       }
 
-      // TODO(qti3e)
-      // if (arg == NULL)
-      // return NULL;
+      if (arg.isNil())
+        return Value::Container();
 
       call->addArgument(arg);
 

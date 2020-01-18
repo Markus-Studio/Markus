@@ -21,6 +21,7 @@ class Call;
  * For each kind of value there is a constant here.
  */
 enum ValueKind {
+  VALUE_KIND_NO_VALUE,
   VALUE_KIND_INT,
   VALUE_KIND_FLOAT,
   VALUE_KIND_BOOL,
@@ -91,6 +92,11 @@ class Container {
    * Construct a new container containing a query.
    */
   Container(AST::Query* query);
+
+  /**
+   * Returns true if the contained is not initalized yet.
+   */
+  bool isNil();
 
   /**
    * Returns whatever the contained value is an integer or not.
