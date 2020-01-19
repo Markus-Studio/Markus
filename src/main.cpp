@@ -6,6 +6,7 @@
 
 #include "ast/query.hpp"
 #include "diagnostics/controller.hpp"
+#include "ir/query.hpp"
 #include "parser/parser.hpp"
 #include "writer/directory.hpp"
 
@@ -33,6 +34,9 @@ int main(int argc, char* argv[]) {
     Diagnostics::Controller::dumpAll();
     return -1;
   }
+
+  AST::Query* queryNode = program->getQuery("xxx");
+  IR::Query* queryIR = new IR::Query(queryNode);
 
   return 0;
 }

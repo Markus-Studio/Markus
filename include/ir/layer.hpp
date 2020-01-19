@@ -2,6 +2,7 @@
 #define __MARKUS_IR_LAYER__
 
 #include "ir/layers/list.hpp"
+#include "ir/layers/group.hpp"
 
 namespace IR {
 enum LayerKind {

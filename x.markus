@@ -13,8 +13,17 @@ type Sell {
   time date;
 }
 
+type User: user {
+  string name;
+}
+
 query SellsByCity {
   is(Sell),
   groupBy(.location),
   groupBy(.label)
+}
+
+query xxx {
+  is(Product),
+  eq(.name, %user.name)
 }
