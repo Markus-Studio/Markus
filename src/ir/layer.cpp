@@ -22,6 +22,20 @@ ListLayer* Layer::asListLayer() {
   return (ListLayer*)layer;
 }
 
+Layer::Layer(GroupLayer* groupLayer) {
+  kind = LAYER_GROUP;
+  layer = groupLayer;
+}
+
+bool Layer::isGroupLayer() {
+  return kind == LAYER_GROUP;
+}
+
+GroupLayer* Layer::asGroupLayer() {
+  assert(kind == LAYER_GROUP);
+  return (GroupLayer*)layer;
+}
+
 enum LayerKind Layer::getKind() {
   return kind;
 }

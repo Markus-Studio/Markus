@@ -74,7 +74,6 @@ std::pair<std::vector<Layer>, Type::Uri> compile(AST::Query* query) {
 
       GroupLayer* groupLayer = new GroupLayer(collection);
 
-
       // Parse the next thing.
       ++pipeline;
       continue;

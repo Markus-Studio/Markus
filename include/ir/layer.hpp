@@ -1,8 +1,8 @@
 #ifndef __MARKUS_IR_LAYER__
 #define __MARKUS_IR_LAYER__
 
-#include "ir/layers/list.hpp"
 #include "ir/layers/group.hpp"
+#include "ir/layers/list.hpp"
 
 namespace IR {
 enum LayerKind {
@@ -55,6 +55,21 @@ class Layer {
    * Returns the contained layer supposing it's a list layer, aborts otherwise.
    */
   ListLayer* asListLayer();
+
+  /**
+   * Constructs a layer containing a group layer.
+   */
+  Layer(GroupLayer* groupLayer);
+
+  /**
+   * Returns true if the contained layer is group layer.
+   */
+  bool isGroupLayer();
+
+  /**
+   * Returns the contained layer supposing it's a group layer, aborts otherwise.
+   */
+  GroupLayer* asGroupLayer();
 
   /**
    * Returns kind of this layer.
