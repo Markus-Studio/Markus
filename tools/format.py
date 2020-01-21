@@ -25,7 +25,7 @@ def clang_format(files):
 
 
 def match_file(file):
-    return file.endswith(".cpp") or file.endswith(".hpp")
+    return file.endswith(".cpp") or file.endswith(".hpp") or file.endswith(".c") or file.endswith(".h")
 
 
 def main():

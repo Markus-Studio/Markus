@@ -88,7 +88,8 @@
         "memory_resource": "cpp",
         "cfenv": "cpp",
         "cinttypes": "cpp",
-        "__functional_base_03": "cpp"
+        "__functional_base_03": "cpp",
+        "types.h": "c"
     },
     "files.exclude": {
         "**/CMakeLists.txt.user": true,

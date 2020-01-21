@@ -3,6 +3,13 @@
 #include <iostream>
 
 namespace IR {
+/**
+ * Writing a general compiler to compile a query into a list of Markus Layers
+ * is extremely difficult (at least for me) so this function does a selective
+ * compiling, meaning that it complies subsets of possible queries, and hence
+ * there might be a query that this function fails to compile in that case it
+ * just aborts the program telling user to file a support request.
+ */
 std::pair<std::vector<Layer>, Type::Uri> compile(AST::Query* query) {
   std::vector<Layer> layers;
   std::vector<AST::PipelineInfo> pipelines = query->getPipelines();
@@ -63,7 +70,7 @@ std::pair<std::vector<Layer>, Type::Uri> compile(AST::Query* query) {
           listLayer->sort(sortedBy[i]);
         layers.push_back(Layer(listLayer));
       } else {
-        goto error;
+        goto error;  // TODO(qti3e) Act according to the last layer.
       }
       break;
     }
@@ -73,6 +80,16 @@ std::pair<std::vector<Layer>, Type::Uri> compile(AST::Query* query) {
         goto error;
 
       GroupLayer* groupLayer = new GroupLayer(collection);
+
+      if (arguments.size() == 2) {
+        // Compiler sublayers in the groupBy
+        std::pair<std::vector<Layer>, Type::Uri> subQuery =
+            compile(arguments[1].asQuery());
+
+      } else {
+        delete groupLayer;
+        goto error;  // TODO(qti3e)
+      }
 
       // Parse the next thing.
       ++pipeline;
