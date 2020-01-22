@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_LAYERS_GROUP__
-#define __MARKUS_IR_LAYERS_GROUP__
-
+#pragma once
 #include <vector>
 
 #include "ir/filterCollection.hpp"
@@ -64,5 +62,3 @@ class GroupLayer {
   std::vector<Type::Uri> getSorted();
 };
 }  // namespace IR
-
-#endif

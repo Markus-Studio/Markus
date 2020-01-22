@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_QUERY__
-#define __MARKUS_IR_QUERY__
-
+#pragma once
 #include <vector>
 
 #include "ast/query.hpp"
@@ -29,5 +27,3 @@ class Query {
   std::vector<Layer> getLayers();
 };
 }  // namespace IR
-
-#endif

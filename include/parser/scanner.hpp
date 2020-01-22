@@ -1,6 +1,4 @@
-#ifndef __MARKUS_PARSER_SCANNER__
-#define __MARKUS_PARSER_SCANNER__
-
+#pragma once
 #include <map>
 #include <string>
 #include <vector>
@@ -119,5 +117,3 @@ class Scanner {
   TokenVec lookupAction(std::string name);
 };
 }  // namespace Parser
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_LAYERS_AGGREGATION__
-#define __MARKUS_IR_LAYERS_AGGREGATION__
-
+#pragma once
 #include "type/uri.hpp"
 
 namespace IR {
@@ -35,5 +33,3 @@ class AggregationLayer {
   Type::Uri getField();
 };
 }  // namespace IR
-
-#endif

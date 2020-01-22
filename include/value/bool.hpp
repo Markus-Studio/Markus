@@ -1,6 +1,4 @@
-#ifndef __MARKUS_VALUE_BOOL__
-#define __MARKUS_VALUE_BOOL__
-
+#pragma once
 #include <string>
 
 #include "parser/range.hpp"
@@ -44,5 +42,3 @@ class Bool {
   Parser::Range getRange();
 };
 }  // namespace Value
-
-#endif

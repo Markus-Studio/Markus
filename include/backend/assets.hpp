@@ -1,5 +1,4 @@
-#ifndef __MARKUS_BACKEND_ASSETS__
-#define __MARKUS_BACKEND_ASSETS__
+#pragma once
 
 #include <string>
 
@@ -17,5 +16,3 @@ struct InternalAutoReg {
 };
 }  // namespace Assets
 }  // namespace Backend
-
-#endif

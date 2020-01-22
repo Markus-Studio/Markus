@@ -1,6 +1,4 @@
-#ifndef __MARKUS_VALUE_CONTAINER__
-#define __MARKUS_VALUE_CONTAINER__
-
+#pragma once
 #include "parser/range.hpp"
 #include "type/container.hpp"
 #include "value/bool.hpp"
@@ -209,5 +207,3 @@ class Container {
   Type::Container getType(AST::Query* query);
 };
 }  // namespace Value
-
-#endif

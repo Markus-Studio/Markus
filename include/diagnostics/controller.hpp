@@ -1,6 +1,4 @@
-#ifndef __MARKUS_DIAGNOSTICS_CONTROLLER__
-#define __MARKUS_DIAGNOSTICS_CONTROLLER__
-
+#pragma once
 #include <list>
 
 #include "diagnostics/error.hpp"
@@ -37,5 +35,3 @@ class Controller {
   static void dumpAll();
 };
 }  // namespace Diagnostics
-
-#endif

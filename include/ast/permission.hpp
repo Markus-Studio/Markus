@@ -1,6 +1,4 @@
-#ifndef __MARKUS_AST_PERMISSION__
-#define __MARKUS_AST_PERMISSION__
-
+#pragma once
 #include <string>
 
 namespace AST {
@@ -36,5 +34,3 @@ class Permission {
   Query* getQuery();
 };
 }  // namespace AST
-
-#endif

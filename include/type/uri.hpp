@@ -1,6 +1,4 @@
-#ifndef __MARKUS_TYPE_URI__
-#define __MARKUS_TYPE_URI__
-
+#pragma once
 #include <iterator>
 #include <string>
 #include <vector>
@@ -84,5 +82,3 @@ class Uri {
   int size();
 };
 }  // namespace Type
-
-#endif

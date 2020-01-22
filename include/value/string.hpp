@@ -1,6 +1,4 @@
-#ifndef __MARKUS_VALUE_STRING__
-#define __MARKUS_VALUE_STRING__
-
+#pragma once
 #include <string>
 
 #include "parser/range.hpp"
@@ -44,5 +42,3 @@ class String {
   Parser::Range getRange();
 };
 }  // namespace Value
-
-#endif

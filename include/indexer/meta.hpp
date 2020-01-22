@@ -1,6 +1,4 @@
-#ifndef __MARKUS_INDEXER_META__
-#define __MARKUS_INDEXER_META__
-
+#pragma once
 #include "value/variable.hpp"
 
 namespace Indexer {
@@ -30,5 +28,3 @@ class Meta {
   static Meta* Sort(Value::Variable* field);
 };
 }  // namespace Indexer
-
-#endif

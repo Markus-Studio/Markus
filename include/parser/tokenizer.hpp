@@ -1,6 +1,4 @@
-#ifndef __MARKUS_PARSER_TOKENIZER__
-#define __MARKUS_PARSER_TOKENIZER__
-
+#pragma once
 #include <string>
 #include <vector>
 
@@ -151,5 +149,3 @@ typedef std::vector<Token> TokenVec;
 TokenVec tokenize(std::string text);
 
 }  // namespace Parser
-
-#endif

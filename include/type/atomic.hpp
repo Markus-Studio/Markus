@@ -1,6 +1,4 @@
-#ifndef __MARKUS_TYPE_ATOMIC__
-#define __MARKUS_TYPE_ATOMIC__
-
+#pragma once
 #include <string>
 
 namespace Type {
@@ -46,5 +44,3 @@ class Atomic {
   bool is(Union* type);
 };
 }  // namespace Type
-
-#endif

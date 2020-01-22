@@ -1,6 +1,4 @@
-#ifndef __MARKUS_PARSER_TYPES__
-#define __MARKUS_PARSER_TYPES__
-
+#pragma once
 #include <list>
 #include <map>
 #include <set>
@@ -83,5 +81,3 @@ class Types {
   bool isBuiltIn(std::string name);
 };
 }  // namespace Parser
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef __MARKUS_TYPE_CONTAINER__
-#define __MARKUS_TYPE_CONTAINER__
-
+#pragma once
 #include <string>
 
 namespace Type {
@@ -172,5 +170,3 @@ class Container {
 };
 
 }  // namespace Type
-
-#endif

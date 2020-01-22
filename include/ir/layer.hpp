@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_LAYER__
-#define __MARKUS_IR_LAYER__
-
+#pragma once
 #include "ir/layers/group.hpp"
 #include "ir/layers/list.hpp"
 
@@ -77,5 +75,3 @@ class Layer {
   enum LayerKind getKind();
 };
 }  // namespace IR
-
-#endif

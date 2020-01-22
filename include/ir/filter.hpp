@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_FILTER__
-#define __MARKUS_IR_FILTER__
-
+#pragma once
 #include "type/uri.hpp"
 #include "value/call.hpp"
 #include "value/container.hpp"
@@ -120,5 +118,3 @@ class Filter {
   bool isEffecting(Type::Uri uri);
 };
 }  // namespace IR
-
-#endif

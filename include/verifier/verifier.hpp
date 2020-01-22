@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_VERIFIER__
-#define __MARKUS_IR_VERIFIER__
-
+#pragma once
 #include <string>
 
 #include "ast/query.hpp"
@@ -132,5 +130,3 @@ bool verifyCall(AST::Query* query,
         Diagnostics::Error::wrongInputShape(call, n, (type).getShape())); \
     return false;                                                         \
   }
-
-#endif

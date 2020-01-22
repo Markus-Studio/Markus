@@ -1,6 +1,4 @@
-#ifndef __MARKUS_WRITER_DIRECTORY__
-#define __MARKUS_WRITER_DIRECTORY__
-
+#pragma once
 #include <map>
 #include <string>
 
@@ -92,5 +90,3 @@ class Directory {
   Directory* dir(std::string name);
 };
 }  // namespace Writer
-
-#endif

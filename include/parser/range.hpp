@@ -1,6 +1,4 @@
-#ifndef __MARKUS_PARSER_RANGE__
-#define __MARKUS_PARSER_RANGE__
-
+#pragma once
 #include "parser/tokenizer.hpp"
 
 namespace Parser {
@@ -66,5 +64,3 @@ class Range {
   Range operator+(Range range);
 };
 }  // namespace Parser
-
-#endif

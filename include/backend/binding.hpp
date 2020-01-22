@@ -1,5 +1,4 @@
-#ifndef __MARKUS_BACKEND_BINDING__
-#define __MARKUS_BACKEND_BINDING__
+#pragma once
 
 #include "parser/types.hpp"
 #include "writer/directory.hpp"
@@ -34,5 +33,3 @@ struct Binding {
 struct Binding createCBinding();
 
 }  // namespace Backend
-
-#endif

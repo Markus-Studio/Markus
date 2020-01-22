@@ -1,6 +1,4 @@
-#ifndef __MARKUS_AST_SOURCE__
-#define __MARKUS_AST_SOURCE__
-
+#pragma once
 #include <list>
 #include <map>
 
@@ -147,5 +145,3 @@ class Source {
   Type::Container queryType(std::string name);
 };
 }  // namespace AST
-
-#endif

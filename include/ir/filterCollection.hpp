@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_FILTER_COLLECTION__
-#define __MARKUS_IR_FILTER_COLLECTION__
-
+#pragma once
 #include <vector>
 
 #include "ir/filter.hpp"
@@ -54,5 +52,3 @@ class FilterCollection {
   bool isEmpty();
 };
 }  // namespace IR
-
-#endif

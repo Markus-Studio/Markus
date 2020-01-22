@@ -1,6 +1,4 @@
-#ifndef __MARKUS_VALUE_TYPE__
-#define __MARKUS_VALUE_TYPE__
-
+#pragma once
 #include "parser/range.hpp"
 #include "type/container.hpp"
 
@@ -38,5 +36,3 @@ class TypeValue {
   Parser::Range getRange();
 };
 }  // namespace Value
-
-#endif

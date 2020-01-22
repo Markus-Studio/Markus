@@ -1,6 +1,4 @@
-#ifndef __MARKUS_AST_QUERY__
-#define __MARKUS_AST_QUERY__
-
+#pragma once
 #include <list>
 #include <string>
 #include <vector>
@@ -100,5 +98,3 @@ class Query {
   std::vector<PipelineInfo> getPipelines();
 };
 }  // namespace AST
-
-#endif

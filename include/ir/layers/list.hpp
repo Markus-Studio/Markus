@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_LAYERS_LIST__
-#define __MARKUS_IR_LAYERS_LIST__
-
+#pragma once
 #include <vector>
 
 #include "ir/filterCollection.hpp"
@@ -74,5 +72,3 @@ class ListLayer {
   bool hasDynamicFilter();
 };
 }  // namespace IR
-
-#endif

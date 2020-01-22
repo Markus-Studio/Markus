@@ -1,6 +1,4 @@
-#ifndef __MARKUS_VALUE__VARIABLE__
-#define __MARKUS_VALUE__VARIABLE__
-
+#pragma once
 #include "parser/range.hpp"
 #include "type/container.hpp"
 #include "type/uri.hpp"
@@ -83,5 +81,3 @@ class Variable {
   Parser::Range getRange();
 };
 }  // namespace Value
-
-#endif

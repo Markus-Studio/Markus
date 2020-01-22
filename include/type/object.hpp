@@ -1,6 +1,4 @@
-#ifndef __MARKUS_TYPE_OBJECT__
-#define __MARKUS_TYPE_OBJECT__
-
+#pragma once
 #include <string>
 #include <vector>
 
@@ -182,5 +180,3 @@ class Object {
   std::vector<std::string> getOwnedFields();
 };
 }  // namespace Type
-
-#endif

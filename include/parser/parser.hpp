@@ -1,6 +1,4 @@
-#ifndef __MARKUS_PARSER_PARSER__
-#define __MARKUS_PARSER_PARSER__
-
+#pragma once
 #include <string>
 
 #include "ast/source.hpp"
@@ -14,5 +12,3 @@ namespace Parser {
  */
 AST::Source* createProgram(std::string code);
 }  // namespace Parser
-
-#endif

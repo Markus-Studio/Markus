@@ -1,5 +1,4 @@
-#ifndef __MARKUS_DIAGNOSTICS_ERROR__
-#define __MARKUS_DIAGNOSTICS_ERROR__
+#pragma once
 
 #include <set>
 #include <string>
@@ -173,5 +172,3 @@ class Error {
                                         Value::Container rhs);
 };
 }  // namespace Diagnostics
-
-#endif

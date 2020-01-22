@@ -1,6 +1,4 @@
-#ifndef __MARKUS_PARSER_QUERY__
-#define __MARKUS_PARSER_QUERY__
-
+#pragma once
 #include "ast/query.hpp"
 #include "parser/tokenizer.hpp"
 #include "value/container.hpp"
@@ -22,5 +20,3 @@ bool parseQueryBody(AST::Query* query, std::vector<Token>::iterator& tokens);
  */
 AST::Query* parseQuery(AST::Source* program, TokenVec tokens);
 }  // namespace Parser
-
-#endif

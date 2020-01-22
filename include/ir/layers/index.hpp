@@ -1,6 +1,4 @@
-#ifndef __MARKUS_IR_LAYERS_INDEX__
-#define __MARKUS_IR_LAYERS_INDEX__
-
+#pragma once
 #include "ir/filterCollection.hpp"
 
 namespace IR {
@@ -42,5 +40,3 @@ class IndexLayer {
   bool isEmpty();
 };
 }  // namespace IR
-
-#endif

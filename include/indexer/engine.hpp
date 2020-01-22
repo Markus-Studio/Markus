@@ -1,6 +1,4 @@
-#ifndef __MARKUS_INDEXER_ENGINE__
-#define __MARKUS_INDEXER_ENGINE__
-
+#pragma once
 #include <map>
 
 #include "ast/query.hpp"
@@ -20,5 +18,3 @@ class Engine {
   void addQueryMeta(AST::Query* query, Meta* meta);
 };
 }  // namespace Indexer
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef __MARKUS_TYPE_ARRAY__
-#define __MARKUS_TYPE_ARRAY__
-
+#pragma once
 #include "type/atomic.hpp"
 #include "type/container.hpp"
 #include "type/object.hpp"
@@ -69,5 +67,3 @@ class Array {
   Array* query(Uri uri);
 };
 }  // namespace Type
-
-#endif

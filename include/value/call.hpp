@@ -1,6 +1,4 @@
-#ifndef __MARKUS_VALUE_CALL__
-#define __MARKUS_VALUE_CALL__
-
+#pragma once
 #include <string>
 #include <vector>
 
@@ -71,5 +69,3 @@ class Call {
   Parser::Range getRange();
 };
 }  // namespace Value
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef __MARKUS_TYPE_UNION__
-#define __MARKUS_TYPE_UNION__
-
+#pragma once
 #include <assert.h>
 
 #include <list>
@@ -95,5 +93,3 @@ class Union {
   friend class Container;
 };
 }  // namespace Type
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef __MARKUS_WRITER_FILE__
-#define __MARKUS_WRITER_FILE__
-
+#pragma once
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -92,5 +90,3 @@ class File {
   friend class Directory;
 };
 }  // namespace Writer
-
-#endif

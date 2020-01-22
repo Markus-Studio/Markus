@@ -1,6 +1,4 @@
-#ifndef __MARKUS_TEST__
-#define __MARKUS_TEST__
-
+#pragma once
 #include <stdio.h>
 
 #include <iostream>
@@ -110,5 +108,3 @@ int run();
 
 #define TEST(description) \
   MARKUS_TESTING_GENERATE_TEST(description, MARKUS_TESTING_GET_TEST_NAME())
-
-#endif

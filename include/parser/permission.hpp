@@ -1,6 +1,4 @@
-#ifndef __MARKUS_PARSER_PERMISSIONS__
-#define __MARKUS_PARSER_PERMISSIONS__
-
+#pragma once
 #include "ast/source.hpp"
 
 namespace Parser {
@@ -9,5 +7,3 @@ namespace Parser {
  */
 AST::Permission* parsePermission(AST::Source* program, TokenVec tokens);
 }  // namespace Parser
-
-#endif
