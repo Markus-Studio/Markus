@@ -1,0 +1,34 @@
+---TYPES---
+---Thing---
+OWN name TYPE string
+/--Thing---
+
+---Thing2---
+OWN name2 TYPE string
+/--Thing2---
+/--TYPES---
+
+---PERMISSIONS---
+/--PERMISSIONS---
+
+---QUERIES---
+---ThingsWithTheSameName---
+USER NIL
+TYPE Array<Thing | Thing2>
+-->is
+TYPE Array<Thing>
+-->eq
+RESULT Array<Thing>
+/--ThingsWithTheSameName---
+
+---ThingsWithTheSameNameX---
+USER NIL
+TYPE Array<Thing | Thing2>
+-->is
+TYPE Array<Thing>
+-->eq
+TYPE Array<Thing>
+-->eq
+RESULT Array<Thing>
+/--ThingsWithTheSameNameX---
+/--QUERIES---

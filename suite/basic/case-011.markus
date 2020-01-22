@@ -1,0 +1,18 @@
+type Thing {
+  string name;
+}
+
+type Thing2 {
+  string name2;
+}
+
+query ThingsWithTheSameName(Thing2 $thing) {
+  is(Thing),
+  eq(.name, $thing.name2)
+}
+
+query ThingsWithTheSameNameX(Thing2 $thing, Thing $t2) {
+  is(Thing),
+  eq(.name, $thing.name2),
+  eq(.name, $t2.name)
+}

@@ -135,6 +135,16 @@ class Source {
    * Return name of queries defined in this source.
    */
   std::vector<std::string> getQueryNames();
+
+  /**
+   * Check if a type with given name exists in the program's type space.
+   */
+  bool typeExists(std::string name);
+
+  /**
+   * Query the given type in the current program's type space.
+   */
+  Type::Container queryType(std::string name);
 };
 }  // namespace AST
 

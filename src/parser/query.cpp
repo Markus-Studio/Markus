@@ -36,12 +36,13 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
       return NULL;
     }
 
-    std::string permissionName = (iterator++)->getWord();
+    std::string permissionName = iterator->getWord();
     if (!program->hasPermission(permissionName)) {
       Diagnostics::Controller::report(
           Diagnostics::Error::cannotResolveName(*iterator));
       return NULL;
     }
+    ++iterator;
 
     AST::Permission* permission = program->getPermission(permissionName);
     // TODO(qti3e) AST::Query must store the permissions
@@ -55,6 +56,53 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
     }
   } else {
     result->addParameter("%user", Type::Container(program->unionOfUsers()));
+  }
+
+  if (*iterator == "(") {
+    ++iterator;  // Eat (.
+
+    while (*iterator != ")") {
+      if (!(iterator)->isIdentifier()) {
+        Diagnostics::Controller::report(
+            Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
+        return NULL;
+      }
+      std::string typeName = iterator->getWord();
+      if (!program->typeExists(typeName)) {
+        Diagnostics::Controller::report(
+            Diagnostics::Error::cannotResolveName(*iterator));
+      }
+      ++iterator;
+
+      if (!(iterator)->isVariableName()) {
+        Diagnostics::Controller::report(
+            Diagnostics::Error::unexpectedToken(*iterator, "variable name"));
+        return NULL;
+      }
+      std::string parameterName = iterator->getWord();
+      if (result->getParameterId(parameterName) >= 0) {
+        Diagnostics::Controller::report(
+            Diagnostics::Error::nameAlreadyInUse(*iterator));
+        return NULL;
+      }
+      ++iterator;
+
+      result->addParameter(parameterName, program->queryType(typeName));
+
+      if (*iterator == ",") {
+        ++iterator;
+      } else if (*iterator != ")") {
+        Diagnostics::Controller::report(
+            Diagnostics::Error::unexpectedToken(*iterator, ","));
+        return NULL;
+      }
+    }
+
+    if (*(iterator++) != ")") {
+      Diagnostics::Controller::report(
+          Diagnostics::Error::unexpectedToken(*iterator, ")"));
+      return NULL;
+    }
   }
 
   parseQueryBody(result, iterator);

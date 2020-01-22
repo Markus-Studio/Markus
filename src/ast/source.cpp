@@ -142,4 +142,11 @@ std::vector<std::string> Source::getQueryNames() {
   return names;
 }
 
+bool Source::typeExists(std::string name) {
+  return parserTypes.has(name);
+}
+
+Type::Container Source::queryType(std::string name) {
+  return parserTypes.resolve(name);
+}
 }  // namespace AST
