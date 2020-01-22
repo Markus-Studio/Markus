@@ -1,0 +1,29 @@
+---TYPES---
+---Thing---
+OWN owner TYPE user
+/--Thing---
+
+---User1---
+BASE user
+OWN name1 TYPE string
+/--User1---
+
+---User2---
+BASE user
+OWN name2 TYPE string
+/--User2---
+/--TYPES---
+
+---PERMISSIONS---
+/--PERMISSIONS---
+
+---QUERIES---
+---test1---
+USER User1 | User2
+TYPE Array<Thing | User1 | User2>
+-->is
+TYPE Array<Thing>
+-->eq
+RESULT Array<Thing>
+/--test1---
+/--QUERIES---

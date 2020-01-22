@@ -20,8 +20,42 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
   std::string name = (iterator++)->getWord();
   AST::Query* result = new AST::Query(program);
 
-  // TODO(qti3e) Parse the permission section.
-  result->addParameter("%user", Type::Container(program->unionOfUsers()));
+  if (*iterator == "@") {
+    ++iterator;  // Eat @
+    if (*(iterator++) != "(") {
+      Diagnostics::Controller::report(
+          Diagnostics::Error::unexpectedToken(*iterator, "("));
+      return NULL;
+    }
+
+    // TODO(qti3e) Parse a list of permissions.
+
+    if (!(iterator)->isIdentifier()) {
+      Diagnostics::Controller::report(
+          Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
+      return NULL;
+    }
+
+    std::string permissionName = (iterator++)->getWord();
+    if (!program->hasPermission(permissionName)) {
+      Diagnostics::Controller::report(
+          Diagnostics::Error::cannotResolveName(*iterator));
+      return NULL;
+    }
+
+    AST::Permission* permission = program->getPermission(permissionName);
+    // TODO(qti3e) AST::Query must store the permissions
+    // `query->allow(permission)`.
+    result->addParameter("%user", permission->getQuery()->getResultType());
+
+    if (*(iterator++) != ")") {
+      Diagnostics::Controller::report(
+          Diagnostics::Error::unexpectedToken(*iterator, ")"));
+      return NULL;
+    }
+  } else {
+    result->addParameter("%user", Type::Container(program->unionOfUsers()));
+  }
 
   parseQueryBody(result, iterator);
 

@@ -27,7 +27,7 @@ def check(filename):
 
 def main():
   os.chdir(os.path.dirname(os.path.realpath(__file__)))
-  filenames = glob.glob("*/*.markus")
+  filenames = sorted(glob.glob("*/*.markus"))
   for file in filenames:
     if not check(file):
       return -1
