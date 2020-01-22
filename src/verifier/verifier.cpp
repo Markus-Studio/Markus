@@ -1,9 +1,18 @@
 #include "verifier/verifier.hpp"
 
+#include <assert.h>
+
 #include <list>
 
+#include "pipelines/eq.cpp"
+#include "pipelines/groupBy.cpp"
+#include "pipelines/is.cpp"
+#include "pipelines/select.cpp"
+#include "pipelines/sort.cpp"
+#include "pipelines/sum.cpp"
+
 namespace Verifier {
-static std::list<Pipeline>* pipelinesRef;
+static std::list<Pipeline>* pipelinesRef = NULL;
 
 PipelineAutoReg::PipelineAutoReg(std::string name,
                                  int numArgs,
@@ -23,6 +32,7 @@ PipelineAutoReg::PipelineAutoReg(std::string name,
 bool verifyCall(AST::Query* query,
                 Value::Call* call,
                 Type::Container& resultType) {
+  assert(pipelinesRef != NULL);
   int argNum = -1;
   std::list<Pipeline>::iterator pipeline = pipelinesRef->begin();
 

@@ -7,12 +7,11 @@ option(BUILD_FOR_COVERAGE "Build to be used with llvm-cov" OFF)
 include_directories(include)
 
 file(GLOB_RECURSE LIB_CPP_FILES "src/*/**.cpp")
-file(GLOB_RECURSE LIB_PIPELINE_CPP_FILES "src/verifier/pipelines/**.cpp")
 file(GLOB_RECURSE TEST_CPP_FILES "test/**.cpp")
 
-add_executable(markus src/main.cpp ${LIB_PIPELINE_CPP_FILES})
-add_executable(markus-test ${TEST_CPP_FILES} ${LIB_PIPELINE_CPP_FILES})
-add_executable(markus-dump suite/dumper/main.cpp ${LIB_PIPELINE_CPP_FILES})
+add_executable(markus src/main.cpp)
+add_executable(markus-test ${TEST_CPP_FILES})
+add_executable(markus-dump suite/dumper/main.cpp)
 
 # Link executables with libmar
 add_library(mar STATIC ${LIB_CPP_FILES})
