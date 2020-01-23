@@ -102,5 +102,10 @@ class Query {
    * Return all of the pipelines in this query.
    */
   std::vector<PipelineInfo> getPipelines();
+
+  /**
+   * Returns the currently selected field.
+   */
+  Type::Uri getSelected();
 };
 }  // namespace AST

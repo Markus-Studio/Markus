@@ -46,9 +46,18 @@ bool Query::addPipeline(Value::Call* call) {
   info.inputType = resultType;
   info.shape = resultType.getShape();
   info.call = call;
+  info.selected = currentSelected;
   pipelines.push_back(info);
 
-  return Verifier::verifyCall(this, call, resultType);
+  if (!Verifier::verifyCall(this, call, resultType))
+    return false;
+
+  if (call->getCalleeName() == "select") {
+    Type::Uri selected = *call->getArguments()[0].asVariable()->getMember();
+    currentSelected = selected.prepend(currentSelected);
+  }
+
+  return true;
 }
 
 Query* Query::getSubQuery(Value::Call* call) {
@@ -70,5 +79,9 @@ std::vector<PipelineInfo> Query::getPipelines() {
   std::vector<PipelineInfo> result;
   result.assign(pipelines.begin(), pipelines.end());
   return result;
+}
+
+Type::Uri Query::getSelected() {
+  return currentSelected;
 }
 }  // namespace AST
