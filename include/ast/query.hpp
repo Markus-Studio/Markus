@@ -13,6 +13,7 @@ struct PipelineInfo {
   Type::Container inputType;
   int shape;
   Value::Call* call;
+  Type::Uri selected;
 };
 
 /**
@@ -43,6 +44,11 @@ class Query {
    * List of pipelines in this query.
    */
   std::list<PipelineInfo> pipelines;
+
+  /**
+   * The absolute path of the currently selected field.
+   */
+  Type::Uri currentSelected;
 
  public:
   /**
