@@ -60,4 +60,7 @@ int Uri::size() {
   return units.size();
 }
 
+bool Uri::operator==(Type::Uri uri) {
+  return units == uri.units;
+}
 }  // namespace Type

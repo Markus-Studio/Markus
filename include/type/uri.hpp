@@ -80,5 +80,10 @@ class Uri {
    * Number of units in this uri.
    */
   int size();
+
+  /**
+   * Returns true if both of the URIs are pointing to the same thing.
+   */
+  bool operator==(Type::Uri uri);
 };
 }  // namespace Type
