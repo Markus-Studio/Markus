@@ -1,25 +1,51 @@
 # Markus Layers IR
 
+## Summary
+
+| Property           | List  | Index | GroupBy | Aggregation | Map   |
+| ------------------ | ----- | ----- | ------- | ----------- | ----- |
+| aggregation        | **T** |       | **T**   |             |       |
+| axis               |       |       | **T**   |             |       |
+| axisSorted         |       |       | **T**   |             |       |
+| dynamicFilter      | **T** |       |         |             | **T** |
+| dynamicLabelFilter |       |       | **T**   |             |       |
+| function           |       | **T** |         | **T**       |       |
+| parameters         |       |       |         |             | **T** |
+| selected           | **T** |       | **T**   |             |       |
+| sortedAxises       | **T** |       |         |             |       |
+| staticFilter       | **T** |       | **T**   | **T**       | **T** |
+| subject            |       |       |         | **T**       |       |
+
+## Examples
+
 ---
-**Static List**
+
+### Static List
+
 ```markus
 query {
   f()
 }
 ```
+
 Layers Chain:
+
 ```
 List{staticFilter: f}
 ```
 
 ---
-**Dynamic List**
+
+### Dynamic List
+
 ```markus
 query {
   g(x, y)
 }
 ```
+
 Layers Chain:
+
 ```
 # g(x, y) = f() ∩ h(x) ∩ p(x, y); where `h` is indexable.
 Index{function: h}
@@ -27,56 +53,85 @@ List{staticFilter: f, dynamicFilter: p}
 ```
 
 ---
-**Static Aggregation**
+
+### Static Aggregation
+
 ```markus
 query {
   f(),
   sum(.x)
 }
 ```
+
 Layers Chain:
+
 ```
 Aggregation{staticFilter: f, function: sum, subject: .x}
 ```
 
 ---
-**Dynamic Aggregation**
+
+### Dynamic Aggregation
+
 ```markus
 query {
   g(x, y),
   sum(.x)
 }
 ```
+
 Layers Chain:
+
 ```
 # g(x, y) = f() ∩ p(x, y)
 Map{parameters: [x, y], dynamicFilter: p, staticFilter: f}
 Aggregation{function: sum, subject: .x}
 ```
 
+Optimized for Memory:
+
+```
+List{
+  staticFilter: f,
+  dynamicFilter: p,
+  aggregation: Aggregation{
+    function: sum,
+    subject: .x
+  }
+}
+```
+
 ---
-**Simple Static GroupBy**
+
+### Simple Static GroupBy
+
 ```markus
 query {
   f(),
   groupBy(.a)
 }
 ```
+
 Layers Chain:
+
 ```
 GroupBy{axis: .a, staticFilter: f}
 List{}
 ```
 
 ---
-**Simple Dynamic GroupBy**
+
+### Simple Dynamic GroupBy
+
 ```markus
 query {
   g(x, y),
   groupBy(.a)
 }
 ```
+
 Layers Chain:
+
 ```
 # g(x, y) = f() ∩ h(x) ∩ p(x, y) ∩ u(y); where `h` is indexable.
 # and `u` is filtering `.a`
@@ -86,7 +141,9 @@ List{dynamicFilter: p}
 ```
 
 ---
-**Aggregated Static GroupBy**
+
+### Aggregated Static GroupBy
+
 ```markus
 query {
   f(),
@@ -95,14 +152,18 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 GroupBy{axis: .a, staticFilter: f}
 Aggregation{function: sum, subject: .x}
 ```
 
 ---
-**Aggregated Dynamic GroupBy**
+
+### Aggregated Dynamic GroupBy
+
 ```markus
 query {
   g(x, y, z),
@@ -111,7 +172,9 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 # g(x, y, z) = f() ∩ p(x, y) ∩ u(z); `u` is filtering `.a`.
 GroupBy{axis: .a, staticFilter: f, dynamicLabelFilter: u}
@@ -120,7 +183,9 @@ Aggregation{function: sum, subject: .x}
 ```
 
 ---
-**Static Filter in Aggregated Dynamic GroupBy**
+
+### Static Filter in Aggregated Dynamic GroupBy
+
 ```markus
 query {
   g(x, y, z),
@@ -130,7 +195,9 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 # g(x, y, z) = f() ∩ p(x, y) ∩ u(z); `u` is filtering `.a`.
 GroupBy{axis: .a, staticFilter: f, dynamicLabelFilter: u}
@@ -139,7 +206,9 @@ Aggregation{staticFilter: n, function: sum, subject: .x}
 ```
 
 ---
-**Dynamic Filter in Aggregated Dynamic GroupBy**
+
+### Dynamic Filter in Aggregated Dynamic GroupBy
+
 ```markus
 query {
   g(x, y, z),
@@ -149,7 +218,9 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 # g(x, y, z) = f() ∩ p(x, y) ∩ u(z); `u` is filtering `.a`.
 GroupBy{axis: .a, staticFilter: f, dynamicLabelFilter: u}
@@ -160,7 +231,9 @@ Aggregation{function: sum, subject: .x}
 ```
 
 ---
-**Nested GroupBy**
+
+### Nested GroupBy
+
 ```markus
 query {
   groupBy(.a, {
@@ -168,14 +241,18 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 GroupBy{axis: .a}
 GroupBy{axis: .b}
 ```
 
 ---
-**Nested GroupBy Aggregation**
+
+### Nested GroupBy Aggregation
+
 ```markus
 query {
   groupBy(.a, {
@@ -186,7 +263,9 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 GroupBy{axis: .a}
 GroupBy{axis: .b, aggregation: Aggregation{function: sum, subject: .data}}
@@ -194,7 +273,9 @@ Aggregation{function: sum, subject: .x}
 ```
 
 ---
-**Nested GroupBy Filtered Aggregation**
+
+### Nested GroupBy Filtered Aggregation
+
 ```markus
 query {
   groupBy(.a, {
@@ -206,7 +287,9 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 GroupBy{axis: .a}
 GroupBy{
@@ -221,7 +304,9 @@ Aggregation{function: sum, subject: .x}
 ```
 
 ---
-**Nested GroupBy Aggregation 2**
+
+### Nested GroupBy Aggregation 2
+
 ```markus
 query {
   groupBy(.a, {
@@ -230,13 +315,17 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 Error: field does not exists :)
 ```
 
 ---
-**Static Filter In GroupBy**
+
+### Static Filter In GroupBy
+
 ```markus
 query {
   groupBy(.a, {
@@ -244,14 +333,18 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 GroupBy{axis: .a}
 List{staticFilter: f}
 ```
 
 ---
-**Static Filter In Aggregated GroupBy**
+
+### Static Filter In Aggregated GroupBy
+
 ```markus
 query {
   groupBy(.a, {
@@ -260,14 +353,18 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 GroupBy{axis: .a}
 Aggregation{function: sum, subject: .x, staticFilter: f}
 ```
 
 ---
-**Dynamic Filter In GroupBy**
+
+### Dynamic Filter In GroupBy
+
 ```markus
 query {
   groupBy(.a, {
@@ -275,7 +372,9 @@ query {
   })
 }
 ```
+
 Layers Chain:
+
 ```
 # f(x, y) = g() ∩ h(x) ∩ p(x, y)
 GroupBy{axis: .a}
