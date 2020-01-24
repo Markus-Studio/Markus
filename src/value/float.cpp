@@ -20,4 +20,8 @@ float Float::getValue() {
 Parser::Range Float::getRange() {
   return range;
 }
+
+bool Float::operator==(Float rhs) {
+  return value == rhs.value;
+}
 }  // namespace Value

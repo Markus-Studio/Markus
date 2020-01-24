@@ -39,4 +39,8 @@ void Call::expandRange(Parser::Range r) {
 Parser::Range Call::getRange() {
   return range;
 }
+
+bool Call::operator==(Call rhs) {
+  return functionName == rhs.functionName && arguments == rhs.arguments;
+}
 }  // namespace Value

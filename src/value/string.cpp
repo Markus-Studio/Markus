@@ -20,4 +20,8 @@ std::string String::getValue() {
 Parser::Range String::getRange() {
   return range;
 }
+
+bool String::operator==(String rhs) {
+  return value == rhs.value;
+}
 }  // namespace Value

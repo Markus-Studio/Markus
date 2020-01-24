@@ -189,4 +189,35 @@ Type::Container Container::getType(AST::Query* query) {
       return Type::Container();  // TODO(qti3e)
   }
 }
+
+bool Container::operator==(Container rhs) {
+  if (kind != rhs.kind)
+    return false;
+
+  switch (kind) {
+    case VALUE_KIND_NO_VALUE:
+      return false;
+    case VALUE_KIND_BOOL:
+      return (Bool*)value == (Bool*)rhs.value;
+    case VALUE_KIND_INT:
+      return (Int*)value == (Int*)rhs.value;
+    case VALUE_KIND_FLOAT:
+      return (Float*)value == (Float*)rhs.value;
+    case VALUE_KIND_STRING:
+      return (String*)value == (String*)rhs.value;
+    case VALUE_KIND_TYPE:
+      return (TypeValue*)value == (TypeValue*)rhs.value;
+    case VALUE_KIND_VARIABLE:
+      return (Variable*)value == (Variable*)rhs.value;
+    case VALUE_KIND_CALL:
+      return (Call*)value == (Call*)rhs.value;
+    case VALUE_KIND_QUERY:
+      assert(0);  // TODO(qti3e)
+      return false;
+  }
+}
+
+bool operator==(const Container c1, const Container c2) {
+  return c1 == c2;
+}
 }  // namespace Value

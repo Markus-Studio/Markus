@@ -205,5 +205,13 @@ class Container {
    * Returns type of the value according to the current query.
    */
   Type::Container getType(AST::Query* query);
+
+  /**
+   * Compares the current container with the given one and returns true if they
+   * are equal.
+   */
+  bool operator==(Container rhs);
 };
+
+bool operator==(const Container c1, const Container c2);
 }  // namespace Value

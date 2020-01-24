@@ -20,4 +20,8 @@ int Int::getValue() {
 Parser::Range Int::getRange() {
   return range;
 }
+
+bool Int::operator==(Int rhs) {
+  return value == rhs.value;
+}
 }  // namespace Value

@@ -45,4 +45,10 @@ int Variable::getId() {
 Parser::Range Variable::getRange() {
   return range;
 }
+
+bool Variable::operator==(Variable rhs) {
+  return variableId == rhs.variableId &&
+         hasVariableMember == rhs.hasVariableMember &&
+         variableMember == rhs.variableMember;
+}
 }  // namespace Value

@@ -34,5 +34,10 @@ class TypeValue {
    * Returns the range which this value is derived from in the source code.
    */
   Parser::Range getRange();
+
+  /**
+   * Returns true if the current value is equal to one of the rhs.
+   */
+  bool operator==(TypeValue rhs);
 };
 }  // namespace Value

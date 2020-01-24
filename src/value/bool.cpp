@@ -20,4 +20,8 @@ bool Bool::getValue() {
 Parser::Range Bool::getRange() {
   return range;
 }
+
+bool Bool::operator==(Bool rhs) {
+  return value == rhs.value;
+}
 }  // namespace Value

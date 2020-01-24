@@ -13,4 +13,8 @@ Type::Container TypeValue::getType() {
 Parser::Range TypeValue::getRange() {
   return range;
 }
+
+bool TypeValue::operator==(TypeValue rhs) {
+  return type.is(rhs.type) && rhs.type.is(type);
+}
 }  // namespace Value

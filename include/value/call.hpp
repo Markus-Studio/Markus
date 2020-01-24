@@ -67,5 +67,10 @@ class Call {
    * Returns the range which this value is derived from in the source code.
    */
   Parser::Range getRange();
+
+  /**
+   * Returns true if this call is equal to the secondary call.
+   */
+  bool operator==(Call rhs);
 };
 }  // namespace Value

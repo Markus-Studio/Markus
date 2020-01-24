@@ -40,5 +40,10 @@ class Bool {
    * Returns the range which this value is derived from in the source code.
    */
   Parser::Range getRange();
+
+  /**
+   * Returns true if the boolean values are equal.
+   */
+  bool operator==(Bool rhs);
 };
 }  // namespace Value
