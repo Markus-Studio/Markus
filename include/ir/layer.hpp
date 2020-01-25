@@ -1,6 +1,4 @@
 #pragma once
-#include "ir/layers/group.hpp"
-#include "ir/layers/list.hpp"
 
 namespace IR {
 enum LayerKind {
@@ -8,11 +6,9 @@ enum LayerKind {
   LAYER_NO_LAYER,
   LAYER_LIST,
   LAYER_INDEX,
-  LAYER_GROUP,
-  /**
-   * An aggregation layer deals with pipelines such as sum, avg, etc.
-   */
-  LAYER_AGGREGATION
+  LAYER_GROUP_BY,
+  LAYER_AGGREGATION,
+  LAYER_MAP
 };
 
 /**
@@ -38,36 +34,6 @@ class Layer {
    * Default constructor.
    */
   Layer();
-
-  /**
-   * Constructs a layer containing a list layer.
-   */
-  Layer(ListLayer* listLayer);
-
-  /**
-   * Returns true if the contained layer is a list layer.
-   */
-  bool isListLayer();
-
-  /**
-   * Returns the contained layer supposing it's a list layer, aborts otherwise.
-   */
-  ListLayer* asListLayer();
-
-  /**
-   * Constructs a layer containing a group layer.
-   */
-  Layer(GroupLayer* groupLayer);
-
-  /**
-   * Returns true if the contained layer is group layer.
-   */
-  bool isGroupLayer();
-
-  /**
-   * Returns the contained layer supposing it's a group layer, aborts otherwise.
-   */
-  GroupLayer* asGroupLayer();
 
   /**
    * Returns kind of this layer.

@@ -25,5 +25,8 @@ query SellsByCity {
 
 query xxx {
   is(Product),
-  eq(.name, %user.name)
+  groupBy(.name, {
+    sum(.price)
+  }),
+  sum(.data)
 }
