@@ -11,7 +11,7 @@
 | dynamicLabelFilter |       |       | **T**   |             |       |
 | function           |       | **T** |         | **T**       |       |
 | parameters         |       |       |         |             | **T** |
-| selected           | **T** |       | **T**   |             |       |
+| selected           | **T** |       |         |             |       |
 | sortedAxises       | **T** |       |         |             |       |
 | staticFilter       | **T** |       | **T**   | **T**       | **T** |
 | subject            |       |       |         | **T**       |       |
