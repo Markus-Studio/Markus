@@ -1,4 +1,7 @@
 #pragma once
+#include "ir/layers/groupBy.hpp"
+#include "ir/layers/index.hpp"
+#include "ir/layers/list.hpp"
 
 namespace IR {
 enum LayerKind {
@@ -39,5 +42,20 @@ class Layer {
    * Returns kind of this layer.
    */
   enum LayerKind getKind();
+
+  /**
+   * Constructs a new layer containing a list layer.
+   */
+  Layer(Layers::List* layer);
+
+  /**
+   * Returns true if the contained list is a layer.
+   */
+  bool isListLayer();
+
+  /**
+   * Returns the contained layers as a list layer.
+   */
+  Layers::List* asListLayer();
 };
 }  // namespace IR

@@ -2,7 +2,9 @@
 
 namespace IR {
 void FilterCollection::add(Filter filter) {
-  // TODO(qti3e) Only add if it's not already in the vector.
+  for (int i = 0; i < filters.size(); ++i)
+    if (filters[i] == filter)
+      return;
   filters.push_back(filter);
 }
 

@@ -1,6 +1,9 @@
 #include "ir/query.hpp"
 
 #include <iostream>
+#include <list>
+
+#include "ir/filterCollection.hpp"
 
 namespace IR {
 /**
@@ -15,7 +18,47 @@ std::vector<Layer> compile(AST::Query* query) {
   std::vector<AST::PipelineInfo> pipelines = query->getPipelines();
   std::vector<AST::PipelineInfo>::iterator pipeline = pipelines.begin();
 
-  // TODO(qti3e)
+  while (pipeline != pipelines.end()) {
+    std::list<Filter> filters;
+    Type::Uri selected;
+    Value::Call* call;
+    std::string calleeName;
+
+    for (; pipeline != pipelines.end(); ++pipeline) {
+      selected = pipeline->selected;
+      call = pipeline->call;
+      calleeName = call->getCalleeName();
+
+      if (calleeName == "select")
+        continue;
+
+      if (calleeName == "is") {
+        Filter filter = Filter::Unary(call);
+        Filter::applySelected(filter, selected);
+        filters.push_back(filter);
+        continue;
+      }
+
+      if (calleeName == "eq" || calleeName == "neq" || calleeName == "lt" ||
+          calleeName == "gt" || calleeName == "lte" || calleeName == "gte") {
+        Filter filter = Filter::Binary(call);
+        Filter::applySelected(filter, selected);
+        filters.push_back(filter);
+        continue;
+      }
+
+      goto error;
+    }
+
+    if (pipeline == pipelines.end()) {
+      Layers::List* listLayer = new Layers::List();
+      listLayer->select(selected);
+      std::list<Filter>::iterator it;
+      for (it = filters.begin(); it != filters.end(); ++it)
+        listLayer->filter(*it);
+      layers.push_back(Layer(listLayer));
+    }
+  }
 
   return layers;
 
