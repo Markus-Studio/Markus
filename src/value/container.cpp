@@ -7,7 +7,7 @@
 namespace Value {
 Container::Container() {
   kind = VALUE_KIND_NO_VALUE;
-  value = NULL;
+  value = nullptr;
 }
 
 Container::Container(Int* v) {
@@ -51,7 +51,7 @@ Container::Container(AST::Query* query) {
 }
 
 bool Container::isNil() {
-  return value == NULL || kind == VALUE_KIND_NO_VALUE;
+  return value == nullptr || kind == VALUE_KIND_NO_VALUE;
 }
 
 bool Container::isInt() {

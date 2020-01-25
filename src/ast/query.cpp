@@ -68,7 +68,7 @@ Query* Query::getSubQuery(Value::Call* call) {
     return query;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 Type::Container Query::getResultType() {

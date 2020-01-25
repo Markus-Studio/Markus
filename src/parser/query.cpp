@@ -14,7 +14,7 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
   if (!(iterator)->isIdentifier()) {
     Diagnostics::Controller::report(
         Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
-    return NULL;
+    return nullptr;
   }
 
   std::string name = (iterator++)->getWord();
@@ -25,7 +25,7 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
     if (*(iterator++) != "(") {
       Diagnostics::Controller::report(
           Diagnostics::Error::unexpectedToken(*iterator, "("));
-      return NULL;
+      return nullptr;
     }
 
     // TODO(qti3e) Parse a list of permissions.
@@ -33,14 +33,14 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
     if (!(iterator)->isIdentifier()) {
       Diagnostics::Controller::report(
           Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
-      return NULL;
+      return nullptr;
     }
 
     std::string permissionName = iterator->getWord();
     if (!program->hasPermission(permissionName)) {
       Diagnostics::Controller::report(
           Diagnostics::Error::cannotResolveName(*iterator));
-      return NULL;
+      return nullptr;
     }
     ++iterator;
 
@@ -52,7 +52,7 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
     if (*(iterator++) != ")") {
       Diagnostics::Controller::report(
           Diagnostics::Error::unexpectedToken(*iterator, ")"));
-      return NULL;
+      return nullptr;
     }
   } else {
     result->addParameter("%user", Type::Container(program->unionOfUsers()));
@@ -65,7 +65,7 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
       if (!(iterator)->isIdentifier()) {
         Diagnostics::Controller::report(
             Diagnostics::Error::unexpectedToken(*iterator, "an identifier"));
-        return NULL;
+        return nullptr;
       }
       std::string typeName = iterator->getWord();
       if (!program->typeExists(typeName)) {
@@ -77,13 +77,13 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
       if (!(iterator)->isVariableName()) {
         Diagnostics::Controller::report(
             Diagnostics::Error::unexpectedToken(*iterator, "variable name"));
-        return NULL;
+        return nullptr;
       }
       std::string parameterName = iterator->getWord();
       if (result->getParameterId(parameterName) >= 0) {
         Diagnostics::Controller::report(
             Diagnostics::Error::nameAlreadyInUse(*iterator));
-        return NULL;
+        return nullptr;
       }
       ++iterator;
 
@@ -94,14 +94,14 @@ AST::Query* parseQuery(AST::Source* program, TokenVec tokens) {
       } else if (*iterator != ")") {
         Diagnostics::Controller::report(
             Diagnostics::Error::unexpectedToken(*iterator, ","));
-        return NULL;
+        return nullptr;
       }
     }
 
     if (*(iterator++) != ")") {
       Diagnostics::Controller::report(
           Diagnostics::Error::unexpectedToken(*iterator, ")"));
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -203,7 +203,7 @@ Value::Container parseValue(AST::Query* query,
 
       if (*token == "{") {
         AST::Query* subQuery = query->getSubQuery(call);
-        if (subQuery != NULL) {
+        if (subQuery != nullptr) {
           arg = Value::Container(subQuery);
           parseQueryBody(subQuery, token);
         } else {

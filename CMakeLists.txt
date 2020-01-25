@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(markus VERSION 0.1.0)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_CXX_STANDARD 11)
 
 option(BUILD_FOR_COVERAGE "Build to be used with llvm-cov" OFF)
 

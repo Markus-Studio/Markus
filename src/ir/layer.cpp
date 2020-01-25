@@ -5,7 +5,7 @@
 namespace IR {
 Layer::Layer() {
   kind = LAYER_NO_LAYER;
-  layer = NULL;
+  layer = nullptr;
 }
 
 enum LayerKind Layer::getKind() {

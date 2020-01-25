@@ -12,7 +12,7 @@
 #include "pipelines/sum.cpp"
 
 namespace Verifier {
-static std::list<Pipeline>* pipelinesRef = NULL;
+static std::list<Pipeline>* pipelinesRef = nullptr;
 
 PipelineAutoReg::PipelineAutoReg(std::string name,
                                  int numArgs,
@@ -32,7 +32,7 @@ PipelineAutoReg::PipelineAutoReg(std::string name,
 bool verifyCall(AST::Query* query,
                 Value::Call* call,
                 Type::Container& resultType) {
-  assert(pipelinesRef != NULL);
+  assert(pipelinesRef != nullptr);
   int argNum = -1;
   std::list<Pipeline>::iterator pipeline = pipelinesRef->begin();
 

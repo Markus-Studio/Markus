@@ -37,7 +37,7 @@ Source::Source(Parser::Scanner* scanner) {
   for (; permissionName != permissionNames.end(); ++permissionName) {
     Parser::TokenVec tokens = scanner->lookupPermission(*permissionName);
     AST::Permission* permission = Parser::parsePermission(this, tokens);
-    if (permission != NULL)
+    if (permission != nullptr)
       permissions.push_back(permission);
   }
 
@@ -48,7 +48,7 @@ Source::Source(Parser::Scanner* scanner) {
   for (; queryName != queryNames.end(); ++queryName) {
     Parser::TokenVec tokens = scanner->lookupQuery(*queryName);
     AST::Query* query = Parser::parseQuery(this, tokens);
-    if (query != NULL)
+    if (query != nullptr)
       queries.insert(std::pair<std::string, AST::Query*>(*queryName, query));
   }
 }
@@ -67,7 +67,7 @@ Type::Object* Source::getType(std::string name) {
     if ((*it)->getName() == name)
       return *it;
   assert(0);
-  return NULL;
+  return nullptr;
 }
 
 Type::Array* Source::arrayOfTypes() {
@@ -92,7 +92,7 @@ Permission* Source::getPermission(std::string name) {
     if ((*it)->getName() == name)
       return *it;
   assert(0);
-  return NULL;
+  return nullptr;
 }
 
 bool Source::hasQuery(std::string name) {
@@ -103,7 +103,7 @@ Query* Source::getQuery(std::string name) {
   std::map<std::string, Query*>::iterator it = queries.find(name);
   if (it == queries.end()) {
     assert(0);
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
