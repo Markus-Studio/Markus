@@ -1,4 +1,4 @@
-type Person: User {
+type Person: user {
   string name;
   string lastName;
 
@@ -9,7 +9,7 @@ type Person: User {
 type Canvas {
   string name;
   time created;
-  Person creator;
+  Person? creator;
 }
 
 type CanvasColumn {
@@ -49,30 +49,30 @@ permission Admin {
 
 # User Level Queries
 
-query@{User} ownedCanvases() {
+query ownedCanvases@(User)() {
   is(Canvas),
   eq(.creator, %user)
 }
 
-query@{User} myCanvases() {
+query myCanvases@(User)() {
   is(CanvasUser),
   eq(.user, %user),
   select(.canvas)
 }
 
-query@{User} getCanvasTasks(Canvas $canvas) {
+query getCanvasTasks@(User)(Canvas $canvas) {
   is(Task),
   eq(.column.canvas, $canvas),
   groupBy(.column)
 }
 
-query@{User} canvasWeightSum(Canvas $canvas) {
+query canvasWeightSum@(User)(Canvas $canvas) {
   is(Task),
   eq(.column.canvas, $canvas),
   sum(.weight)
 }
 
-query@{User} canvasDoneWeightSum(Canvas $canvas) {
+query canvasDoneWeightSum@(User)(Canvas $canvas) {
   is(Task),
   eq(.column.canvas, $canvas),
   eq(.done, true),
