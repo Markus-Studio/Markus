@@ -44,6 +44,11 @@ class List {
   List();
 
   /**
+   * Default destructor.
+   */
+  ~List();
+
+  /**
    * Returns true if the list has an aggregation function.
    */
   bool hasAggregation();
@@ -82,7 +87,7 @@ class List {
   /**
    * Add a filter to this list.
    */
-  void addFilter(Filter filter);
+  void filter(Filter filter);
 
   /**
    * Returns a filterCollection containing all of the dynamic filters applied
