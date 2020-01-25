@@ -116,5 +116,11 @@ class Filter {
    *
    */
   bool isEffecting(Type::Uri uri);
+
+  /**
+   * Compares current filter with another filter returns true if they are
+   * equal.
+   */
+  bool operator==(Filter rhs);
 };
 }  // namespace IR

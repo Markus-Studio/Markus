@@ -134,4 +134,14 @@ bool Filter::isEffecting(Type::Uri uri) {
   return true;
 }
 
+bool Filter::operator==(Filter rhs) {
+  if (this->_isBinary != rhs._isBinary)
+    return false;
+  if (_isBinary)
+    return this->op == rhs.op && this->field == rhs.field &&
+           (const Value::Container)this->value ==
+               (const Value::Container)rhs.value;
+  return this->op == rhs.op && (const Value::Container)this->value ==
+                                   (const Value::Container)rhs.value;
+}
 }  // namespace IR
