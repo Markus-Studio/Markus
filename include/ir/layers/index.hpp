@@ -25,6 +25,11 @@ class Index {
    * Returns the indexing function.
    */
   FilterCollection getFunction();
+
+  /**
+   * Returns true if the filter collection is empty.
+   */
+  bool isFunctionEmpty();
 };
 }  // namespace Layers
 }  // namespace IR
