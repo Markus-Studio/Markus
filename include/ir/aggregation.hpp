@@ -1,5 +1,6 @@
 #pragma once
 #include "type/uri.hpp"
+#include "value/call.hpp"
 
 namespace IR {
 /**
@@ -45,6 +46,11 @@ class Aggregation {
    * Construct a new aggregation.
    */
   Aggregation(enum AggregationFunction function, Type::Uri field);
+
+  /**
+   * Construct a new aggregation from a call value.
+   */
+  static Aggregation fromCall(Value::Call* call, Type::Uri selected);
 
   /**
    * Returns the field that is subjected in this aggregation.

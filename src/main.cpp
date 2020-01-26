@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   }
 
   AST::Query* queryNode = program->getQuery("xxx");
-  IR::Query* queryIR = new IR::Query(queryNode);
+  IR::Query queryIR = IR::Query(queryNode);
 
   return 0;
 }

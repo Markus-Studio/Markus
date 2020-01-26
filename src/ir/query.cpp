@@ -47,17 +47,54 @@ std::vector<Layer> compile(AST::Query* query) {
         continue;
       }
 
+      if (calleeName == "groupBy")
+        break;
+
       goto error;
     }
 
+    // ========================================================================
+    // GENERATION                                                             =
+    // ========================================================================
+
     if (pipeline == pipelines.end()) {
+      if (!layers.empty())
+        goto error;
+
       Layers::List* listLayer = new Layers::List();
       listLayer->select(selected);
       std::list<Filter>::iterator it;
       for (it = filters.begin(); it != filters.end(); ++it)
         listLayer->filter(*it);
       layers.push_back(Layer(listLayer));
+      continue;
     }
+
+    if (calleeName == "groupBy") {
+      if (!layers.empty())
+        goto error;
+      std::vector<Value::Container> args = call->getArguments();
+
+      if (args.size() == 2)
+        goto error;  // TODO(qti3e)
+
+      Type::Uri axis = *args[0].asVariable()->getMember();
+
+      Layers::GroupBy* groupByLayer = new Layers::GroupBy(axis);
+      Layers::List* listLayer = new Layers::List();
+
+      std::list<Filter>::iterator it;
+      for (it = filters.begin(); it != filters.end(); ++it)
+        if (!groupByLayer->filter(*it))
+          listLayer->filter(*it);
+
+      layers.push_back(Layer(groupByLayer));
+      layers.push_back(Layer(listLayer));
+      pipeline++;
+      continue;
+    }
+
+    goto error;
   }
 
   return layers;

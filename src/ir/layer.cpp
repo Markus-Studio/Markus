@@ -25,4 +25,32 @@ Layers::List* Layer::asListLayer() {
   assert(kind == LAYER_LIST);
   return (Layers::List*)layer;
 }
+
+Layer::Layer(Layers::GroupBy* layer) {
+  kind = LAYER_GROUP_BY;
+  this->layer = layer;
+}
+
+bool Layer::isGroupByLayer() {
+  return kind == LAYER_GROUP_BY;
+}
+
+Layers::GroupBy* Layer::asGroupByLayer() {
+  assert(kind == LAYER_GROUP_BY);
+  return (Layers::GroupBy*)layer;
+}
+
+Layer::Layer(Layers::Index* layer) {
+  kind = LAYER_INDEX;
+  this->layer = layer;
+}
+
+bool Layer::isIndexLayer() {
+  return kind == LAYER_INDEX;
+}
+
+Layers::Index* Layer::asIndexLayer() {
+  assert(kind == LAYER_INDEX);
+  return (Layers::Index*)layer;
+}
 }  // namespace IR

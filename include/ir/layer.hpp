@@ -57,5 +57,35 @@ class Layer {
    * Returns the contained layers as a list layer.
    */
   Layers::List* asListLayer();
+
+  /**
+   * Constructs a new groupBy layer.
+   */
+  Layer(Layers::GroupBy* layer);
+
+  /**
+   * Returns true if the contained layer is a groupBy layer.
+   */
+  bool isGroupByLayer();
+
+  /**
+   * Returns the contained layer as a groupBy layer.
+   */
+  Layers::GroupBy* asGroupByLayer();
+
+  /**
+   * Constructs a new index layer.
+   */
+  Layer(Layers::Index* layer);
+
+  /**
+   * Returns true if the contained layer is a index layer.
+   */
+  bool isIndexLayer();
+
+  /**
+   * Returns the contained layer as a index layer.
+   */
+  Layers::Index* asIndexLayer();
 };
 }  // namespace IR

@@ -25,5 +25,6 @@ query SellsByCity {
 
 query xxx(string $name) {
   is(Product),
-  eq(.name, $name)
+  eq(.name, $name),
+  groupBy(.name)
 }
