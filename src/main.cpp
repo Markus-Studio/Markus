@@ -37,6 +37,9 @@ int main(int argc, char* argv[]) {
 
   AST::Query* queryNode = program->getQuery("xxx");
   IR::Query queryIR = IR::Query(queryNode);
+  std::vector<IR::Layer> layers = queryIR.getLayers();
+  for (int i = 0; i < layers.size(); ++i)
+    std::cout << layers[i].toString() << std::endl;
 
   return 0;
 }

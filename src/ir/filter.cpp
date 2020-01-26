@@ -188,7 +188,7 @@ std::string Filter::toString() {
       stream << "{QUERY}";
       break;
     case Value::VALUE_KIND_VARIABLE:
-      stream << value.asVariable()->getId()
+      stream << "$" << value.asVariable()->getId()
              << value.asVariable()->getMember()->toString();
       break;
     case Value::VALUE_KIND_CALL:
