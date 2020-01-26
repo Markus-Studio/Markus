@@ -120,6 +120,11 @@ class List {
    * Sort this list using the given axis.
    */
   void sort(Type::Uri axis);
+
+  /**
+   * Returns a string representing this layer.
+   */
+  std::string toString();
 };
 }  // namespace Layers
 }  // namespace IR

@@ -61,5 +61,10 @@ class Aggregation {
    * Returns the aggregation function.
    */
   enum AggregationFunction getFunction();
+
+  /**
+   * Returns a string represneting the data inside this aggregation.
+   */
+  std::string toString();
 };
 }  // namespace IR

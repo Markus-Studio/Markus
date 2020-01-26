@@ -1,5 +1,6 @@
 #include "type/uri.hpp"
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -58,6 +59,15 @@ std::string Uri::getFirstUnit() {
 
 int Uri::size() {
   return units.size();
+}
+
+std::string Uri::toString() {
+  if (units.size() == 0)
+    return "";
+  std::stringstream stream;
+  for (int i = 0; i < units.size(); ++i)
+    stream << "." << units[i];
+  return stream.str();
 }
 
 bool Uri::operator==(Type::Uri uri) {

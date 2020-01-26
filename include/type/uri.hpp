@@ -82,6 +82,11 @@ class Uri {
   int size();
 
   /**
+   * Convert the into a string like `a.x`.
+   */
+  std::string toString();
+
+  /**
    * Returns true if both of the URIs are pointing to the same thing.
    */
   bool operator==(Type::Uri uri);

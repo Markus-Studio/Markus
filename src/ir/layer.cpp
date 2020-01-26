@@ -12,6 +12,21 @@ enum LayerKind Layer::getKind() {
   return kind;
 }
 
+std::string Layer::toString() {
+  switch (kind) {
+    case LAYER_NO_LAYER:
+      return "[NIL]";
+    case LAYER_GROUP_BY:
+      return asGroupByLayer()->toString();
+    case LAYER_INDEX:
+      return asIndexLayer()->toString();
+    case LAYER_LIST:
+      return asListLayer()->toString();
+    default:
+      return "[NOT_SUPPORTED]";
+  }
+}
+
 Layer::Layer(Layers::List* layer) {
   kind = LAYER_LIST;
   this->layer = layer;

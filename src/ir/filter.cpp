@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include <iostream>
+#include <sstream>
 
 namespace IR {
 Filter::Filter() {}
@@ -132,6 +133,70 @@ bool Filter::isEffecting(Type::Uri uri) {
     if (u1[i] != u2[i])
       return false;
   return true;
+}
+
+std::string Filter::toString() {
+  std::stringstream stream;
+  switch (op) {
+    case FILTER_IS:
+      stream << "is";
+      break;
+    case FILTER_EQ:
+      stream << "eq";
+      break;
+    case FILTER_NEQ:
+      stream << "neq";
+      break;
+    case FILTER_LT:
+      stream << "lt";
+      break;
+    case FILTER_GT:
+      stream << "gt";
+      break;
+    case FILTER_LTE:
+      stream << "lte";
+      break;
+    case FILTER_GTE:
+      stream << "gte";
+      break;
+  }
+
+  stream << " ";
+  if (_isBinary)
+    stream << field.toString() << " ";
+
+  switch (value.getKind()) {
+    case Value::VALUE_KIND_NO_VALUE:
+      stream << "[NIL]";
+      break;
+    case Value::VALUE_KIND_INT:
+      stream << value.asInt()->getValue();
+      break;
+    case Value::VALUE_KIND_FLOAT:
+      stream << value.asFloat()->getValue();
+      break;
+    case Value::VALUE_KIND_BOOL:
+      stream << (value.asBool()->getValue() ? "true" : "false");
+      break;
+    case Value::VALUE_KIND_STRING:
+      stream << value.asString()->getValue();
+      break;
+    case Value::VALUE_KIND_TYPE:
+      stream << value.asType()->getType().toString();
+      break;
+    case Value::VALUE_KIND_QUERY:
+      stream << "{QUERY}";
+      break;
+    case Value::VALUE_KIND_VARIABLE:
+      stream << value.asVariable()->getId()
+             << value.asVariable()->getMember()->toString();
+      break;
+    case Value::VALUE_KIND_CALL:
+      stream << value.asCall()->getCalleeName() << "(...)";
+      break;
+  }
+
+  return stream.str();
 }
 
 bool Filter::operator==(Filter rhs) {

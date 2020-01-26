@@ -100,6 +100,11 @@ class GroupBy {
    * possible to find a place for it.
    */
   bool filter(Filter filter);
+
+  /**
+   * Returns a string representing this layer.
+   */
+  std::string toString();
 };
 }  // namespace Layers
 }  // namespace IR

@@ -30,6 +30,11 @@ class Index {
    * Returns true if the filter collection is empty.
    */
   bool isFunctionEmpty();
+
+  /**
+   * Returns a string representing this layer.
+   */
+  std::string toString();
 };
 }  // namespace Layers
 }  // namespace IR

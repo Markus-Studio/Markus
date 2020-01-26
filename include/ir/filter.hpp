@@ -118,6 +118,11 @@ class Filter {
   bool isEffecting(Type::Uri uri);
 
   /**
+   * Returns a one-line string representing this filter.
+   */
+  std::string toString();
+
+  /**
    * Compares current filter with another filter returns true if they are
    * equal.
    */

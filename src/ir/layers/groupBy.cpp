@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include <sstream>
+
 namespace IR {
 namespace Layers {
 GroupBy::GroupBy(Type::Uri axis) {
@@ -61,6 +63,39 @@ void GroupBy::sortLabels() {
 bool GroupBy::filter(Filter filter) {
   // TODO(qti3e)
   return false;
+}
+
+std::string GroupBy::toString() {
+  std::stringstream stream;
+  stream << "GroupBy {" << std::endl;
+  stream << "  axis: " << this->axis.toString() << std::endl;
+  if (axisSorted)
+    stream << "  axisSorted: true" << std::endl;
+
+  if (!dynamicLabelFilter.isEmpty()) {
+    std::vector<Filter> filters = dynamicLabelFilter.getFilters();
+    stream << "  dynamicLabelFilter: Filter {" << std::endl;
+    for (int i = 0; i < filters.size(); ++i)
+      stream << "    " << filters[i].toString() << std::endl;
+    stream << "  }" << std::endl;
+  }
+
+  if (!staticFilter.isEmpty()) {
+    std::vector<Filter> filters = staticFilter.getFilters();
+    stream << "  staticFilter: Filter {" << std::endl;
+    for (int i = 0; i < filters.size(); ++i)
+      stream << "    " << filters[i].toString() << std::endl;
+    stream << "  }" << std::endl;
+  }
+
+  if (aggregation != nullptr) {
+    stream << "  aggregation: {" << std::endl;
+    stream << "    " << aggregation->toString() << std::endl;
+    stream << "  }" << std::endl;
+  }
+
+  stream << "}";
+  return stream.str();
 }
 }  // namespace Layers
 }  // namespace IR

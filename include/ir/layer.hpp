@@ -44,6 +44,11 @@ class Layer {
   enum LayerKind getKind();
 
   /**
+   * Returns a string representing this layer.
+   */
+  std::string toString();
+
+  /**
    * Constructs a new layer containing a list layer.
    */
   Layer(Layers::List* layer);
