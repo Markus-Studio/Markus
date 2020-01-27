@@ -1,0 +1,30 @@
+type Product {
+  float price;
+  string name;
+}
+
+type City: geo {
+  string name;
+}
+
+type Sell {
+  Product product;
+  City location;
+  time date;
+}
+
+type User: user {
+  string name;
+}
+
+query SellsByCity {
+  is(Sell),
+  groupBy(.location),
+  groupBy(.label)
+}
+
+query xxx(string $name) {
+  is(Product),
+  eq(.name, $name),
+  groupBy(.name)
+}
