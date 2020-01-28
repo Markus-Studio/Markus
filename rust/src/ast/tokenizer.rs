@@ -1,5 +1,4 @@
 use crate::ast::diagnostics::Diagnostic;
-use crate::ast::source::Source;
 
 pub enum Token<'a> {
     LeftParenthesis,
@@ -19,53 +18,45 @@ pub enum Token<'a> {
 }
 
 pub struct Tokenizer<'a> {
-    source: &'a mut Source<'a>,
+    data: &'a str,
+    size: usize,
     position: usize,
-    current_line_start_position: usize,
-    current_line_number: u32,
     occurred_error: bool,
+    diagnostic: Diagnostic,
 }
 
 impl<'a> Tokenizer<'a> {
-    pub fn new(source: &'a mut Source<'a>) -> Tokenizer<'a> {
+    pub fn new(data: &'a str) -> Tokenizer<'a> {
         Tokenizer {
-            source: source,
+            data: data,
+            size: data.chars().count(),
             position: 0,
-            current_line_number: 1,
-            current_line_start_position: 0,
             occurred_error: false,
+            diagnostic: Diagnostic::NoDiagnostic,
         }
     }
 
     #[inline]
     fn char(&self) -> Option<char> {
-        if self.is_eof() {
+        if self.is_eol() {
             None
         } else {
-            Some(
-                self.source.get_data()[self.position..]
-                    .chars()
-                    .next()
-                    .unwrap(),
-            )
+            Some(self.data[self.position..].chars().next().unwrap())
         }
     }
 
     #[inline]
     fn char_unchecked(&self) -> char {
-        self.source.get_data()[self.position..]
-            .chars()
-            .next()
-            .unwrap()
+        self.data[self.position..].chars().next().unwrap()
     }
 
     #[inline]
     fn has_at_least(&self, n: usize) -> bool {
-        self.position + n < self.source.get_data().len()
+        self.position + n < self.size
     }
 
     #[inline]
-    fn is_eof(&self) -> bool {
+    fn is_eol(&self) -> bool {
         !self.has_at_least(0)
     }
 
@@ -77,26 +68,31 @@ impl<'a> Tokenizer<'a> {
     #[inline]
     fn report(&mut self, diagnostic: Diagnostic) {
         self.occurred_error = true;
-        self.source.report(diagnostic);
-    }
-
-    #[inline]
-    fn consume_new_line(&mut self) {
-        let character = self.char_unchecked();
-        self.position += 1;
-        if character == '\r' && self.char() == Some('\n') {
-            self.position += 1;
-        }
-        self.current_line_start_position = self.position;
-        self.current_line_number += 1;
+        self.diagnostic = diagnostic;
     }
 
     #[inline]
     fn consume_blank(&mut self) {
         loop {
             match self.char() {
-                Some(' ') | Some('\t') => self.position += 1,
-                Some('\r') | Some('\n') => self.consume_new_line(),
+                // Usual ASCII suspects
+                | Some('\u{0009}') // \t
+                | Some('\u{000A}') // \n
+                | Some('\u{000B}') // vertical tab
+                | Some('\u{000C}') // form feed
+                | Some('\u{000D}') // \r
+                | Some('\u{0020}') // space
+                // NEXT LINE from latin1
+                | Some('\u{0085}')
+                // Bidi markers
+                | Some('\u{200E}') // LEFT-TO-RIGHT MARK
+                | Some('\u{200F}') // RIGHT-TO-LEFT MARK
+                // Dedicated whitespace characters from Unicode
+                | Some('\u{2028}') // LINE SEPARATOR
+                | Some('\u{2029}') // PARAGRAPH SEPARATOR
+                => {
+                    self.advance(1);
+                }
                 _ => break,
             }
         }
@@ -111,14 +107,10 @@ impl<'a> Tokenizer<'a> {
                 size += 1;
                 self.advance(1);
             }
-            None => {
+            _ => {
                 self.report(Diagnostic::UnexpectedCharacter {
                     position: self.position,
                 });
-                return None;
-            }
-            _ => {
-                self.report(Diagnostic::EarlyEndOfFile);
                 return None;
             }
         }
@@ -133,7 +125,7 @@ impl<'a> Tokenizer<'a> {
             }
         }
 
-        Some(&self.source.get_data()[(self.position - size)..self.position])
+        Some(&self.data[(self.position - size)..self.position])
     }
 
     #[inline]
@@ -166,14 +158,10 @@ impl<'a> Tokenizer<'a> {
                             floating += c.to_digit(10).unwrap() as f64 * floating_counter;
                             floating_counter /= 10.0;
                         }
-                        Some(_) => {
+                        _ => {
                             self.report(Diagnostic::UnexpectedCharacter {
                                 position: self.position,
                             });
-                            return None;
-                        }
-                        None => {
-                            self.report(Diagnostic::EarlyEndOfFile);
                             return None;
                         }
                     }
@@ -197,7 +185,7 @@ impl<'a> Tokenizer<'a> {
 
         self.consume_blank();
 
-        if self.is_eof() {
+        if self.is_eol() {
             return None;
         }
 
