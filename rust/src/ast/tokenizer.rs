@@ -8,6 +8,9 @@ pub enum Token<'a> {
     RightBrace,
     Dot,
     Comma,
+    Semicolon,
+    Colon,
+    At,
     Identifier(&'a str),
     Parameter(&'a str),
     InternalVariable(&'a str),
@@ -135,8 +138,55 @@ impl<'a> Tokenizer<'a> {
 
     #[inline]
     fn eat_numeric_token(&mut self) -> Option<Token<'a>> {
-        // TODO(qti3e)
-        None
+        let mut seen_float_point = false;
+
+        let mut integer: i64 = 0;
+        let mut floating: f64 = 0.0;
+        let mut floating_counter: f64 = 0.1;
+
+        loop {
+            match self.char() {
+                Some(c) if is_digit(c) => {
+                    self.advance(1);
+
+                    if seen_float_point {
+                        floating += c.to_digit(10).unwrap() as f64 * floating_counter;
+                        floating_counter /= 10.0;
+                    } else {
+                        integer = integer * 10 + c.to_digit(10).unwrap() as i64;
+                    }
+                }
+                Some('.') if !seen_float_point => {
+                    self.advance(1);
+                    seen_float_point = true;
+
+                    match self.char() {
+                        Some(c) if is_digit(c) => {
+                            self.advance(1);
+                            floating += c.to_digit(10).unwrap() as f64 * floating_counter;
+                            floating_counter /= 10.0;
+                        }
+                        Some(_) => {
+                            self.report(Diagnostic::UnexpectedCharacter {
+                                position: self.position,
+                            });
+                            return None;
+                        }
+                        None => {
+                            self.report(Diagnostic::EarlyEndOfFile);
+                            return None;
+                        }
+                    }
+                }
+                _ => break,
+            }
+        }
+
+        if seen_float_point {
+            Some(Token::Float(integer as f64 + floating))
+        } else {
+            Some(Token::Int(integer))
+        }
     }
 
     #[inline]
@@ -171,6 +221,18 @@ impl<'a> Tokenizer<'a> {
             ',' => {
                 self.advance(1);
                 Some(Token::Comma)
+            }
+            ';' => {
+                self.advance(1);
+                Some(Token::Semicolon)
+            }
+            ':' => {
+                self.advance(1);
+                Some(Token::Colon)
+            }
+            '@' => {
+                self.advance(1);
+                Some(Token::At)
             }
             '.' => {
                 self.advance(1);
@@ -230,6 +292,14 @@ fn is_identifier_start(c: char) -> bool {
 fn is_identifier_part(c: char) -> bool {
     match c {
         'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => true,
+        _ => false,
+    }
+}
+
+#[inline]
+fn is_digit(c: char) -> bool {
+    match c {
+        '0'..='9' => true,
         _ => false,
     }
 }
