@@ -1,4 +1,4 @@
-mod ast;
+mod parser;
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let source = "
@@ -7,7 +7,7 @@ enum X {
 }
     ";
 
-    let mut x = ast::source::Source::new(String::from("x.markus"), source);
+    let mut x = parser::source::Source::new(String::from("x.markus"), source);
 
     Ok(())
 }

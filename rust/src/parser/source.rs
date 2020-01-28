@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::ast::diagnostics;
+use crate::parser::diagnostics;
 
 #[derive(Copy, Clone)]
 pub struct Position {
@@ -119,6 +119,7 @@ impl Source {
         }
     }
 
+    /// Returns the offset of the given position.
     pub fn offset_at(&mut self, position: Position) -> usize {
         let line_offsets = self.get_line_offsets();
 
@@ -138,6 +139,7 @@ impl Source {
         }
     }
 
+    /// Apply a set of TextEdits to this source file.
     pub fn apply_edits(&mut self, edits: &mut Vec<TextEdit>) {
         if edits.len() == 0 {
             return;
@@ -168,7 +170,7 @@ impl Source {
                     self.content.insert(start_offset + i, c);
                 }
             } else {
-                // panic!("XXX");
+                panic!("Overlaps");
             }
             last_modified_offset = start_offset;
         }

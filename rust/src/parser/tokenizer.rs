@@ -1,4 +1,4 @@
-use crate::ast::diagnostics::Diagnostic;
+use crate::parser::diagnostics::Diagnostic;
 
 pub enum Token<'a> {
     LeftParenthesis,

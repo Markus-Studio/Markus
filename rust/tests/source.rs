@@ -1,6 +1,6 @@
 // From microsoft/vscode-languageserver-node
 extern crate markus;
-use markus::ast::source::*;
+use markus::parser::source::*;
 
 #[cfg(test)]
 fn get_source(data: &str) -> Source {
