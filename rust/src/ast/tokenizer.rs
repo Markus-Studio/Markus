@@ -1,26 +1,21 @@
 use crate::ast::diagnostics::Diagnostic;
 use crate::ast::source::Source;
 
-pub struct Location {
-    pub position: usize,
-    pub size: usize,
-}
-
-pub enum Token {
-    LeftParenthesis(Location),
-    RightParenthesis(Location),
-    LeftBrace(Location),
-    RightBrace(Location),
-    Dot(Location),
-    Comma(Location),
-    Semicolon(Location),
-    Colon(Location),
-    At(Location),
-    Identifier(Location),
-    Parameter(Location),
-    InternalVariable(Location),
-    Int(Location),
-    Float(Location),
+pub enum Token<'a> {
+    LeftParenthesis,
+    RightParenthesis,
+    LeftBrace,
+    RightBrace,
+    Dot,
+    Comma,
+    Semicolon,
+    Colon,
+    At,
+    Identifier(&'a str),
+    Parameter(&'a str),
+    InternalVariable(&'a str),
+    Int(i64),
+    Float(f64),
 }
 
 pub struct Tokenizer<'a> {
@@ -142,14 +137,24 @@ impl<'a> Tokenizer<'a> {
     }
 
     #[inline]
-    fn eat_numeric_token(&mut self) -> Option<Token> {
-        let start = self.position;
+    fn eat_numeric_token(&mut self) -> Option<Token<'a>> {
         let mut seen_float_point = false;
+
+        let mut integer: i64 = 0;
+        let mut floating: f64 = 0.0;
+        let mut floating_counter: f64 = 0.1;
 
         loop {
             match self.char() {
                 Some(c) if is_digit(c) => {
                     self.advance(1);
+
+                    if seen_float_point {
+                        floating += c.to_digit(10).unwrap() as f64 * floating_counter;
+                        floating_counter /= 10.0;
+                    } else {
+                        integer = integer * 10 + c.to_digit(10).unwrap() as i64;
+                    }
                 }
                 Some('.') if !seen_float_point => {
                     self.advance(1);
@@ -158,6 +163,8 @@ impl<'a> Tokenizer<'a> {
                     match self.char() {
                         Some(c) if is_digit(c) => {
                             self.advance(1);
+                            floating += c.to_digit(10).unwrap() as f64 * floating_counter;
+                            floating_counter /= 10.0;
                         }
                         Some(_) => {
                             self.report(Diagnostic::UnexpectedCharacter {
@@ -176,20 +183,14 @@ impl<'a> Tokenizer<'a> {
         }
 
         if seen_float_point {
-            Some(Token::Float(Location {
-                position: start,
-                size: self.position - start,
-            }))
+            Some(Token::Float(integer as f64 + floating))
         } else {
-            Some(Token::Int(Location {
-                position: start,
-                size: self.position - start,
-            }))
+            Some(Token::Int(integer))
         }
     }
 
     #[inline]
-    fn read_next_token(&mut self) -> Option<Token> {
+    fn read_next_token(&mut self) -> Option<Token<'a>> {
         if self.occurred_error {
             return None;
         }
@@ -200,80 +201,48 @@ impl<'a> Tokenizer<'a> {
             return None;
         }
 
-        let start = self.position;
-
         match self.char_unchecked() {
             '(' => {
                 self.advance(1);
-                Some(Token::LeftParenthesis(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::LeftParenthesis)
             }
             ')' => {
                 self.advance(1);
-                Some(Token::RightParenthesis(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::RightParenthesis)
             }
             '{' => {
                 self.advance(1);
-                Some(Token::LeftBrace(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::LeftBrace)
             }
             '}' => {
                 self.advance(1);
-                Some(Token::RightBrace(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::RightBrace)
             }
             ',' => {
                 self.advance(1);
-                Some(Token::Comma(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::Comma)
             }
             ';' => {
                 self.advance(1);
-                Some(Token::Semicolon(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::Semicolon)
             }
             ':' => {
                 self.advance(1);
-                Some(Token::Colon(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::Colon)
             }
             '@' => {
                 self.advance(1);
-                Some(Token::At(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::At)
             }
             '.' => {
                 self.advance(1);
-                Some(Token::Dot(Location {
-                    position: start,
-                    size: 1,
-                }))
+                Some(Token::Dot)
             }
             '$' => {
                 self.advance(1);
                 let tmp = self.eat_identifier();
                 match tmp {
-                    Some(c) => Some(Token::Parameter(Location {
-                        position: start,
-                        size: 1 + c.len(),
-                    })),
+                    Some(c) => Some(Token::Parameter(c)),
                     None => None,
                 }
             }
@@ -281,10 +250,7 @@ impl<'a> Tokenizer<'a> {
                 self.advance(1);
                 let tmp = self.eat_identifier();
                 match tmp {
-                    Some(c) => Some(Token::InternalVariable(Location {
-                        position: start,
-                        size: 1 + c.len(),
-                    })),
+                    Some(c) => Some(Token::InternalVariable(c)),
                     None => None,
                 }
             }
@@ -292,10 +258,7 @@ impl<'a> Tokenizer<'a> {
             c if is_identifier_start(c) => {
                 let tmp = self.eat_identifier();
                 match tmp {
-                    Some(c) => Some(Token::Identifier(Location {
-                        position: start,
-                        size: c.len(),
-                    })),
+                    Some(c) => Some(Token::Identifier(c)),
                     None => None,
                 }
             }
@@ -310,7 +273,7 @@ impl<'a> Tokenizer<'a> {
 }
 
 impl<'a> Iterator for Tokenizer<'a> {
-    type Item = Token;
+    type Item = Token<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.read_next_token()
