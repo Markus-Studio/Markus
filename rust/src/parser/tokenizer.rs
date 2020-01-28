@@ -18,18 +18,16 @@ pub enum Token<'a> {
 }
 
 pub struct Tokenizer<'a> {
-    data: &'a str,
-    size: usize,
+    data: &'a Vec<u16>,
     position: usize,
     occurred_error: bool,
     diagnostic: Diagnostic,
 }
 
 impl<'a> Tokenizer<'a> {
-    pub fn new(data: &'a str) -> Tokenizer<'a> {
+    pub fn new(data: &'a Vec<u16>) -> Tokenizer<'a> {
         Tokenizer {
             data: data,
-            size: data.chars().count(),
             position: 0,
             occurred_error: false,
             diagnostic: Diagnostic::NoDiagnostic,
@@ -41,18 +39,25 @@ impl<'a> Tokenizer<'a> {
         if self.is_eol() {
             None
         } else {
-            Some(self.data[self.position..].chars().next().unwrap())
+            String::from_utf16(&[self.data[self.position]])
+                .unwrap()
+                .chars()
+                .next()
         }
     }
 
     #[inline]
     fn char_unchecked(&self) -> char {
-        self.data[self.position..].chars().next().unwrap()
+        String::from_utf16(&[self.data[self.position]])
+            .unwrap()
+            .chars()
+            .next()
+            .unwrap()
     }
 
     #[inline]
     fn has_at_least(&self, n: usize) -> bool {
-        self.position + n < self.size
+        self.position + n < self.data.len()
     }
 
     #[inline]
@@ -125,7 +130,7 @@ impl<'a> Tokenizer<'a> {
             }
         }
 
-        Some(&self.data[(self.position - size)..self.position])
+        Some("XX")
     }
 
     #[inline]

@@ -139,10 +139,36 @@ impl Source {
         }
     }
 
-    /// Apply a set of TextEdits to this source file.
-    pub fn apply_edits(&mut self, edits: &mut Vec<TextEdit>) {
+    /// Returns the position at the given offset.
+    pub fn position_at(&mut self, mut offset: usize) -> Position {
+        offset = std::cmp::min(offset, self.content.len());
+
+        let line_offsets = self.get_line_offsets();
+        let mut low = 0;
+        let mut high = line_offsets.len();
+
+        if high == 0 {
+            return Position::new(0, offset);
+        }
+
+        while low < high {
+            let mid = (low + high) / 2;
+            if line_offsets[mid] > offset {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        let line = low - 1;
+        Position::new(line, offset - line_offsets[line])
+    }
+
+    /// Apply a set of TextEdits to this source file, returns a range indicating
+    /// the region that was effect (offsets are based on the current content)
+    pub fn apply_edits(&mut self, edits: &mut Vec<TextEdit>) -> Range {
         if edits.len() == 0 {
-            return;
+            return Range::new(Position::new(0, 0), Position::new(0, 0));
         }
 
         edits.sort_by(|a, b| {
@@ -156,18 +182,29 @@ impl Source {
 
         edits.reverse();
 
+        let min_effected_offset = self.offset_at(edits[0].range.start);
+        let mut max_effected_offset = 0;
         let mut last_modified_offset = self.content.len();
 
         for e in edits {
             let start_offset = self.offset_at(e.range.start);
             let end_offset = self.offset_at(e.range.end);
+
+            if end_offset > max_effected_offset {
+                max_effected_offset = end_offset;
+            }
+
             if end_offset <= last_modified_offset {
                 for _ in start_offset..end_offset {
                     self.content.remove(start_offset);
                 }
 
                 for (i, c) in e.new_text.encode_utf16().enumerate() {
-                    self.content.insert(start_offset + i, c);
+                    let offset = start_offset + i;
+                    self.content.insert(offset, c);
+                    if offset > max_effected_offset {
+                        max_effected_offset = offset;
+                    }
                 }
             } else {
                 panic!("Overlaps");
@@ -176,19 +213,15 @@ impl Source {
         }
 
         self.compute_line_offsets();
-    }
-}
-
-impl Position {
-    pub fn new(line: usize, character: usize) -> Position {
-        Position {
-            line: line,
-            character: character,
-        }
+        Range::new(
+            self.position_at(min_effected_offset),
+            self.position_at(max_effected_offset + 1),
+        )
     }
 }
 
 impl TextEdit {
+    /// Creates a new TextEdit that inserts the given text at the given position.
     pub fn insert(position: Position, text: String) -> TextEdit {
         TextEdit {
             range: Range {
@@ -205,6 +238,8 @@ impl TextEdit {
         }
     }
 
+    /// Creates a new TextEdit that replaces the data in the given range with
+    /// the given text.
     pub fn replace(start: Position, end: Position, text: String) -> TextEdit {
         TextEdit {
             range: Range {
@@ -213,5 +248,93 @@ impl TextEdit {
             },
             new_text: text,
         }
+    }
+}
+
+impl Position {
+    pub fn new(line: usize, character: usize) -> Position {
+        Position {
+            line: line,
+            character: character,
+        }
+    }
+
+    pub fn min(self, position: Position) -> Position {
+        if self.line == position.line {
+            if self.character < position.character {
+                self
+            } else {
+                position
+            }
+        } else if self.line < position.line {
+            self
+        } else {
+            position
+        }
+    }
+
+    pub fn max(self, position: Position) -> Position {
+        if self.line == position.line {
+            if self.character < position.character {
+                position
+            } else {
+                self
+            }
+        } else if self.line < position.line {
+            position
+        } else {
+            self
+        }
+    }
+}
+
+impl Range {
+    pub fn new(start: Position, end: Position) -> Range {
+        Range {
+            start: start.min(end),
+            end: end.max(start),
+        }
+    }
+
+    /// Returns true if the given position is inside the current range.
+    #[inline]
+    pub fn contains(&self, position: Position) -> bool {
+        self.start.line >= position.line
+            && self.start.character <= position.character
+            && self.end.line <= position.line
+            && self.end.character > position.character
+    }
+}
+
+impl std::ops::Add<Range> for Range {
+    type Output = Range;
+
+    fn add(self, rhs: Range) -> Range {
+        Range {
+            start: self.start.min(rhs.start),
+            end: self.start.max(rhs.end),
+        }
+    }
+}
+
+impl std::cmp::PartialEq<Range> for Range {
+    fn eq(&self, other: &Range) -> bool {
+        self.start == other.start && self.end == other.end
+    }
+}
+
+impl std::cmp::PartialEq<Position> for Position {
+    fn eq(&self, other: &Position) -> bool {
+        self.line == other.line && self.character == other.character
+    }
+}
+
+impl std::fmt::Debug for Range {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Range(Start({}, {}), End({}, {}))",
+            self.start.line, self.start.character, self.end.line, self.end.character
+        )
     }
 }

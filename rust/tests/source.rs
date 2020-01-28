@@ -7,14 +7,19 @@ fn get_source(data: &str) -> Source {
     Source::new(String::from("foo://bar"), data)
 }
 
+// TODO(qti3e) Test effected regions.
+
 #[test]
 fn inserts() {
     {
         let mut source = get_source("012345678901234567890123456789");
-        source.apply_edits(&mut vec![TextEdit::insert(
-            Position::new(0, 0),
-            String::from("Hello"),
-        )]);
+        assert_eq!(
+            source.apply_edits(&mut vec![TextEdit::insert(
+                Position::new(0, 0),
+                String::from("Hello"),
+            )]),
+            Range::new(Position::new(0, 0), Position::new(0, 5))
+        );
         assert_eq!(
             "Hello012345678901234567890123456789",
             source.get_content_utf8()
@@ -23,10 +28,13 @@ fn inserts() {
 
     {
         let mut source = get_source("012345678901234567890123456789");
-        source.apply_edits(&mut vec![TextEdit::insert(
-            Position::new(0, 1),
-            String::from("Hello"),
-        )]);
+        assert_eq!(
+            source.apply_edits(&mut vec![TextEdit::insert(
+                Position::new(0, 1),
+                String::from("Hello"),
+            )]),
+            Range::new(Position::new(0, 1), Position::new(0, 6))
+        );
         assert_eq!(
             "0Hello12345678901234567890123456789",
             source.get_content_utf8()
