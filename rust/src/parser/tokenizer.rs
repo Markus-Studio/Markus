@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TokenKind {
     Unknown,
     LeftParenthesis,
@@ -20,14 +20,14 @@ pub enum TokenKind {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct TokenPosition {
-    pub start: usize,
+pub struct Span {
+    pub offset: usize,
     pub size: usize,
 }
 
 #[derive(Copy, Clone)]
 pub struct Token {
-    pub position: TokenPosition,
+    pub position: Span,
     pub kind: TokenKind,
 }
 
@@ -186,6 +186,20 @@ impl<'a> Tokenizer<'a> {
         let start = self.position;
 
         match self.char_unchecked() {
+            '#' => {
+                // Comment.
+                loop {
+                    match self.char() {
+                        Some(c) if c != '\n' => {
+                            self.advance(1);
+                        }
+                        _ => {
+                            break;
+                        }
+                    }
+                }
+                self.read_next_token()
+            }
             '(' => {
                 self.advance(1);
                 Some(Token::new(TokenKind::LeftParenthesis, start, 1))
@@ -281,10 +295,10 @@ fn is_digit(c: char) -> bool {
     }
 }
 
-impl TokenPosition {
-    pub fn new(start: usize, size: usize) -> TokenPosition {
-        TokenPosition {
-            start: start,
+impl Span {
+    pub fn new(start: usize, size: usize) -> Span {
+        Span {
+            offset: start,
             size: size,
         }
     }
@@ -293,7 +307,7 @@ impl TokenPosition {
 impl Token {
     pub fn new(kind: TokenKind, start: usize, size: usize) -> Token {
         Token {
-            position: TokenPosition::new(start, size),
+            position: Span::new(start, size),
             kind: kind,
         }
     }
@@ -312,7 +326,7 @@ impl Token {
                 if w16.len() != self.position.size {
                     false
                 } else {
-                    data[self.position.start..self.position.start + self.position.size]
+                    data[self.position.offset..self.position.offset + self.position.size]
                         == w16[0..self.position.size]
                 }
             }
@@ -326,7 +340,16 @@ impl std::fmt::Debug for Token {
         write!(
             f,
             "Token(Position({}, {}), {:?})",
-            self.position.start, self.position.size, self.kind
+            self.position.offset, self.position.size, self.kind
         )
+    }
+}
+
+impl Span {
+    pub fn from_positions(start: usize, end: usize) -> Span {
+        Span {
+            offset: start,
+            size: end - start,
+        }
     }
 }

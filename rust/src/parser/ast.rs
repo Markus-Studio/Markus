@@ -1,82 +1,91 @@
 #![allow(dead_code)]
-use crate::parser::parser;
+use crate::parser::parser::Parser;
 use crate::parser::source::Source;
+use crate::parser::tokenizer::Span;
 
 pub struct Program {
     pub source: Source,
     pub declarations: Vec<Declaration>,
 }
 
-pub struct AstRange {
-    pub offset: usize,
-    pub size: usize,
-}
-
+#[derive(Debug)]
 pub struct IdentifierNode {
-    pub range: AstRange,
+    pub location: Span,
 }
 
+#[derive(Debug)]
 pub struct IntLiteralNode {
-    pub range: AstRange,
+    pub location: Span,
 }
 
+#[derive(Debug)]
 pub struct FloatLiteralNode {
-    pub range: AstRange,
+    pub location: Span,
 }
 
+#[derive(Debug)]
 pub struct BooleanLiteralNode {
-    pub range: AstRange,
+    pub location: Span,
 }
 
+#[derive(Debug)]
 pub struct ParameterNode {
-    pub range: AstRange,
+    pub location: Span,
     pub name: IdentifierNode,
     pub type_name: IdentifierNode,
 }
 
+#[derive(Debug)]
 pub struct QueryDeclarationNode {
-    pub range: AstRange,
+    pub location: Span,
     pub name: IdentifierNode,
     pub parameter: Vec<ParameterNode>,
     pub pipelines: Vec<CallNode>,
 }
 
+#[derive(Debug)]
 pub struct TypeDeclarationNode {
-    pub range: AstRange,
-    pub name: IdentifierNode,
+    pub location: Span,
+    pub name: Option<IdentifierNode>,
     pub bases: Vec<IdentifierNode>,
     pub fields: Vec<TypeFieldNode>,
 }
 
+#[derive(Debug)]
 pub struct TypeFieldNode {
-    pub range: AstRange,
+    pub location: Span,
     pub nullable: bool,
     pub name: IdentifierNode,
     pub type_name: IdentifierNode,
 }
 
+#[derive(Debug)]
 pub struct CallNode {
-    pub range: AstRange,
+    pub location: Span,
     pub callee_name: IdentifierNode,
     pub arguments: Vec<ValueNode>,
 }
 
+#[derive(Debug)]
 pub struct AccessNode {
-    pub range: AstRange,
+    pub location: Span,
     pub base: VariableReferenceNode,
     pub parts: Vec<IdentifierNode>,
 }
 
+#[derive(Debug)]
 pub struct TypeReferenceNode {
-    pub range: AstRange,
+    pub location: Span,
     pub name: IdentifierNode,
 }
 
+#[derive(Debug)]
 pub enum Declaration {
     Query(QueryDeclarationNode),
     Type(TypeDeclarationNode),
 }
 
+#[derive(Debug)]
 pub enum ValueNode {
     Access(AccessNode),
     Int(IntLiteralNode),
@@ -86,6 +95,7 @@ pub enum ValueNode {
     Type(TypeReferenceNode),
 }
 
+#[derive(Debug)]
 pub enum VariableReferenceNode {
     Current,
     Internal(IdentifierNode),
@@ -105,5 +115,14 @@ impl Program {
     /// Hard parse the source code.
     pub fn parse(&mut self) {
         self.declarations.clear();
+        let mut parser = Parser::new(&self.source.content, 0);
+        loop {
+            match parser.parse_declaration() {
+                Some(declaration) => {
+                    self.declarations.push(declaration);
+                }
+                None => break,
+            }
+        }
     }
 }

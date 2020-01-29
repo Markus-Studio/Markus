@@ -37,7 +37,7 @@ pub struct Source {
     /// We use UTF-16 to have an O(1) mapping from offset to character index.
     /// Also another reason to use a Vector in this situation over a string is
     /// it's so much easier/faster to edit the data.
-    content: Vec<u16>,
+    pub content: Vec<u16>,
     // Line's offsets.
     line_offsets: Option<Vec<usize>>,
 }
