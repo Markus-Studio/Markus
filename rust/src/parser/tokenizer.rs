@@ -1,7 +1,8 @@
 #![allow(dead_code)]
 
-#[derive(Copy, Clone)]
-pub enum Token {
+#[derive(Copy, Clone, Debug)]
+pub enum TokenKind {
+    Unknown,
     LeftParenthesis,
     RightParenthesis,
     LeftBrace,
@@ -11,12 +12,23 @@ pub enum Token {
     Semicolon,
     Colon,
     At,
-    Unknown,
-    Identifier { start: usize, size: usize },
-    Parameter { start: usize, size: usize },
-    InternalVariable { start: usize, size: usize },
-    Int { start: usize, size: usize },
-    Float { start: usize, size: usize },
+    Identifier,
+    Parameter,
+    InternalVariable,
+    Int,
+    Float,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct TokenPosition {
+    pub start: usize,
+    pub size: usize,
+}
+
+#[derive(Copy, Clone)]
+pub struct Token {
+    pub position: TokenPosition,
+    pub kind: TokenKind,
 }
 
 pub struct Tokenizer<'a> {
@@ -153,17 +165,14 @@ impl<'a> Tokenizer<'a> {
             }
         }
 
-        if seen_float_point {
-            Some(Token::Float {
-                start: start,
-                size: self.position - start,
-            })
-        } else {
-            Some(Token::Int {
-                start: start,
-                size: self.position - start,
-            })
-        }
+        Some(Token::new(
+            match seen_float_point {
+                true => TokenKind::Float,
+                false => TokenKind::Int,
+            },
+            start,
+            self.position - start,
+        ))
     }
 
     #[inline]
@@ -174,79 +183,67 @@ impl<'a> Tokenizer<'a> {
             return None;
         }
 
+        let start = self.position;
+
         match self.char_unchecked() {
             '(' => {
                 self.advance(1);
-                Some(Token::LeftParenthesis)
+                Some(Token::new(TokenKind::LeftParenthesis, start, 1))
             }
             ')' => {
                 self.advance(1);
-                Some(Token::RightParenthesis)
+                Some(Token::new(TokenKind::RightParenthesis, start, 1))
             }
             '{' => {
                 self.advance(1);
-                Some(Token::LeftBrace)
+                Some(Token::new(TokenKind::LeftBrace, start, 1))
             }
             '}' => {
                 self.advance(1);
-                Some(Token::RightBrace)
+                Some(Token::new(TokenKind::RightBrace, start, 1))
             }
             ',' => {
                 self.advance(1);
-                Some(Token::Comma)
+                Some(Token::new(TokenKind::Comma, start, 1))
             }
             ';' => {
                 self.advance(1);
-                Some(Token::Semicolon)
+                Some(Token::new(TokenKind::Semicolon, start, 1))
             }
             ':' => {
                 self.advance(1);
-                Some(Token::Colon)
+                Some(Token::new(TokenKind::Colon, start, 1))
             }
             '@' => {
                 self.advance(1);
-                Some(Token::At)
+                Some(Token::new(TokenKind::At, start, 1))
             }
             '.' => {
                 self.advance(1);
-                Some(Token::Dot)
+                Some(Token::new(TokenKind::Dot, start, 1))
             }
             '$' => {
-                let start = self.position;
                 self.advance(1);
                 match self.eat_identifier() {
-                    Some(size) => Some(Token::Parameter {
-                        start: start,
-                        size: size,
-                    }),
-                    None => Some(Token::Unknown),
+                    Some(size) => Some(Token::new(TokenKind::Parameter, start, size)),
+                    None => Some(Token::new(TokenKind::Unknown, start, 1)),
                 }
             }
             '%' => {
-                let start = self.position;
                 self.advance(1);
                 match self.eat_identifier() {
-                    Some(size) => Some(Token::InternalVariable {
-                        start: start,
-                        size: size,
-                    }),
-                    None => Some(Token::Unknown),
+                    Some(size) => Some(Token::new(TokenKind::InternalVariable, start, size)),
+                    None => Some(Token::new(TokenKind::Unknown, start, 1)),
                 }
             }
             '0'..='9' | '+' | '-' => self.eat_numeric_token(),
-            c if is_identifier_start(c) => {
-                let start = self.position;
-                match self.eat_identifier() {
-                    Some(size) => Some(Token::Identifier {
-                        start: start,
-                        size: size,
-                    }),
-                    None => Some(Token::Unknown),
-                }
-            }
+            c if is_identifier_start(c) => match self.eat_identifier() {
+                Some(size) => Some(Token::new(TokenKind::Identifier, start, size)),
+                None => Some(Token::new(TokenKind::Unknown, start, 1)),
+            },
             _ => {
                 self.advance(1);
-                Some(Token::Unknown)
+                Some(Token::new(TokenKind::Unknown, start, 1))
             }
         }
     }
@@ -284,25 +281,52 @@ fn is_digit(c: char) -> bool {
     }
 }
 
+impl TokenPosition {
+    pub fn new(start: usize, size: usize) -> TokenPosition {
+        TokenPosition {
+            start: start,
+            size: size,
+        }
+    }
+}
+
 impl Token {
+    pub fn new(kind: TokenKind, start: usize, size: usize) -> Token {
+        Token {
+            position: TokenPosition::new(start, size),
+            kind: kind,
+        }
+    }
+
     pub fn is_identifer(&self) -> bool {
-        match self {
-            Token::Identifier { start: _, size: _ } => true,
+        match self.kind {
+            TokenKind::Identifier => true,
             _ => false,
         }
     }
 
     pub fn compare_identifier(&self, data: &Vec<u16>, word: &str) -> bool {
-        match self {
-            Token::Identifier { start, size } => {
+        match self.kind {
+            TokenKind::Identifier => {
                 let w16: Vec<u16> = word.encode_utf16().collect();
-                if w16.len() != *size {
+                if w16.len() != self.position.size {
                     false
                 } else {
-                    data[*start..*start + *size] == w16[0..*size]
+                    data[self.position.start..self.position.start + self.position.size]
+                        == w16[0..self.position.size]
                 }
             }
             _ => false,
         }
+    }
+}
+
+impl std::fmt::Debug for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Token(Position({}, {}), {:?})",
+            self.position.start, self.position.size, self.kind
+        )
     }
 }

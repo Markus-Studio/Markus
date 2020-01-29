@@ -6,7 +6,6 @@ pub struct Parser<'a> {
     tokenizer: Tokenizer<'a>,
     data: &'a Vec<u16>,
     tokens: Vec<Token>,
-    positions: Vec<usize>,
     current_token_index: usize,
     history_stack: Vec<usize>,
 }
@@ -17,7 +16,6 @@ impl<'a> Parser<'a> {
             tokenizer: Tokenizer::new(data, position),
             data: data,
             tokens: vec![],
-            positions: vec![],
             current_token_index: 0,
             history_stack: vec![0],
         }
@@ -29,28 +27,21 @@ impl<'a> Parser<'a> {
         self.current_token_index += n;
     }
 
+    #[inline]
     fn position(&mut self, n: usize) -> usize {
-        self.lookahead(n);
-        if self.positions.len() >= self.current_token_index + n {
-            panic!("Out of range.");
+        match self.lookahead(n) {
+            Some(token) => token.position.start,
+            None => {
+                panic!("Out of range.");
+            }
         }
-        self.positions[self.current_token_index + n]
     }
 
     #[inline]
     fn lookahead(&mut self, n: usize) -> Option<Token> {
         while self.current_token_index + n >= self.tokens.len() {
-            let position = self.tokenizer.position;
             match self.tokenizer.next() {
                 Some(token) => {
-                    match token {
-                        Token::Identifier { start, size: _ } => self.positions.push(start),
-                        Token::Parameter { start, size: _ } => self.positions.push(start),
-                        Token::InternalVariable { start, size: _ } => self.positions.push(start),
-                        Token::Int { start, size: _ } => self.positions.push(start),
-                        Token::Float { start, size: _ } => self.positions.push(start),
-                        _ => self.positions.push(position),
-                    }
                     self.tokens.push(token);
                 }
                 _ => return None,
