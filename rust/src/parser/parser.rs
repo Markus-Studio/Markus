@@ -15,7 +15,7 @@ pub struct Parser<'a> {
     /// state back to this information.
     /// Type: (current_token_index, diagnostics.len())
     state_stack: Vec<(usize, usize)>,
-    diagnostics: Vec<Diagnostic>,
+    pub diagnostics: Vec<Diagnostic>,
 }
 
 impl<'a> Parser<'a> {
@@ -79,6 +79,18 @@ impl<'a> Parser<'a> {
                 }
             }
         }
+    }
+
+    #[inline]
+    fn last_token_end_source_position(&self) -> usize {
+        debug_assert!(self.current_token_index > 0);
+        let index = self.current_token_index - 1;
+        self.tokens[index].position.offset + self.tokens[index].position.size
+    }
+
+    #[inline]
+    fn get_location(&self, start: usize) -> Span {
+        Span::from_positions(start, self.last_token_end_source_position())
     }
 
     /// Pushes the current parser state into the state_stack.
@@ -250,7 +262,7 @@ impl<'a> Parser<'a> {
         self.expect(TokenKind::Semicolon);
 
         Some(TypeFieldNode {
-            location: Span::from_positions(start, self.current_source_position()),
+            location: self.get_location(start),
             nullable: nullable,
             name: name,
             type_name: type_name,
@@ -288,7 +300,7 @@ impl<'a> Parser<'a> {
         self.expect(TokenKind::RightBrace);
 
         Some(TypeDeclarationNode {
-            location: Span::from_positions(start, self.current_source_position()),
+            location: self.get_location(start),
             name: name,
             bases: bases,
             fields: fields,
