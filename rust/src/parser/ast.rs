@@ -1,70 +1,74 @@
 #![allow(dead_code)]
-use crate::parser::source::{Range, Source};
+use crate::parser::parser;
+use crate::parser::source::Source;
 
 pub struct Program {
-    source: Source,
-    declarations: Vec<Declaration>,
+    pub source: Source,
+    pub declarations: Vec<Declaration>,
+}
+
+pub struct AstRange {
+    pub offset: usize,
+    pub size: usize,
 }
 
 pub struct IdentifierNode {
-    range: Range,
+    pub range: AstRange,
 }
 
 pub struct IntLiteralNode {
-    range: Range,
+    pub range: AstRange,
 }
 
 pub struct FloatLiteralNode {
-    range: Range,
+    pub range: AstRange,
 }
 
 pub struct BooleanLiteralNode {
-    range: Range,
-}
-
-pub struct NumericLiteral {
-    range: Range,
+    pub range: AstRange,
 }
 
 pub struct ParameterNode {
-    range: Range,
-    name: IdentifierNode,
-    type_name: IdentifierNode,
+    pub range: AstRange,
+    pub name: IdentifierNode,
+    pub type_name: IdentifierNode,
 }
 
 pub struct QueryDeclarationNode {
-    range: Range,
-    name: IdentifierNode,
-    parameter: Vec<ParameterNode>,
-    pipelines: Vec<CallNode>,
+    pub range: AstRange,
+    pub name: IdentifierNode,
+    pub parameter: Vec<ParameterNode>,
+    pub pipelines: Vec<CallNode>,
 }
 
 pub struct CallNode {
-    range: Range,
-    callee_name: IdentifierNode,
-    arguments: Vec<ValueNode>,
+    pub range: AstRange,
+    pub callee_name: IdentifierNode,
+    pub arguments: Vec<ValueNode>,
 }
 
 pub struct AccessNode {
-    range: Range,
-    base: VariableReferenceNode,
-    parts: Vec<IdentifierNode>,
+    pub range: AstRange,
+    pub base: VariableReferenceNode,
+    pub parts: Vec<IdentifierNode>,
+}
+
+pub struct TypeReferenceNode {
+    pub range: AstRange,
+    pub name: IdentifierNode,
 }
 
 pub enum Declaration {
     Query(QueryDeclarationNode),
 }
 
-pub enum Literal {
+pub enum ValueNode {
+    Access(AccessNode),
     Int(IntLiteralNode),
     Float(FloatLiteralNode),
     Boolean(BooleanLiteralNode),
-}
-
-pub enum ValueNode {
-    Access(AccessNode),
-    Literal(Literal),
     Call(CallNode),
+    Type(TypeReferenceNode),
 }
 
 pub enum VariableReferenceNode {
@@ -84,5 +88,7 @@ impl Program {
     }
 
     /// Hard parse the source code.
-    pub fn parse() {}
+    pub fn parse(&mut self) {
+        self.declarations.clear();
+    }
 }

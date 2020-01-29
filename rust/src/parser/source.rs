@@ -180,12 +180,11 @@ impl Source {
             }
         });
 
-        edits.reverse();
-
         let min_effected_offset = self.offset_at(edits[0].range.start);
         let mut max_effected_offset = 0;
         let mut last_modified_offset = self.content.len();
 
+        edits.reverse();
         for e in edits {
             let start_offset = self.offset_at(e.range.start);
             let end_offset = self.offset_at(e.range.end);
@@ -212,7 +211,11 @@ impl Source {
             last_modified_offset = start_offset;
         }
 
+        // TODO(qti3e) Make it incremental, we can use the return value of
+        // the current function which is effected bytes to implement
+        // compute_line_offsets_incremental().
         self.compute_line_offsets();
+
         Range::new(
             self.position_at(min_effected_offset),
             self.position_at(max_effected_offset + 1),
@@ -336,5 +339,17 @@ impl std::fmt::Debug for Range {
             "Range(Start({}, {}), End({}, {}))",
             self.start.line, self.start.character, self.end.line, self.end.character
         )
+    }
+}
+
+impl std::fmt::Debug for Position {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Position({}, {})", self.line, self.character)
+    }
+}
+
+impl std::fmt::Debug for TextEdit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TextEdit({:?}, Text({}))", self.range, self.new_text)
     }
 }

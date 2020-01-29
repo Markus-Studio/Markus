@@ -1,6 +1,8 @@
+#![allow(dead_code)]
 use crate::parser::diagnostics::Diagnostic;
 
-pub enum Token<'a> {
+#[derive(Copy, Clone)]
+pub enum Token {
     LeftParenthesis,
     RightParenthesis,
     LeftBrace,
@@ -10,33 +12,41 @@ pub enum Token<'a> {
     Semicolon,
     Colon,
     At,
-    Identifier(&'a str),
-    Parameter(&'a str),
-    InternalVariable(&'a str),
-    Int(i64),
-    Float(f64),
+    Identifier { start: usize, size: usize },
+    Parameter { start: usize, size: usize },
+    InternalVariable { start: usize, size: usize },
+    Int { start: usize, size: usize },
+    Float { start: usize, size: usize },
 }
 
 pub struct Tokenizer<'a> {
     data: &'a Vec<u16>,
-    position: usize,
+    pub position: usize,
     occurred_error: bool,
     diagnostic: Diagnostic,
 }
 
 impl<'a> Tokenizer<'a> {
-    pub fn new(data: &'a Vec<u16>) -> Tokenizer<'a> {
+    pub fn new(data: &'a Vec<u16>, position: usize) -> Tokenizer<'a> {
         Tokenizer {
             data: data,
-            position: 0,
+            position: position,
             occurred_error: false,
             diagnostic: Diagnostic::NoDiagnostic,
         }
     }
 
+    pub fn set_position(&mut self, position: usize) {
+        if position >= self.data.len() {
+            panic!("Out of range.");
+        }
+
+        self.position = position;
+    }
+
     #[inline]
     fn char(&self) -> Option<char> {
-        if self.is_eol() {
+        if self.is_eof() {
             None
         } else {
             String::from_utf16(&[self.data[self.position]])
@@ -61,7 +71,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     #[inline]
-    fn is_eol(&self) -> bool {
+    pub fn is_eof(&self) -> bool {
         !self.has_at_least(0)
     }
 
@@ -104,7 +114,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     #[inline]
-    fn eat_identifier(&mut self) -> Option<&'a str> {
+    fn eat_identifier(&mut self) -> Option<usize> {
         let mut size = 0;
 
         match self.char() {
@@ -130,28 +140,18 @@ impl<'a> Tokenizer<'a> {
             }
         }
 
-        Some("XX")
+        Some(size)
     }
 
     #[inline]
-    fn eat_numeric_token(&mut self) -> Option<Token<'a>> {
+    fn eat_numeric_token(&mut self) -> Option<Token> {
+        let start = self.position;
         let mut seen_float_point = false;
-
-        let mut integer: i64 = 0;
-        let mut floating: f64 = 0.0;
-        let mut floating_counter: f64 = 0.1;
 
         loop {
             match self.char() {
                 Some(c) if is_digit(c) => {
                     self.advance(1);
-
-                    if seen_float_point {
-                        floating += c.to_digit(10).unwrap() as f64 * floating_counter;
-                        floating_counter /= 10.0;
-                    } else {
-                        integer = integer * 10 + c.to_digit(10).unwrap() as i64;
-                    }
                 }
                 Some('.') if !seen_float_point => {
                     self.advance(1);
@@ -160,8 +160,6 @@ impl<'a> Tokenizer<'a> {
                     match self.char() {
                         Some(c) if is_digit(c) => {
                             self.advance(1);
-                            floating += c.to_digit(10).unwrap() as f64 * floating_counter;
-                            floating_counter /= 10.0;
                         }
                         _ => {
                             self.report(Diagnostic::UnexpectedCharacter {
@@ -176,21 +174,27 @@ impl<'a> Tokenizer<'a> {
         }
 
         if seen_float_point {
-            Some(Token::Float(integer as f64 + floating))
+            Some(Token::Float {
+                start: start,
+                size: self.position - start,
+            })
         } else {
-            Some(Token::Int(integer))
+            Some(Token::Int {
+                start: start,
+                size: self.position - start,
+            })
         }
     }
 
     #[inline]
-    fn read_next_token(&mut self) -> Option<Token<'a>> {
+    fn read_next_token(&mut self) -> Option<Token> {
         if self.occurred_error {
             return None;
         }
 
         self.consume_blank();
 
-        if self.is_eol() {
+        if self.is_eof() {
             return None;
         }
 
@@ -233,25 +237,34 @@ impl<'a> Tokenizer<'a> {
             }
             '$' => {
                 self.advance(1);
-                let tmp = self.eat_identifier();
-                match tmp {
-                    Some(c) => Some(Token::Parameter(c)),
+                let start = self.position;
+                match self.eat_identifier() {
+                    Some(size) => Some(Token::Parameter {
+                        start: start,
+                        size: size,
+                    }),
                     None => None,
                 }
             }
             '%' => {
                 self.advance(1);
-                let tmp = self.eat_identifier();
-                match tmp {
-                    Some(c) => Some(Token::InternalVariable(c)),
+                let start = self.position;
+                match self.eat_identifier() {
+                    Some(size) => Some(Token::InternalVariable {
+                        start: start,
+                        size: size,
+                    }),
                     None => None,
                 }
             }
             '0'..='9' => self.eat_numeric_token(),
             c if is_identifier_start(c) => {
-                let tmp = self.eat_identifier();
-                match tmp {
-                    Some(c) => Some(Token::Identifier(c)),
+                let start = self.position;
+                match self.eat_identifier() {
+                    Some(size) => Some(Token::Identifier {
+                        start: start,
+                        size: size,
+                    }),
                     None => None,
                 }
             }
@@ -266,7 +279,7 @@ impl<'a> Tokenizer<'a> {
 }
 
 impl<'a> Iterator for Tokenizer<'a> {
-    type Item = Token<'a>;
+    type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.read_next_token()
@@ -294,5 +307,28 @@ fn is_digit(c: char) -> bool {
     match c {
         '0'..='9' => true,
         _ => false,
+    }
+}
+
+impl Token {
+    pub fn is_identifer(&self) -> bool {
+        match self {
+            Token::Identifier { start: _, size: _ } => true,
+            _ => false,
+        }
+    }
+
+    pub fn compare_identifier(&self, data: &Vec<u16>, word: &str) -> bool {
+        match self {
+            Token::Identifier { start, size } => {
+                let w16: Vec<u16> = word.encode_utf16().collect();
+                if w16.len() != *size {
+                    false
+                } else {
+                    data[*start..*start + *size] == w16[0..*size]
+                }
+            }
+            _ => false,
+        }
     }
 }
