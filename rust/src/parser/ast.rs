@@ -55,8 +55,8 @@ pub struct TypeDeclarationNode {
 pub struct TypeFieldNode {
     pub location: Span,
     pub nullable: bool,
-    pub name: IdentifierNode,
-    pub type_name: IdentifierNode,
+    pub name: Option<IdentifierNode>,
+    pub type_name: Option<IdentifierNode>,
 }
 
 #[derive(Debug)]

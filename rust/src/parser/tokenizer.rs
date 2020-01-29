@@ -2,20 +2,37 @@
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TokenKind {
+    /// An unknown character.
     Unknown,
+    /// `(` Token.
     LeftParenthesis,
+    /// `)` Token.
     RightParenthesis,
+    /// `{` Token.
     LeftBrace,
+    /// `}` Token.
     RightBrace,
+    /// `.` Token.
     Dot,
+    /// `,` Token.
     Comma,
+    /// ';' Token.
     Semicolon,
+    /// `:` Token.
     Colon,
+    /// `@` Token.
     At,
+    /// `?` Token.
+    Question,
+    /// An identifier token.
     Identifier,
+    /// $[identifier] Token.
     Parameter,
+    /// %[identifier] Token.
     InternalVariable,
+    /// An integer literal token.
     Int,
+    /// A float literal token.
     Float,
 }
 
@@ -231,6 +248,10 @@ impl<'a> Tokenizer<'a> {
             '@' => {
                 self.advance(1);
                 Some(Token::new(TokenKind::At, start, 1))
+            }
+            '?' => {
+                self.advance(1);
+                Some(Token::new(TokenKind::Question, start, 1))
             }
             '.' => {
                 self.advance(1);

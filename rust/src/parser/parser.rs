@@ -63,11 +63,15 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    fn position(&mut self, n: usize) -> usize {
-        match self.lookahead(n) {
+    fn current_source_position(&mut self) -> usize {
+        match self.current() {
             Some(token) => token.position.offset,
             None => {
-                let index = self.current_token_index + n - 1;
+                if self.current_token_index == 0 {
+                    return 0;
+                }
+
+                let index = self.current_token_index - 1;
                 if index < self.tokens.len() {
                     self.tokens[index].position.offset + self.tokens[index].position.size
                 } else {
@@ -130,7 +134,7 @@ impl<'a> Parser<'a> {
     #[inline]
     fn collect_comma_separated<T, F: Fn(&mut Parser) -> Option<T>>(
         &mut self,
-        vec: &mut Vec<T>,
+        result: &mut Vec<T>,
         stops: Vec<TokenKind>,
         cb: F,
     ) {
@@ -157,7 +161,7 @@ impl<'a> Parser<'a> {
 
                     match cb(self) {
                         Some(data) => {
-                            vec.push(data);
+                            result.push(data);
                         }
                         None => {
                             self.advance(1);
@@ -174,6 +178,34 @@ impl<'a> Parser<'a> {
         if expect_data {
             // TODO(qti3e) It means the last thing we've seen was a comma and
             // there wasn't any data after that so report an error.
+        }
+    }
+
+    #[inline]
+    fn collect<T, F: Fn(&mut Parser) -> Option<T>>(
+        &mut self,
+        result: &mut Vec<T>,
+        stops: Vec<TokenKind>,
+        cb: F,
+    ) {
+        debug_assert!(stops.len() > 0);
+        loop {
+            match self.current() {
+                Some(token) if stops.contains(&token.kind) => break,
+                Some(_) => {
+                    match cb(self) {
+                        Some(data) => {
+                            result.push(data);
+                        }
+                        None => {
+                            // We assume that the error is already reported by
+                            // `cb()`.
+                            self.advance(1);
+                        }
+                    }
+                }
+                None => break,
+            }
         }
     }
 
@@ -198,9 +230,31 @@ impl<'a> Parser<'a> {
             .unwrap()
             .compare_identifier(self.data, "query"));
 
-        let start = self.position(0);
+        let start = self.current_source_position();
         self.advance(1);
         None
+    }
+
+    #[inline]
+    fn parse_type_field(&mut self) -> Option<TypeFieldNode> {
+        let start = self.current_source_position();
+
+        let name = self.parse_identifier();
+        let nullable = match self.expect_optional(TokenKind::Question) {
+            Some(_) => true,
+            _ => false,
+        };
+
+        self.expect(TokenKind::Colon);
+        let type_name = self.parse_identifier();
+        self.expect(TokenKind::Semicolon);
+
+        Some(TypeFieldNode {
+            location: Span::from_positions(start, self.current_source_position()),
+            nullable: nullable,
+            name: name,
+            type_name: type_name,
+        })
     }
 
     #[inline]
@@ -210,12 +264,13 @@ impl<'a> Parser<'a> {
             .unwrap()
             .compare_identifier(self.data, "type"));
 
-        let start = self.position(0);
+        let start = self.current_source_position();
         // Consume `type`.
         self.advance(1);
 
         let name = self.parse_identifier();
         let mut bases: Vec<IdentifierNode> = vec![];
+        let mut fields: Vec<TypeFieldNode> = vec![];
 
         match self.expect_optional(TokenKind::Colon) {
             Some(_) => {
@@ -227,14 +282,16 @@ impl<'a> Parser<'a> {
         }
 
         self.expect(TokenKind::LeftBrace);
-        // self.collect(&);
+        self.collect(&mut fields, vec![TokenKind::RightBrace], |parser| {
+            parser.parse_type_field()
+        });
         self.expect(TokenKind::RightBrace);
 
         Some(TypeDeclarationNode {
-            location: Span::from_positions(start, self.position(0)),
+            location: Span::from_positions(start, self.current_source_position()),
             name: name,
             bases: bases,
-            fields: vec![],
+            fields: fields,
         })
     }
 
