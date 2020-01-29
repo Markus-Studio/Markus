@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use crate::parser::diagnostics::Diagnostic;
 
 #[derive(Copy, Clone)]
 pub enum Token {
@@ -12,6 +11,7 @@ pub enum Token {
     Semicolon,
     Colon,
     At,
+    Unknown,
     Identifier { start: usize, size: usize },
     Parameter { start: usize, size: usize },
     InternalVariable { start: usize, size: usize },
@@ -22,8 +22,6 @@ pub enum Token {
 pub struct Tokenizer<'a> {
     data: &'a Vec<u16>,
     pub position: usize,
-    occurred_error: bool,
-    diagnostic: Diagnostic,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -31,8 +29,6 @@ impl<'a> Tokenizer<'a> {
         Tokenizer {
             data: data,
             position: position,
-            occurred_error: false,
-            diagnostic: Diagnostic::NoDiagnostic,
         }
     }
 
@@ -49,20 +45,13 @@ impl<'a> Tokenizer<'a> {
         if self.is_eof() {
             None
         } else {
-            String::from_utf16(&[self.data[self.position]])
-                .unwrap()
-                .chars()
-                .next()
+            std::char::from_u32(self.data[self.position] as u32)
         }
     }
 
     #[inline]
     fn char_unchecked(&self) -> char {
-        String::from_utf16(&[self.data[self.position]])
-            .unwrap()
-            .chars()
-            .next()
-            .unwrap()
+        std::char::from_u32(self.data[self.position] as u32).unwrap()
     }
 
     #[inline]
@@ -78,12 +67,6 @@ impl<'a> Tokenizer<'a> {
     #[inline]
     fn advance(&mut self, n: usize) {
         self.position += n;
-    }
-
-    #[inline]
-    fn report(&mut self, diagnostic: Diagnostic) {
-        self.occurred_error = true;
-        self.diagnostic = diagnostic;
     }
 
     #[inline]
@@ -123,9 +106,6 @@ impl<'a> Tokenizer<'a> {
                 self.advance(1);
             }
             _ => {
-                self.report(Diagnostic::UnexpectedCharacter {
-                    position: self.position,
-                });
                 return None;
             }
         }
@@ -146,6 +126,7 @@ impl<'a> Tokenizer<'a> {
     #[inline]
     fn eat_numeric_token(&mut self) -> Option<Token> {
         let start = self.position;
+        self.advance(1);
         let mut seen_float_point = false;
 
         loop {
@@ -162,10 +143,9 @@ impl<'a> Tokenizer<'a> {
                             self.advance(1);
                         }
                         _ => {
-                            self.report(Diagnostic::UnexpectedCharacter {
-                                position: self.position,
-                            });
-                            return None;
+                            self.position -= 1; // release the consumed `.`.
+                            seen_float_point = false;
+                            break;
                         }
                     }
                 }
@@ -188,10 +168,6 @@ impl<'a> Tokenizer<'a> {
 
     #[inline]
     fn read_next_token(&mut self) -> Option<Token> {
-        if self.occurred_error {
-            return None;
-        }
-
         self.consume_blank();
 
         if self.is_eof() {
@@ -236,28 +212,28 @@ impl<'a> Tokenizer<'a> {
                 Some(Token::Dot)
             }
             '$' => {
-                self.advance(1);
                 let start = self.position;
+                self.advance(1);
                 match self.eat_identifier() {
                     Some(size) => Some(Token::Parameter {
                         start: start,
                         size: size,
                     }),
-                    None => None,
+                    None => Some(Token::Unknown),
                 }
             }
             '%' => {
-                self.advance(1);
                 let start = self.position;
+                self.advance(1);
                 match self.eat_identifier() {
                     Some(size) => Some(Token::InternalVariable {
                         start: start,
                         size: size,
                     }),
-                    None => None,
+                    None => Some(Token::Unknown),
                 }
             }
-            '0'..='9' => self.eat_numeric_token(),
+            '0'..='9' | '+' | '-' => self.eat_numeric_token(),
             c if is_identifier_start(c) => {
                 let start = self.position;
                 match self.eat_identifier() {
@@ -265,14 +241,12 @@ impl<'a> Tokenizer<'a> {
                         start: start,
                         size: size,
                     }),
-                    None => None,
+                    None => Some(Token::Unknown),
                 }
             }
             _ => {
-                self.report(Diagnostic::UnexpectedCharacter {
-                    position: self.position,
-                });
-                None
+                self.advance(1);
+                Some(Token::Unknown)
             }
         }
     }

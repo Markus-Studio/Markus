@@ -41,6 +41,20 @@ pub struct QueryDeclarationNode {
     pub pipelines: Vec<CallNode>,
 }
 
+pub struct TypeDeclarationNode {
+    pub range: AstRange,
+    pub name: IdentifierNode,
+    pub bases: Vec<IdentifierNode>,
+    pub fields: Vec<TypeFieldNode>,
+}
+
+pub struct TypeFieldNode {
+    pub range: AstRange,
+    pub nullable: bool,
+    pub name: IdentifierNode,
+    pub type_name: IdentifierNode,
+}
+
 pub struct CallNode {
     pub range: AstRange,
     pub callee_name: IdentifierNode,
@@ -60,6 +74,7 @@ pub struct TypeReferenceNode {
 
 pub enum Declaration {
     Query(QueryDeclarationNode),
+    Type(TypeDeclarationNode),
 }
 
 pub enum ValueNode {
