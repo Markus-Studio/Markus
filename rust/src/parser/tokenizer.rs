@@ -36,7 +36,7 @@ pub enum TokenKind {
     Float,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Span {
     pub offset: usize,
     pub size: usize,

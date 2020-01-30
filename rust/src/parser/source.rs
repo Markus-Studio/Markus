@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use crate::parser::diagnostics;
+use crate::parser::tokenizer::Span;
 
 #[derive(Copy, Clone)]
 pub struct Position {
@@ -24,6 +25,12 @@ pub struct TextEdit {
     /// The string to be inserted. For delete operations use an
     /// empty string.
     pub new_text: String,
+}
+
+#[derive(PartialEq, Copy, Clone, Debug)]
+pub struct TextEditResult {
+    range: Span,
+    delta: i32,
 }
 
 /// The Source is used to store each source file and all of the diagnostics
@@ -166,9 +173,9 @@ impl Source {
 
     /// Apply a set of TextEdits to this source file, returns a range indicating
     /// the region that was effect (offsets are based on the current content)
-    pub fn apply_edits(&mut self, edits: &mut Vec<TextEdit>) -> Range {
+    pub fn apply_edits(&mut self, edits: &mut Vec<TextEdit>) -> TextEditResult {
         if edits.len() == 0 {
-            return Range::new(Position::new(0, 0), Position::new(0, 0));
+            return TextEditResult::new(0, 0, 0);
         }
 
         edits.sort_by(|a, b| {
@@ -180,9 +187,11 @@ impl Source {
             }
         });
 
+        let mut last_modified_offset = self.content.len();
+
         let min_effected_offset = self.offset_at(edits[0].range.start);
         let mut max_effected_offset = 0;
-        let mut last_modified_offset = self.content.len();
+        let mut delta: i32 = 0;
 
         edits.reverse();
         for e in edits {
@@ -196,14 +205,13 @@ impl Source {
             if end_offset <= last_modified_offset {
                 for _ in start_offset..end_offset {
                     self.content.remove(start_offset);
+                    delta -= 1;
                 }
 
                 for (i, c) in e.new_text.encode_utf16().enumerate() {
                     let offset = start_offset + i;
                     self.content.insert(offset, c);
-                    if offset > max_effected_offset {
-                        max_effected_offset = offset;
-                    }
+                    delta += 1;
                 }
             } else {
                 panic!("Overlaps");
@@ -216,10 +224,7 @@ impl Source {
         // compute_line_offsets_incremental().
         self.compute_line_offsets();
 
-        Range::new(
-            self.position_at(min_effected_offset),
-            self.position_at(max_effected_offset + 1),
-        )
+        TextEditResult::new(min_effected_offset, max_effected_offset, delta)
     }
 }
 
@@ -306,6 +311,15 @@ impl Range {
             && self.start.character <= position.character
             && self.end.line <= position.line
             && self.end.character > position.character
+    }
+}
+
+impl TextEditResult {
+    pub fn new(start: usize, end: usize, delta: i32) -> TextEditResult {
+        TextEditResult {
+            range: Span::from_positions(start, end),
+            delta: delta,
+        }
     }
 }
 
