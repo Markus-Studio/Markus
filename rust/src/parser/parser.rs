@@ -105,13 +105,42 @@ impl<'a> Parser<'a> {
     fn restore(&mut self) {
         let (token_index, diagnostics_len) = self.state_stack.pop().unwrap();
         self.current_token_index = token_index;
-        self.diagnostics = self.diagnostics[0..diagnostics_len].to_vec();
+        self.diagnostics.truncate(diagnostics_len);
     }
 
     /// Reports a diagnostic.
     #[inline]
     fn report(&mut self, diagnostic: Diagnostic) {
         self.diagnostics.push(diagnostic);
+    }
+
+    /// Finds the first token of the given kind and returns the kind it does
+    /// not consume the current token.
+    #[inline]
+    fn find_first_of(
+        &mut self,
+        kind: &Vec<TokenKind>,
+        breaks: Vec<TokenKind>,
+    ) -> Option<TokenKind> {
+        debug_assert!(kind.len() > 0);
+        match self.current() {
+            Some(token) if kind.contains(&token.kind) => Some(token.kind),
+            Some(token) => {
+                self.report(Diagnostic::expect_one_of(token, kind));
+                if breaks.contains(&token.kind) {
+                    None
+                } else {
+                    self.advance(1);
+                    self.find_first_of(kind, breaks)
+                }
+            }
+            _ => {
+                self.report(Diagnostic::early_end_of_file(
+                    self.last_token_end_source_position(),
+                ));
+                None
+            }
+        }
     }
 
     /// Expects the current token to be of the given kind, if so it consumes
@@ -380,8 +409,32 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
+    fn parse_value(&mut self) -> Option<ValueNode> {
+        match self.find_first_of(
+            &vec![
+                TokenKind::Dot,
+                TokenKind::Identifier,
+                TokenKind::LeftParenthesis,
+                TokenKind::Parameter,
+                TokenKind::Int,
+                TokenKind::Float,
+            ],
+            vec![
+                TokenKind::Comma,
+                TokenKind::RightBrace,
+                TokenKind::RightParenthesis,
+            ],
+        ) {
+            Some(TokenKind::Dot) => None,
+            _ => None,
+        }
+    }
+
+    #[inline]
     fn parse_call(&mut self) -> Option<CallNode> {
         let start = self.current_source_position();
+        let mut arguments: Vec<ValueNode> = vec![];
+
         let name = self.parse_identifier(vec![
             TokenKind::LeftParenthesis,
             TokenKind::RightParenthesis,
@@ -411,6 +464,12 @@ impl<'a> Parser<'a> {
             ],
         );
 
+        self.collect_comma_separated(
+            &mut arguments,
+            vec![TokenKind::LeftBrace, TokenKind::RightParenthesis],
+            |parser| parser.parse_value(),
+        );
+
         self.expect(
             TokenKind::RightParenthesis,
             vec![
@@ -428,7 +487,7 @@ impl<'a> Parser<'a> {
         Some(CallNode {
             location: self.get_location(start),
             callee_name: name,
-            arguments: vec![],
+            arguments: arguments,
         })
     }
 
