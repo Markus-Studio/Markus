@@ -127,16 +127,17 @@ impl<'a> Parser<'a> {
             }
             Some(token) => {
                 if !breaks.contains(&token.kind) {
-                    // TODO(qti3e) Report error.
+                    self.report(Diagnostic::expected_token(token, kind));
                     self.advance(1);
                     self.expect(kind, breaks)
                 } else {
-                    // TODO(qti3e) Report error.
                     None
                 }
             }
             _ => {
-                // TODO(qti3e) Report error.
+                self.report(Diagnostic::early_end_of_file(
+                    self.last_token_end_source_position(),
+                ));
                 None
             }
         }
@@ -164,22 +165,25 @@ impl<'a> Parser<'a> {
         debug_assert!(stops.len() > 0);
 
         let mut expect_data = true;
+        let mut last_comma: Option<Token> = None;
 
         loop {
             match self.current() {
                 Some(token) if stops.contains(&token.kind) => break,
                 Some(token) if token.kind == TokenKind::Comma => {
                     if expect_data {
-                        // TODO(qti3e) We expected data but found a comma so
-                        // report an error.
+                        // We expected data but found a sep so report an error.
+                        self.report(Diagnostic::unexpected_token(token));
                     }
 
+                    last_comma = Some(token);
                     self.advance(1);
                     expect_data = true;
                 }
-                Some(_) => {
+                Some(token) => {
                     if !expect_data {
-                        // TODO(qti3e) We expected a comma so report an error.
+                        // We expected a comma so report an error.
+                        self.report(Diagnostic::expected_token(token, TokenKind::Comma));
                     }
 
                     match cb(self) {
@@ -187,8 +191,8 @@ impl<'a> Parser<'a> {
                             result.push(data);
                         }
                         None => {
+                            // We assume that cb() has already reported an error.
                             self.advance(1);
-                            // TODO(qti3e) Report error?
                         }
                     }
 
@@ -199,8 +203,12 @@ impl<'a> Parser<'a> {
         }
 
         if expect_data {
-            // TODO(qti3e) It means the last thing we've seen was a comma and
-            // there wasn't any data after that so report an error.
+            match last_comma {
+                Some(token) => {
+                    self.report(Diagnostic::unexpected_token(token));
+                }
+                _ => {}
+            }
         }
     }
 
