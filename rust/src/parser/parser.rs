@@ -244,6 +244,17 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// Like parse_identifier but works on parameters.
+    #[inline]
+    fn parse_identifier_from_parameter(&mut self, skip: Vec<TokenKind>) -> Option<IdentifierNode> {
+        match self.expect(TokenKind::Parameter, skip) {
+            Some(token) => Some(IdentifierNode {
+                location: token.position,
+            }),
+            None => None,
+        }
+    }
+
     #[inline]
     fn parse_type_field(&mut self) -> Option<TypeFieldNode> {
         let start = self.current_source_position();
@@ -257,9 +268,13 @@ impl<'a> Parser<'a> {
 
         self.expect(
             TokenKind::Colon,
-            vec![TokenKind::Semicolon, TokenKind::Identifier],
+            vec![
+                TokenKind::Semicolon,
+                TokenKind::Identifier,
+                TokenKind::RightBrace,
+            ],
         );
-        let type_name = self.parse_identifier(vec![TokenKind::Semicolon]);
+        let type_name = self.parse_identifier(vec![TokenKind::Semicolon, TokenKind::RightBrace]);
         self.expect(
             TokenKind::Semicolon,
             vec![TokenKind::Identifier, TokenKind::RightBrace],
@@ -318,6 +333,44 @@ impl<'a> Parser<'a> {
         })
     }
 
+    #[inline]
+    fn parse_parameter(&mut self) -> Option<ParameterNode> {
+        let start = self.current_source_position();
+        let name = self.parse_identifier_from_parameter(vec![
+            TokenKind::Colon,
+            TokenKind::Identifier,
+            TokenKind::Comma,
+            TokenKind::RightParenthesis,
+            TokenKind::LeftBrace,
+            TokenKind::RightBrace,
+        ]);
+
+        self.expect(
+            TokenKind::Colon,
+            vec![
+                TokenKind::Identifier,
+                TokenKind::Comma,
+                TokenKind::RightParenthesis,
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+            ],
+        );
+
+        let type_name = self.parse_identifier(vec![
+            TokenKind::Parameter,
+            TokenKind::Comma,
+            TokenKind::RightParenthesis,
+            TokenKind::LeftBrace,
+            TokenKind::RightBrace,
+        ]);
+
+        Some(ParameterNode {
+            location: self.get_location(start),
+            name: name,
+            type_name: type_name,
+        })
+    }
+
     /// Parse a query declaration assuming that the `query` token is already
     /// seen but not consumed.
     #[inline]
@@ -329,20 +382,66 @@ impl<'a> Parser<'a> {
 
         let start = self.current_source_position();
         self.advance(1);
-        None
+
+        let name = self.parse_identifier(vec![TokenKind::LeftParenthesis, TokenKind::LeftBrace]);
+        let mut parameters: Vec<ParameterNode> = vec![];
+        let mut pipelines: Vec<CallNode> = vec![];
+
+        self.expect(
+            TokenKind::LeftParenthesis,
+            vec![
+                TokenKind::Parameter,
+                TokenKind::Colon,
+                TokenKind::Identifier,
+                TokenKind::Comma,
+                TokenKind::RightParenthesis,
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+            ],
+        );
+
+        self.collect_comma_separated(
+            &mut parameters,
+            vec![TokenKind::LeftBrace, TokenKind::RightParenthesis],
+            |parser| parser.parse_parameter(),
+        );
+
+        self.expect(
+            TokenKind::RightParenthesis,
+            vec![
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+                TokenKind::Identifier,
+                TokenKind::LeftParenthesis,
+            ],
+        );
+
+        self.expect(
+            TokenKind::LeftBrace,
+            vec![TokenKind::Identifier, TokenKind::LeftParenthesis],
+        );
+
+        self.expect(TokenKind::RightBrace, vec![TokenKind::Identifier]);
+
+        Some(QueryDeclarationNode {
+            location: self.get_location(start),
+            name: name,
+            parameter: parameters,
+            pipelines: pipelines,
+        })
     }
 
     pub fn parse_declaration(&mut self) -> Option<Declaration> {
         match self.current() {
-            Some(token) if token.compare_identifier(self.data, "query") => {
-                match self.parse_query_declaration() {
-                    Some(declaration) => Some(Declaration::Query(declaration)),
-                    _ => None,
-                }
-            }
             Some(token) if token.compare_identifier(self.data, "type") => {
                 match self.parse_type_declaration() {
                     Some(declaration) => Some(Declaration::Type(declaration)),
+                    _ => None,
+                }
+            }
+            Some(token) if token.compare_identifier(self.data, "query") => {
+                match self.parse_query_declaration() {
+                    Some(declaration) => Some(Declaration::Query(declaration)),
                     _ => None,
                 }
             }

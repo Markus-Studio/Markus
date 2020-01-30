@@ -31,14 +31,14 @@ pub struct BooleanLiteralNode {
 #[derive(Debug, PartialEq)]
 pub struct ParameterNode {
     pub location: Span,
-    pub name: IdentifierNode,
-    pub type_name: IdentifierNode,
+    pub name: Option<IdentifierNode>,
+    pub type_name: Option<IdentifierNode>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct QueryDeclarationNode {
     pub location: Span,
-    pub name: IdentifierNode,
+    pub name: Option<IdentifierNode>,
     pub parameter: Vec<ParameterNode>,
     pub pipelines: Vec<CallNode>,
 }
@@ -62,7 +62,7 @@ pub struct TypeFieldNode {
 #[derive(Debug, PartialEq)]
 pub struct CallNode {
     pub location: Span,
-    pub callee_name: IdentifierNode,
+    pub callee_name: Option<IdentifierNode>,
     pub arguments: Vec<ValueNode>,
 }
 
