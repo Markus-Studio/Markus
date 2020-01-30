@@ -244,20 +244,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Parse a query declaration assuming that the `query` token is already
-    /// seen but not consumed.
-    #[inline]
-    fn parse_query_declaration(&mut self) -> Option<QueryDeclarationNode> {
-        debug_assert!(self
-            .current()
-            .unwrap()
-            .compare_identifier(self.data, "query"));
-
-        let start = self.current_source_position();
-        self.advance(1);
-        None
-    }
-
     #[inline]
     fn parse_type_field(&mut self) -> Option<TypeFieldNode> {
         let start = self.current_source_position();
@@ -330,6 +316,20 @@ impl<'a> Parser<'a> {
             bases: bases,
             fields: fields,
         })
+    }
+
+    /// Parse a query declaration assuming that the `query` token is already
+    /// seen but not consumed.
+    #[inline]
+    fn parse_query_declaration(&mut self) -> Option<QueryDeclarationNode> {
+        debug_assert!(self
+            .current()
+            .unwrap()
+            .compare_identifier(self.data, "query"));
+
+        let start = self.current_source_position();
+        self.advance(1);
+        None
     }
 
     pub fn parse_declaration(&mut self) -> Option<Declaration> {

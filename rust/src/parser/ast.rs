@@ -131,3 +131,14 @@ impl Program {
         }
     }
 }
+
+impl IdentifierNode {
+    pub fn new(start: usize, size: usize) -> IdentifierNode {
+        IdentifierNode {
+            location: Span {
+                offset: start,
+                size: size,
+            },
+        }
+    }
+}
