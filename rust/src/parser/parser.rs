@@ -185,13 +185,15 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    fn collect_comma_separated<T, F: Fn(&mut Parser) -> Option<T>>(
+    fn collect_separated_by<T, F: Fn(&mut Parser) -> Option<T>>(
         &mut self,
+        separator: TokenKind,
         result: &mut Vec<T>,
         stops: Vec<TokenKind>,
         cb: F,
     ) {
         debug_assert!(stops.len() > 0);
+        debug_assert!(!stops.contains(&separator));
 
         let mut expect_data = true;
         let mut last_comma: Option<Token> = None;
@@ -199,7 +201,7 @@ impl<'a> Parser<'a> {
         loop {
             match self.current() {
                 Some(token) if stops.contains(&token.kind) => break,
-                Some(token) if token.kind == TokenKind::Comma => {
+                Some(token) if token.kind == separator => {
                     if expect_data {
                         // We expected data but found a sep so report an error.
                         self.report(Diagnostic::unexpected_token(token));
@@ -212,7 +214,7 @@ impl<'a> Parser<'a> {
                 Some(token) => {
                     if !expect_data {
                         // We expected a comma so report an error.
-                        self.report(Diagnostic::expected_token(token, TokenKind::Comma));
+                        self.report(Diagnostic::expected_token(token, separator));
                     }
 
                     match cb(self) {
@@ -239,6 +241,16 @@ impl<'a> Parser<'a> {
                 _ => {}
             }
         }
+    }
+
+    #[inline]
+    fn collect_comma_separated<T, F: Fn(&mut Parser) -> Option<T>>(
+        &mut self,
+        result: &mut Vec<T>,
+        stops: Vec<TokenKind>,
+        cb: F,
+    ) {
+        self.collect_separated_by(TokenKind::Comma, result, stops, cb)
     }
 
     #[inline]
