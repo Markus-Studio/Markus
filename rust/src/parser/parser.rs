@@ -409,6 +409,28 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
+    fn consume_int_literal(&mut self) -> IntLiteralNode {
+        let start = self.current_source_position();
+        let token = self.current().unwrap();
+        debug_assert_eq!(token.kind, TokenKind::Int);
+        self.advance(1);
+        IntLiteralNode {
+            location: self.get_location(start),
+        }
+    }
+
+    #[inline]
+    fn consume_float_literal(&mut self) -> FloatLiteralNode {
+        let start = self.current_source_position();
+        let token = self.current().unwrap();
+        debug_assert_eq!(token.kind, TokenKind::Float);
+        self.advance(1);
+        FloatLiteralNode {
+            location: self.get_location(start),
+        }
+    }
+
+    #[inline]
     fn parse_value(&mut self) -> Option<ValueNode> {
         match self.find_first_of(
             &vec![
@@ -416,6 +438,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Identifier,
                 TokenKind::LeftParenthesis,
                 TokenKind::Parameter,
+                TokenKind::InternalVariable,
                 TokenKind::Int,
                 TokenKind::Float,
             ],
@@ -425,7 +448,8 @@ impl<'a> Parser<'a> {
                 TokenKind::RightParenthesis,
             ],
         ) {
-            Some(TokenKind::Dot) => None,
+            Some(TokenKind::Int) => Some(ValueNode::Int(self.consume_int_literal())),
+            Some(TokenKind::Float) => Some(ValueNode::Float(self.consume_float_literal())),
             _ => None,
         }
     }
