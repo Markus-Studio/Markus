@@ -30,6 +30,8 @@ pub enum TokenKind {
     Parameter,
     /// %[identifier] Token.
     InternalVariable,
+    /// true | false
+    Boolean,
     /// An integer literal token.
     Int,
     /// A float literal token.
@@ -193,6 +195,11 @@ impl<'a> Tokenizer<'a> {
     }
 
     #[inline]
+    fn compare(&self, span: Span, data: &str) -> bool {
+        String::from_utf16(&self.data[span.offset..span.offset + span.size]).unwrap() == data
+    }
+
+    #[inline]
     fn read_next_token(&mut self) -> Option<Token> {
         self.consume_blank();
 
@@ -272,6 +279,20 @@ impl<'a> Tokenizer<'a> {
                 }
             }
             '0'..='9' | '+' | '-' => self.eat_numeric_token(),
+            't' => match self.eat_identifier() {
+                Some(4) if self.compare(Span::new(start, 4), "true") => {
+                    Some(Token::new(TokenKind::Boolean, start, 4))
+                }
+                Some(size) => Some(Token::new(TokenKind::Identifier, start, size)),
+                None => Some(Token::new(TokenKind::Unknown, start, 1)),
+            },
+            'f' => match self.eat_identifier() {
+                Some(5) if self.compare(Span::new(start, 5), "false") => {
+                    Some(Token::new(TokenKind::Boolean, start, 5))
+                }
+                Some(size) => Some(Token::new(TokenKind::Identifier, start, size)),
+                None => Some(Token::new(TokenKind::Unknown, start, 1)),
+            },
             c if is_identifier_start(c) => match self.eat_identifier() {
                 Some(size) => Some(Token::new(TokenKind::Identifier, start, size)),
                 None => Some(Token::new(TokenKind::Unknown, start, 1)),

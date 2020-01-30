@@ -410,23 +410,31 @@ impl<'a> Parser<'a> {
 
     #[inline]
     fn consume_int_literal(&mut self) -> IntLiteralNode {
-        let start = self.current_source_position();
         let token = self.current().unwrap();
         debug_assert_eq!(token.kind, TokenKind::Int);
         self.advance(1);
         IntLiteralNode {
-            location: self.get_location(start),
+            location: token.position,
         }
     }
 
     #[inline]
     fn consume_float_literal(&mut self) -> FloatLiteralNode {
-        let start = self.current_source_position();
         let token = self.current().unwrap();
         debug_assert_eq!(token.kind, TokenKind::Float);
         self.advance(1);
         FloatLiteralNode {
-            location: self.get_location(start),
+            location: token.position,
+        }
+    }
+
+    #[inline]
+    fn consume_boolean_literal(&mut self) -> BooleanLiteralNode {
+        let token = self.current().unwrap();
+        debug_assert_eq!(token.kind, TokenKind::Boolean);
+        self.advance(1);
+        BooleanLiteralNode {
+            location: token.position,
         }
     }
 
@@ -439,6 +447,7 @@ impl<'a> Parser<'a> {
                 TokenKind::LeftParenthesis,
                 TokenKind::Parameter,
                 TokenKind::InternalVariable,
+                TokenKind::Boolean,
                 TokenKind::Int,
                 TokenKind::Float,
             ],
@@ -450,6 +459,7 @@ impl<'a> Parser<'a> {
         ) {
             Some(TokenKind::Int) => Some(ValueNode::Int(self.consume_int_literal())),
             Some(TokenKind::Float) => Some(ValueNode::Float(self.consume_float_literal())),
+            Some(TokenKind::Boolean) => Some(ValueNode::Boolean(self.consume_boolean_literal())),
             _ => None,
         }
     }
