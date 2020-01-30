@@ -248,7 +248,7 @@ impl<'a> Parser<'a> {
     fn parse_type_field(&mut self) -> Option<TypeFieldNode> {
         let start = self.current_source_position();
 
-        let name = self.parse_identifier(vec![TokenKind::Question]);
+        let name = self.parse_identifier(vec![TokenKind::Question, TokenKind::Semicolon]);
 
         let nullable = match self.expect_optional(TokenKind::Question) {
             Some(_) => true,
@@ -284,7 +284,7 @@ impl<'a> Parser<'a> {
         // Consume `type`.
         self.advance(1);
 
-        let name = self.parse_identifier(vec![TokenKind::Colon]);
+        let name = self.parse_identifier(vec![TokenKind::Colon, TokenKind::LeftBrace]);
         let mut bases: Vec<IdentifierNode> = vec![];
         let mut fields: Vec<TypeFieldNode> = vec![];
 
