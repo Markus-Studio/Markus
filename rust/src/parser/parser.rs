@@ -126,12 +126,12 @@ impl<'a> Parser<'a> {
                 Some(token)
             }
             Some(token) => {
-                if !breaks.contains(&token.kind) {
-                    self.report(Diagnostic::expected_token(token, kind));
+                self.report(Diagnostic::expected_token(token, kind));
+                if breaks.contains(&token.kind) {
+                    None
+                } else {
                     self.advance(1);
                     self.expect(kind, breaks)
-                } else {
-                    None
                 }
             }
             _ => {

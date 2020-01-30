@@ -39,7 +39,7 @@ pub struct Source {
     /// The file name which this source is derived from.
     pub filename: String,
     /// All of the errors we encountered on this source file.
-    diagnostics: Vec<diagnostics::Diagnostic>,
+    pub diagnostics: Vec<diagnostics::Diagnostic>,
     /// Source code's content in UTF-16.
     /// We use UTF-16 to have an O(1) mapping from offset to character index.
     /// Also another reason to use a Vector in this situation over a string is

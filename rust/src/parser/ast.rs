@@ -129,6 +129,10 @@ impl Program {
                 None => break,
             }
         }
+
+        for diagnostic in parser.diagnostics {
+            self.source.report(diagnostic);
+        }
     }
 }
 
