@@ -8,34 +8,34 @@ pub struct Program {
     pub declarations: Vec<Declaration>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IdentifierNode {
     pub location: Span,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IntLiteralNode {
     pub location: Span,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FloatLiteralNode {
     pub location: Span,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BooleanLiteralNode {
     pub location: Span,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ParameterNode {
     pub location: Span,
     pub name: IdentifierNode,
     pub type_name: IdentifierNode,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct QueryDeclarationNode {
     pub location: Span,
     pub name: IdentifierNode,
@@ -43,7 +43,7 @@ pub struct QueryDeclarationNode {
     pub pipelines: Vec<CallNode>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TypeDeclarationNode {
     pub location: Span,
     pub name: Option<IdentifierNode>,
@@ -51,7 +51,7 @@ pub struct TypeDeclarationNode {
     pub fields: Vec<TypeFieldNode>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TypeFieldNode {
     pub location: Span,
     pub nullable: bool,
@@ -59,33 +59,33 @@ pub struct TypeFieldNode {
     pub type_name: Option<IdentifierNode>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CallNode {
     pub location: Span,
     pub callee_name: IdentifierNode,
     pub arguments: Vec<ValueNode>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AccessNode {
     pub location: Span,
     pub base: VariableReferenceNode,
     pub parts: Vec<IdentifierNode>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TypeReferenceNode {
     pub location: Span,
     pub name: IdentifierNode,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Declaration {
     Query(QueryDeclarationNode),
     Type(TypeDeclarationNode),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ValueNode {
     Access(AccessNode),
     Int(IntLiteralNode),
@@ -95,7 +95,7 @@ pub enum ValueNode {
     Type(TypeReferenceNode),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum VariableReferenceNode {
     Current,
     Internal(IdentifierNode),
@@ -110,6 +110,11 @@ impl Program {
             source: source,
             declarations: vec![],
         }
+    }
+
+    /// Returns the data which in a span as a Rust string.
+    pub fn get_span_data_as_utf8(&self, span: Span) -> String {
+        String::from_utf16(&self.source.content[span.offset..span.offset + span.size]).unwrap()
     }
 
     /// Hard parse the source code.

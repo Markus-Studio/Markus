@@ -115,14 +115,25 @@ impl<'a> Parser<'a> {
     }
 
     /// Expects the current token to be of the given kind, if so it consumes
-    /// the current token and returns it otherwise reports an error and
-    /// returns None.
+    /// the current token and returns it otherwise reports an error and returns
+    /// `None` and also consumes the token if it's not in the `skip` vector.
     #[inline]
-    fn expect(&mut self, kind: TokenKind) -> Option<Token> {
+    fn expect(&mut self, kind: TokenKind, breaks: Vec<TokenKind>) -> Option<Token> {
+        debug_assert!(!breaks.contains(&kind));
         match self.current() {
             Some(token) if token.kind == kind => {
                 self.advance(1);
                 Some(token)
+            }
+            Some(token) => {
+                if !breaks.contains(&token.kind) {
+                    // TODO(qti3e) Report error.
+                    self.advance(1);
+                    self.expect(kind, breaks)
+                } else {
+                    // TODO(qti3e) Report error.
+                    None
+                }
             }
             _ => {
                 // TODO(qti3e) Report error.
@@ -224,8 +235,8 @@ impl<'a> Parser<'a> {
     /// Try to parse an identifier from the token stream, consumes the token on
     /// success otherwise just returns None without changing the state.
     #[inline]
-    fn parse_identifier(&mut self) -> Option<IdentifierNode> {
-        match self.expect(TokenKind::Identifier) {
+    fn parse_identifier(&mut self, skip: Vec<TokenKind>) -> Option<IdentifierNode> {
+        match self.expect(TokenKind::Identifier, skip) {
             Some(token) => Some(IdentifierNode {
                 location: token.position,
             }),
@@ -251,15 +262,22 @@ impl<'a> Parser<'a> {
     fn parse_type_field(&mut self) -> Option<TypeFieldNode> {
         let start = self.current_source_position();
 
-        let name = self.parse_identifier();
+        let name = self.parse_identifier(vec![TokenKind::Question]);
+
         let nullable = match self.expect_optional(TokenKind::Question) {
             Some(_) => true,
             _ => false,
         };
 
-        self.expect(TokenKind::Colon);
-        let type_name = self.parse_identifier();
-        self.expect(TokenKind::Semicolon);
+        self.expect(
+            TokenKind::Colon,
+            vec![TokenKind::Semicolon, TokenKind::Identifier],
+        );
+        let type_name = self.parse_identifier(vec![TokenKind::Semicolon]);
+        self.expect(
+            TokenKind::Semicolon,
+            vec![TokenKind::Identifier, TokenKind::RightBrace],
+        );
 
         Some(TypeFieldNode {
             location: self.get_location(start),
@@ -280,24 +298,31 @@ impl<'a> Parser<'a> {
         // Consume `type`.
         self.advance(1);
 
-        let name = self.parse_identifier();
+        let name = self.parse_identifier(vec![TokenKind::Colon]);
         let mut bases: Vec<IdentifierNode> = vec![];
         let mut fields: Vec<TypeFieldNode> = vec![];
 
         match self.expect_optional(TokenKind::Colon) {
             Some(_) => {
                 self.collect_comma_separated(&mut bases, vec![TokenKind::LeftBrace], |parser| {
-                    parser.parse_identifier()
+                    parser.parse_identifier(vec![TokenKind::Comma])
                 });
             }
             None => {}
         }
 
-        self.expect(TokenKind::LeftBrace);
+        self.expect(
+            TokenKind::LeftBrace,
+            vec![
+                TokenKind::Identifier,
+                TokenKind::Colon,
+                TokenKind::RightBrace,
+            ],
+        );
         self.collect(&mut fields, vec![TokenKind::RightBrace], |parser| {
             parser.parse_type_field()
         });
-        self.expect(TokenKind::RightBrace);
+        self.expect(TokenKind::RightBrace, vec![TokenKind::Identifier]);
 
         Some(TypeDeclarationNode {
             location: self.get_location(start),
