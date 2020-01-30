@@ -371,6 +371,59 @@ impl<'a> Parser<'a> {
         })
     }
 
+    #[inline]
+    fn parse_call(&mut self) -> Option<CallNode> {
+        let start = self.current_source_position();
+        let name = self.parse_identifier(vec![
+            TokenKind::LeftParenthesis,
+            TokenKind::RightParenthesis,
+            TokenKind::Comma,
+            TokenKind::RightBrace,
+            //
+            TokenKind::Int,
+            TokenKind::Float,
+            TokenKind::Parameter,
+            TokenKind::InternalVariable,
+            TokenKind::Dot,
+        ]);
+
+        self.expect(
+            TokenKind::LeftParenthesis,
+            vec![
+                TokenKind::RightParenthesis,
+                TokenKind::Comma,
+                TokenKind::RightBrace,
+                //
+                TokenKind::Identifier,
+                TokenKind::Int,
+                TokenKind::Float,
+                TokenKind::Parameter,
+                TokenKind::InternalVariable,
+                TokenKind::Dot,
+            ],
+        );
+
+        self.expect(
+            TokenKind::RightParenthesis,
+            vec![
+                TokenKind::Comma,
+                TokenKind::RightBrace,
+                TokenKind::Identifier,
+                TokenKind::Int,
+                TokenKind::Float,
+                TokenKind::Parameter,
+                TokenKind::InternalVariable,
+                TokenKind::Dot,
+            ],
+        );
+
+        Some(CallNode {
+            location: self.get_location(start),
+            callee_name: name,
+            arguments: vec![],
+        })
+    }
+
     /// Parse a query declaration assuming that the `query` token is already
     /// seen but not consumed.
     #[inline]
@@ -420,6 +473,10 @@ impl<'a> Parser<'a> {
             TokenKind::LeftBrace,
             vec![TokenKind::Identifier, TokenKind::LeftParenthesis],
         );
+
+        self.collect_comma_separated(&mut pipelines, vec![TokenKind::RightBrace], |parser| {
+            parser.parse_call()
+        });
 
         self.expect(TokenKind::RightBrace, vec![TokenKind::Identifier]);
 

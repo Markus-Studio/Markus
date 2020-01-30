@@ -266,7 +266,7 @@ fn test_type_declaration_error_tolerance() {
     }
 
     {
-        let source = "type A: X, Y { x  number  p?  string";
+        let source = "type A: X  Y { x  number  p?  string";
         let mut program = Program::new(Source::new(String::from("foo.x"), source));
         program.parse();
         assert_eq!(program.get_span_data_as_utf8(Span::new(5, 1)), "A");
