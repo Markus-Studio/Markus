@@ -1,5 +1,13 @@
 type Product {
-  float price;
+  string name;
+  int price;
+}
+
+type Admin: user {
+  string name;
+}
+
+type User: user {
   string name;
 }
 
@@ -9,22 +17,53 @@ type City: geo {
 
 type Sell {
   Product product;
-  City location;
+  User seller;
   time date;
 }
 
-type User: user {
-  string name;
+query AllSells {
+  is(Sell)
 }
 
-query SellsByCity {
+query AllSellsByUser($user: User) {
   is(Sell),
-  groupBy(.location),
-  groupBy(.label)
+  eq(.seller, $user)
 }
 
-query xxx(string $name) {
-  is(Product),
-  eq(.name, $name),
-  groupBy(.name)
+query AllSellsPerLocation() {
+  is(Sell),
+  groupBy(.location)
+}
+
+query SumOfSellsPerLocation() {
+  is(Sell),
+  groupBy(.location, {
+    sum(.product.price)
+  })
+} # Map<City, Int>
+
+permission Admin {
+  is(Admin)
+}
+
+permission User {
+  is(User)
+}
+
+@Admin
+action createNewProduct($name: string, $price: int) {
+  create Product {
+    .name: $name,
+    .price: $price
+  }
+}
+
+@User
+action createSellRecord($product: Product, $city: City) {
+  create Sell {
+    .product: $product,
+    .city: $city,
+    .seller: %user,
+    .time: %now
+  } 
 }
