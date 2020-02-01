@@ -119,11 +119,6 @@ impl Program {
         }
     }
 
-    /// Returns the data which in a span as a Rust string.
-    pub fn get_span_data_as_utf8(&self, span: Span) -> String {
-        String::from_utf16(&self.source.content[span.offset..span.offset + span.size]).unwrap()
-    }
-
     /// Hard parse the source code.
     pub fn parse(&mut self) {
         self.declarations.clear();
