@@ -174,23 +174,24 @@ impl<'a> Parser<'a> {
 
     /// Like `expect()` but does not report an error.
     #[inline]
-    fn expect_optional(&mut self, kind: TokenKind) -> Option<Token> {
-        match self.current() {
-            Some(token) if token.kind == kind => {
-                self.advance(1);
-                Some(token)
+    fn expect_optional(&mut self, kind: TokenKind, breaks: Vec<TokenKind>) -> Option<Token> {
+        self.store();
+        match self.expect(kind, breaks) {
+            Some(token) => Some(token),
+            None => {
+                self.restore();
+                None
             }
-            _ => None,
         }
     }
 
     #[inline]
     fn collect_separated_by<T, F: Fn(&mut Parser) -> Option<T>>(
         &mut self,
-        separator: TokenKind,
         result: &mut Vec<T>,
         stops: Vec<TokenKind>,
         cb: F,
+        separator: TokenKind,
     ) {
         debug_assert!(stops.len() > 0);
         debug_assert!(!stops.contains(&separator));
@@ -250,7 +251,7 @@ impl<'a> Parser<'a> {
         stops: Vec<TokenKind>,
         cb: F,
     ) {
-        self.collect_separated_by(TokenKind::Comma, result, stops, cb)
+        self.collect_separated_by(result, stops, cb, TokenKind::Comma)
     }
 
     #[inline]
@@ -304,13 +305,35 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// Like parse_identifier but works on internal variables.
+    #[inline]
+    fn parse_identifier_from_internal_variable(
+        &mut self,
+        skip: Vec<TokenKind>,
+    ) -> Option<IdentifierNode> {
+        match self.expect(TokenKind::InternalVariable, skip) {
+            Some(token) => Some(IdentifierNode {
+                location: token.position,
+            }),
+            None => None,
+        }
+    }
+
     #[inline]
     fn parse_type_field(&mut self) -> Option<TypeFieldNode> {
         let start = self.current_source_position();
 
         let name = self.parse_identifier(vec![TokenKind::Question, TokenKind::Semicolon]);
 
-        let nullable = match self.expect_optional(TokenKind::Question) {
+        let nullable = match self.expect_optional(
+            TokenKind::Question,
+            vec![
+                TokenKind::Colon,
+                TokenKind::Semicolon,
+                TokenKind::Identifier,
+                TokenKind::RightBrace,
+            ],
+        ) {
             Some(_) => true,
             _ => false,
         };
@@ -352,7 +375,10 @@ impl<'a> Parser<'a> {
         let mut bases: Vec<IdentifierNode> = vec![];
         let mut fields: Vec<TypeFieldNode> = vec![];
 
-        match self.expect_optional(TokenKind::Colon) {
+        match self.expect_optional(
+            TokenKind::Colon,
+            vec![TokenKind::LeftBrace, TokenKind::RightBrace],
+        ) {
             Some(_) => {
                 self.collect_comma_separated(&mut bases, vec![TokenKind::LeftBrace], |parser| {
                     parser.parse_identifier(vec![TokenKind::Comma])
@@ -451,6 +477,88 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
+    fn consume_variable_reference(&mut self) -> VariableReferenceNode {
+        let token = self.current().unwrap();
+        match token.kind {
+            TokenKind::Dot => VariableReferenceNode::Current,
+            TokenKind::Parameter => VariableReferenceNode::Variable(
+                self.parse_identifier_from_parameter(vec![]).unwrap(),
+            ),
+            TokenKind::InternalVariable => VariableReferenceNode::Internal(
+                self.parse_identifier_from_internal_variable(vec![])
+                    .unwrap(),
+            ),
+            _ => panic!("Unexpected token passed to consume_variable_reference()."),
+        }
+    }
+
+    #[inline]
+    fn consume_access(&mut self) -> AccessNode {
+        let start = self.current_source_position();
+        let base = self.consume_variable_reference();
+        let mut parts: Vec<IdentifierNode> = vec![];
+        let mut read_parts = true;
+
+        match self.find_first_of(
+            &vec![TokenKind::Dot, TokenKind::Identifier],
+            vec![
+                TokenKind::Comma,
+                TokenKind::RightParenthesis,
+                TokenKind::Parameter,
+                TokenKind::InternalVariable,
+                TokenKind::Boolean,
+                TokenKind::Int,
+                TokenKind::Float,
+            ],
+        ) {
+            Some(TokenKind::Dot) => {
+                self.advance(1);
+            }
+            Some(TokenKind::Identifier) => {
+                let token = self.current().unwrap();
+                self.report(Diagnostic::expected_token(token, TokenKind::Dot));
+            }
+            _ => {
+                read_parts = false;
+            }
+        }
+
+        if read_parts {
+            self.collect_separated_by(
+                &mut parts,
+                vec![
+                    TokenKind::Comma,
+                    TokenKind::RightParenthesis,
+                    TokenKind::Parameter,
+                    TokenKind::InternalVariable,
+                    TokenKind::Boolean,
+                    TokenKind::Int,
+                    TokenKind::Float,
+                ],
+                |parser| {
+                    parser.parse_identifier(vec![
+                        TokenKind::Dot,
+                        TokenKind::Comma,
+                        TokenKind::RightParenthesis,
+                        TokenKind::Parameter,
+                        TokenKind::InternalVariable,
+                        TokenKind::Boolean,
+                        TokenKind::Int,
+                        TokenKind::Float,
+                    ])
+                },
+                TokenKind::Dot,
+            );
+        }
+
+        AccessNode {
+            location: self.get_location(start),
+            base: base,
+            parts: parts,
+        }
+    }
+
+    #[inline]
     fn parse_value(&mut self) -> Option<ValueNode> {
         match self.find_first_of(
             &vec![
@@ -472,6 +580,9 @@ impl<'a> Parser<'a> {
             Some(TokenKind::Int) => Some(ValueNode::Int(self.consume_int_literal())),
             Some(TokenKind::Float) => Some(ValueNode::Float(self.consume_float_literal())),
             Some(TokenKind::Boolean) => Some(ValueNode::Boolean(self.consume_boolean_literal())),
+            Some(TokenKind::Dot)
+            | Some(TokenKind::Parameter)
+            | Some(TokenKind::InternalVariable) => Some(ValueNode::Access(self.consume_access())),
             _ => None,
         }
     }
