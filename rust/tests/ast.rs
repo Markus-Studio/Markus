@@ -8,7 +8,7 @@ use markus::parser::tokenizer::Span;
 fn test_type_declaration() {
     {
         let source = "type A {}";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -23,7 +23,7 @@ fn test_type_declaration() {
 
     {
         let source = "type A: X, Y {}";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -41,7 +41,7 @@ fn test_type_declaration() {
 
     {
         let source = "type A: X, Y { x: number; }";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -64,7 +64,7 @@ fn test_type_declaration() {
 
     {
         let source = "type A: X, Y { x: number; p?: string; }";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -98,7 +98,7 @@ fn test_type_declaration() {
 fn test_type_declaration_error_tolerance() {
     {
         let source = "type {} type B {}";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -121,7 +121,7 @@ fn test_type_declaration_error_tolerance() {
 
     {
         let source = "type A: X, , Y {}";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -139,7 +139,7 @@ fn test_type_declaration_error_tolerance() {
 
     {
         let source = "type A: X, Y { x: ; }";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -162,7 +162,7 @@ fn test_type_declaration_error_tolerance() {
 
     {
         let source = "type A: X, Y { x: number; ?: string; }";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -193,7 +193,7 @@ fn test_type_declaration_error_tolerance() {
 
     {
         let source = "type A: X, Y { x: number; ?:; y: c; }";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,
@@ -230,7 +230,7 @@ fn test_type_declaration_error_tolerance() {
 
     {
         let source = "type A: X  Y { x  number  p?  string";
-        let mut program = Program::new(Source::new(String::from("foo.x"), source));
+        let mut program = Program::new(Source::new("foo.x", source));
         program.parse();
         assert_eq!(
             program.declarations,

@@ -1,30 +1,19 @@
 type Product {
-  float price;
-  string name;
+  name: string;
+  price: float;
 }
 
-type City: geo {
-  string name;
+type Seller: user {
+  first_name: string;
+  last_name: string;
 }
 
 type Sell {
-  Product product;
-  City location;
-  time date;
+  product: Product;
+  seller: Seller;
+  date: time;
 }
 
-type User: user {
-  string name;
-}
-
-query SellsByCity {
-  is(Sell),
-  groupBy(.location),
-  groupBy(.label)
-}
-
-query xxx(string $name) {
-  is(Product),
-  eq(.name, $name),
-  groupBy(54.126)
+query AllProducts {
+  is(Product)
 }

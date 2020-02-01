@@ -51,9 +51,9 @@ pub struct Source {
 
 impl Source {
     /// Constructs a new Source struct with the given filename and data.
-    pub fn new(filename: String, data: &str) -> Source {
+    pub fn new(filename: &str, data: &str) -> Source {
         Source {
-            filename: filename,
+            filename: String::from(filename),
             diagnostics: vec![],
             content: data.encode_utf16().collect(),
             line_offsets: None,

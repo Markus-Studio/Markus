@@ -599,12 +599,12 @@ impl<'a> Parser<'a> {
         ) {
             Some(_) => {
                 self.current_token_index = current_index;
-                match self.parse_call() {
-                    Some(call) => ValueNode::Call(call),
-                    None => ValueNode::Type(self.consume_type_reference()),
-                }
+                ValueNode::Call(self.parse_call().unwrap())
             }
-            None => ValueNode::Type(self.consume_type_reference()),
+            None => {
+                self.current_token_index = current_index;
+                ValueNode::Type(self.consume_type_reference())
+            }
         }
     }
 

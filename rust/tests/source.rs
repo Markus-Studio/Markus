@@ -4,7 +4,7 @@ use markus::parser::source::*;
 
 #[cfg(test)]
 fn get_source(data: &str) -> Source {
-    Source::new(String::from("foo://bar"), data)
+    Source::new("foo://bar", data)
 }
 
 #[test]
