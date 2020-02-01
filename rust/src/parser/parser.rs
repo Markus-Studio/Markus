@@ -561,6 +561,45 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
+    fn consume_type_reference(&mut self) -> TypeReferenceNode {
+        let token = self.current().unwrap();
+        debug_assert_eq!(token.kind, TokenKind::Identifier);
+        self.advance(1);
+        TypeReferenceNode {
+            location: token.position,
+            name: IdentifierNode {
+                location: token.position,
+            },
+        }
+    }
+
+    #[inline]
+    fn consume_type_reference_or_call(&mut self) -> ValueNode {
+        let token = self.current().unwrap();
+        debug_assert_eq!(token.kind, TokenKind::Identifier);
+        let current_index = self.current_token_index;
+        self.advance(1);
+
+        match self.expect_optional(
+            TokenKind::LeftParenthesis,
+            vec![
+                TokenKind::RightBrace,
+                TokenKind::RightParenthesis,
+                TokenKind::Comma,
+            ],
+        ) {
+            Some(_) => {
+                self.current_token_index = current_index;
+                match self.parse_call() {
+                    Some(call) => ValueNode::Call(call),
+                    None => ValueNode::Type(self.consume_type_reference()),
+                }
+            }
+            None => ValueNode::Type(self.consume_type_reference()),
+        }
+    }
+
+    #[inline]
     fn parse_value(&mut self) -> Option<ValueNode> {
         match self.find_first_of(
             &vec![
@@ -585,6 +624,8 @@ impl<'a> Parser<'a> {
             Some(TokenKind::Dot)
             | Some(TokenKind::Parameter)
             | Some(TokenKind::InternalVariable) => Some(ValueNode::Access(self.consume_access())),
+            Some(TokenKind::LeftParenthesis) => Some(ValueNode::Call(self.parse_call().unwrap())),
+            Some(TokenKind::Identifier) => Some(self.consume_type_reference_or_call()),
             _ => None,
         }
     }
