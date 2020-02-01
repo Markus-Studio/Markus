@@ -40,6 +40,12 @@ pub struct QueryDeclarationNode {
     pub location: Span,
     pub name: Option<IdentifierNode>,
     pub parameter: Vec<ParameterNode>,
+    pub query: QueryNode,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct QueryNode {
+    pub location: Span,
     pub pipelines: Vec<CallNode>,
 }
 

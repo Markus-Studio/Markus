@@ -537,6 +537,28 @@ impl<'a> Parser<'a> {
         })
     }
 
+    #[inline]
+    fn parse_query(&mut self) -> QueryNode {
+        let start = self.current_source_position();
+        let mut pipelines: Vec<CallNode> = vec![];
+
+        self.expect(
+            TokenKind::LeftBrace,
+            vec![TokenKind::Identifier, TokenKind::LeftParenthesis],
+        );
+
+        self.collect_comma_separated(&mut pipelines, vec![TokenKind::RightBrace], |parser| {
+            parser.parse_call()
+        });
+
+        self.expect(TokenKind::RightBrace, vec![TokenKind::Identifier]);
+
+        QueryNode {
+            location: self.get_location(start),
+            pipelines: pipelines,
+        }
+    }
+
     /// Parse a query declaration assuming that the `query` token is already
     /// seen but not consumed.
     #[inline]
@@ -551,7 +573,6 @@ impl<'a> Parser<'a> {
 
         let name = self.parse_identifier(vec![TokenKind::LeftParenthesis, TokenKind::LeftBrace]);
         let mut parameters: Vec<ParameterNode> = vec![];
-        let mut pipelines: Vec<CallNode> = vec![];
 
         self.expect(
             TokenKind::LeftParenthesis,
@@ -582,22 +603,13 @@ impl<'a> Parser<'a> {
             ],
         );
 
-        self.expect(
-            TokenKind::LeftBrace,
-            vec![TokenKind::Identifier, TokenKind::LeftParenthesis],
-        );
-
-        self.collect_comma_separated(&mut pipelines, vec![TokenKind::RightBrace], |parser| {
-            parser.parse_call()
-        });
-
-        self.expect(TokenKind::RightBrace, vec![TokenKind::Identifier]);
+        let query = self.parse_query();
 
         Some(QueryDeclarationNode {
             location: self.get_location(start),
             name: name,
             parameter: parameters,
-            pipelines: pipelines,
+            query: query,
         })
     }
 
