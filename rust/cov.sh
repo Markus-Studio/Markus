@@ -2,7 +2,7 @@
 find . \( -name "*.gcda" \) -delete
 
 export CARGO_INCREMENTAL=0
-export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
+export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Copt-level=0 -Zno-landing-pads"
 cargo build --verbose $CARGO_OPTIONS
 cargo test --verbose $CARGO_OPTIONS
 zip -0 ccov.zip `find . \( -name "markus*.gc*" \) -print`;

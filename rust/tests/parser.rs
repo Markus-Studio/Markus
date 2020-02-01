@@ -612,3 +612,51 @@ fn ast_type_reference() {
         })
     );
 }
+
+#[test]
+fn ast_field_current() {
+    let source = "query X() {a(.x)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Access(AccessNode {
+            location: Span::new(13, 2),
+            base: VariableReferenceNode::Current,
+            parts: vec![IdentifierNode::new(14, "x")]
+        })
+    );
+}
+
+#[test]
+fn ast_field_parameter() {
+    let source = "query X() {a($a.x)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Access(AccessNode {
+            location: Span::new(13, 4),
+            base: VariableReferenceNode::Variable(IdentifierNode::new(13, "$a")),
+            parts: vec![IdentifierNode::new(16, "x")]
+        })
+    );
+}
+
+#[test]
+fn ast_field_internal() {
+    let source = "query X() {a(%a.x)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Access(AccessNode {
+            location: Span::new(13, 4),
+            base: VariableReferenceNode::Variable(IdentifierNode::new(13, "%a")),
+            parts: vec![IdentifierNode::new(16, "x")]
+        })
+    );
+}
