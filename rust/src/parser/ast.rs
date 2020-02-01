@@ -11,6 +11,7 @@ pub struct Program {
 #[derive(Debug, PartialEq)]
 pub struct IdentifierNode {
     pub location: Span,
+    pub value: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -143,12 +144,13 @@ impl Program {
 }
 
 impl IdentifierNode {
-    pub fn new(start: usize, size: usize) -> IdentifierNode {
+    pub fn new(start: usize, value: &str) -> IdentifierNode {
         IdentifierNode {
             location: Span {
                 offset: start,
-                size: size,
+                size: value.chars().count(),
             },
+            value: String::from(value),
         }
     }
 }

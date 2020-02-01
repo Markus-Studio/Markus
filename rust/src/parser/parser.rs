@@ -282,6 +282,11 @@ impl<'a> Parser<'a> {
         }
     }
 
+    #[inline]
+    fn get_string_from_span(&self, span: Span) -> String {
+        String::from_utf16(&self.data[span.offset..span.offset + span.size]).unwrap()
+    }
+
     /// Try to parse an identifier from the token stream, consumes the token on
     /// success otherwise just returns None without changing the state.
     #[inline]
@@ -289,6 +294,7 @@ impl<'a> Parser<'a> {
         match self.expect(TokenKind::Identifier, skip) {
             Some(token) => Some(IdentifierNode {
                 location: token.position,
+                value: self.get_string_from_span(token.position),
             }),
             None => None,
         }
@@ -300,6 +306,7 @@ impl<'a> Parser<'a> {
         match self.expect(TokenKind::Parameter, skip) {
             Some(token) => Some(IdentifierNode {
                 location: token.position,
+                value: self.get_string_from_span(token.position),
             }),
             None => None,
         }
@@ -314,6 +321,7 @@ impl<'a> Parser<'a> {
         match self.expect(TokenKind::InternalVariable, skip) {
             Some(token) => Some(IdentifierNode {
                 location: token.position,
+                value: self.get_string_from_span(token.position),
             }),
             None => None,
         }
@@ -569,6 +577,7 @@ impl<'a> Parser<'a> {
             location: token.position,
             name: IdentifierNode {
                 location: token.position,
+                value: self.get_string_from_span(token.position),
             },
         }
     }
