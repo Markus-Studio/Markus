@@ -267,14 +267,14 @@ impl<'a> Tokenizer<'a> {
             '$' => {
                 self.advance(1);
                 match self.eat_identifier() {
-                    Some(size) => Some(Token::new(TokenKind::Parameter, start, size)),
+                    Some(size) => Some(Token::new(TokenKind::Parameter, start, size + 1)),
                     None => Some(Token::new(TokenKind::Unknown, start, 1)),
                 }
             }
             '%' => {
                 self.advance(1);
                 match self.eat_identifier() {
-                    Some(size) => Some(Token::new(TokenKind::InternalVariable, start, size)),
+                    Some(size) => Some(Token::new(TokenKind::InternalVariable, start, size + 1)),
                     None => Some(Token::new(TokenKind::Unknown, start, 1)),
                 }
             }
@@ -337,15 +337,6 @@ fn is_digit(c: char) -> bool {
     }
 }
 
-impl Span {
-    pub fn new(start: usize, size: usize) -> Span {
-        Span {
-            offset: start,
-            size: size,
-        }
-    }
-}
-
 impl Token {
     pub fn new(kind: TokenKind, start: usize, size: usize) -> Token {
         Token {
@@ -377,17 +368,14 @@ impl Token {
     }
 }
 
-impl std::fmt::Debug for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Token(Position({}, {}), {:?})",
-            self.position.offset, self.position.size, self.kind
-        )
-    }
-}
-
 impl Span {
+    pub fn new(start: usize, size: usize) -> Span {
+        Span {
+            offset: start,
+            size: size,
+        }
+    }
+
     pub fn from_positions(start: usize, end: usize) -> Span {
         Span {
             offset: start,

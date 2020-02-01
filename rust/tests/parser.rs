@@ -1,7 +1,5 @@
 extern crate markus;
 use markus::parser::ast::*;
-use markus::parser::diagnostics::*;
-use markus::parser::parser::*;
 use markus::parser::source::*;
 use markus::parser::tokenizer::*;
 
@@ -208,6 +206,7 @@ fn tokenizer_basic() {
     assert!(tokens[0].compare_identifier(&data, "query"));
     assert!(!tokens[0].compare_identifier(&data, "Hello World"));
     assert!(tokens[1].compare_identifier(&data, "x"));
+    // TODO(qti3e) Test other tokens too.
 }
 
 #[test]
@@ -215,6 +214,7 @@ fn ast_type_declaration_01() {
     let source = "type A {}";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -231,6 +231,7 @@ fn ast_type_declaration_02() {
     let source = "type A: X, Y {}";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -247,6 +248,7 @@ fn ast_type_declaration_03() {
     let source = "type A: X, Y { x: number; }";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -268,6 +270,7 @@ fn ast_type_declaration_04() {
     let source = "type A: X, Y { x: number; p?: string; }";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -297,6 +300,7 @@ fn ast_type_declaration_error_tolerance_01() {
     let source = "type {} type B {}";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(!program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![
@@ -321,6 +325,7 @@ fn ast_type_declaration_error_tolerance_02() {
     let source = "type A: X, , Y {}";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(!program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -337,6 +342,7 @@ fn ast_type_declaration_error_tolerance_03() {
     let source = "type A: X, Y { x: ; }";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(!program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -358,6 +364,7 @@ fn ast_type_declaration_error_tolerance_04() {
     let source = "type A: X, Y { x: number; ?: string; }";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(!program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -387,6 +394,7 @@ fn ast_type_declaration_error_tolerance_05() {
     let source = "type A: X, Y { x: number; ?:; y: c; }";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(!program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -422,6 +430,7 @@ fn ast_type_declaration_error_tolerance_06() {
     let source = "type A: X  Y { x  number  p?  string";
     let mut program = Program::new(Source::new("foo.x", source));
     program.parse();
+    assert!(!program.source.is_good());
     assert_eq!(
         program.declarations,
         vec![Declaration::Type(TypeDeclarationNode {
@@ -443,5 +452,163 @@ fn ast_type_declaration_error_tolerance_06() {
                 }
             ]
         })]
+    );
+}
+
+#[test]
+fn ast_query_declaration_01() {
+    let source = "query X() {}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    assert!(program.source.is_good());
+    assert_eq!(
+        program.declarations,
+        vec![Declaration::Query(QueryDeclarationNode {
+            location: Span::new(0, 12),
+            name: Some(IdentifierNode::new(6, "X")),
+            parameter: vec![],
+            query: QueryNode {
+                location: Span::new(10, 2),
+                pipelines: vec![]
+            }
+        })]
+    )
+}
+
+#[test]
+fn ast_query_declaration_02() {
+    let source = "query X($a: X, $b: Y) {}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    assert!(program.source.is_good());
+    assert_eq!(
+        program.declarations,
+        vec![Declaration::Query(QueryDeclarationNode {
+            location: Span::new(0, 24),
+            name: Some(IdentifierNode::new(6, "X")),
+            parameter: vec![
+                ParameterNode {
+                    location: Span::new(8, 5),
+                    name: Some(IdentifierNode::new(8, "$a")),
+                    type_name: Some(IdentifierNode::new(12, "X"))
+                },
+                ParameterNode {
+                    location: Span::new(15, 5),
+                    name: Some(IdentifierNode::new(15, "$b")),
+                    type_name: Some(IdentifierNode::new(19, "Y"))
+                }
+            ],
+            query: QueryNode {
+                location: Span::new(22, 2),
+                pipelines: vec![]
+            }
+        })]
+    )
+}
+
+#[test]
+fn ast_query_declaration_03() {
+    let source = "query X() {a()}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    assert!(program.source.is_good());
+    assert_eq!(
+        program.declarations,
+        vec![Declaration::Query(QueryDeclarationNode {
+            location: Span::new(0, 15),
+            name: Some(IdentifierNode::new(6, "X")),
+            parameter: vec![],
+            query: QueryNode {
+                location: Span::new(10, 5),
+                pipelines: vec![CallNode {
+                    location: Span::new(11, 3),
+                    callee_name: Some(IdentifierNode::new(11, "a")),
+                    arguments: vec![]
+                }]
+            }
+        })]
+    )
+}
+
+fn get_value_ast<'a>(program: &'a Program) -> &'a ValueNode {
+    assert_eq!(program.declarations.len(), 1);
+    match &program.declarations[0] {
+        Declaration::Query(query) => {
+            assert_eq!(query.query.pipelines.len(), 1);
+            assert_eq!(query.query.pipelines[0].arguments.len(), 1);
+            &query.query.pipelines[0].arguments[0]
+        }
+        _ => panic!("Expected query declaration"),
+    }
+}
+
+#[test]
+fn ast_int_literal() {
+    let source = "query X() {a(53)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Int(IntLiteralNode {
+            location: Span::new(13, 2)
+        })
+    );
+}
+
+#[test]
+fn ast_float_literal() {
+    let source = "query X() {a(53.2)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Float(FloatLiteralNode {
+            location: Span::new(13, 4)
+        })
+    );
+}
+
+#[test]
+fn ast_boolean_true_literal() {
+    let source = "query X() {a(true)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Boolean(BooleanLiteralNode {
+            location: Span::new(13, 4)
+        })
+    );
+}
+
+#[test]
+fn ast_boolean_false_literal() {
+    let source = "query X() {a(false)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Boolean(BooleanLiteralNode {
+            location: Span::new(13, 5)
+        })
+    );
+}
+
+#[test]
+fn ast_type_reference() {
+    let source = "query X() {a(Ya_)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Type(TypeReferenceNode {
+            location: Span::new(13, 3),
+            name: IdentifierNode::new(13, "Ya_")
+        })
     );
 }
