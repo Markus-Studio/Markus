@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use crate::parser::diagnostics;
 use crate::parser::tokenizer::Span;
 
 #[derive(Copy, Clone)]
@@ -38,8 +37,6 @@ pub struct TextEditResult {
 pub struct Source {
     /// The file name which this source is derived from.
     pub filename: String,
-    /// All of the errors we encountered on this source file.
-    pub diagnostics: Vec<diagnostics::Diagnostic>,
     /// Source code's content in UTF-16.
     /// We use UTF-16 to have an O(1) mapping from offset to character index.
     /// Also another reason to use a Vector in this situation over a string is
@@ -54,21 +51,9 @@ impl Source {
     pub fn new(filename: &str, data: &str) -> Source {
         Source {
             filename: String::from(filename),
-            diagnostics: vec![],
             content: data.encode_utf16().collect(),
             line_offsets: None,
         }
-    }
-
-    /// Returns true if there is no error attached to this source file.
-    #[inline]
-    pub fn is_good(&self) -> bool {
-        self.diagnostics.is_empty()
-    }
-
-    /// Use this function to report an error on this source file.
-    pub fn report(&mut self, diagnostic: diagnostics::Diagnostic) {
-        self.diagnostics.push(diagnostic);
     }
 
     /// Returns the content of the source as a string.

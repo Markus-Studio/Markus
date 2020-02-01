@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::parser::ast::*;
-use crate::parser::diagnostics::Diagnostic;
 use crate::parser::tokenizer::*;
+use crate::program::Diagnostic;
 
 pub struct Parser<'a> {
     tokenizer: Tokenizer<'a>,

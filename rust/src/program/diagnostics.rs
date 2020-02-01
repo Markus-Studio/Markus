@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::parser::tokenizer::{Span, Token, TokenKind};
+use crate::parser::{Span, Token, TokenKind};
 
 #[derive(PartialEq, Debug)]
 pub enum DiagnosticKind {

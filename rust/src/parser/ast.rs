@@ -1,12 +1,5 @@
 #![allow(dead_code)]
-use crate::parser::parser::Parser;
-use crate::parser::source::Source;
 use crate::parser::tokenizer::Span;
-
-pub struct Program {
-    pub source: Source,
-    pub declarations: Vec<Declaration>,
-}
 
 #[derive(Debug, PartialEq)]
 pub struct IdentifierNode {
@@ -107,35 +100,6 @@ pub enum VariableReferenceNode {
     Current,
     Internal(IdentifierNode),
     Variable(IdentifierNode),
-}
-
-impl Program {
-    /// Constructs a new program from the given source file, but it does not
-    /// parse the data, you should call .parse() after the construction.
-    pub fn new(source: Source) -> Program {
-        Program {
-            source: source,
-            declarations: vec![],
-        }
-    }
-
-    /// Hard parse the source code.
-    pub fn parse(&mut self) {
-        self.declarations.clear();
-        let mut parser = Parser::new(&self.source.content, 0);
-        loop {
-            match parser.parse_declaration() {
-                Some(declaration) => {
-                    self.declarations.push(declaration);
-                }
-                None => break,
-            }
-        }
-
-        for diagnostic in parser.diagnostics {
-            self.source.report(diagnostic);
-        }
-    }
 }
 
 impl IdentifierNode {

@@ -1,5 +1,10 @@
 pub mod ast;
-pub mod diagnostics;
-pub mod parser;
-pub mod source;
-pub mod tokenizer;
+
+mod parser;
+pub use parser::*;
+
+mod tokenizer;
+pub use tokenizer::*;
+
+mod source;
+pub use source::*;
