@@ -499,6 +499,7 @@ impl<'a> Parser<'a> {
         let mut parts: Vec<IdentifierNode> = vec![];
         let mut read_parts = true;
 
+        self.store();
         match self.find_first_of(
             &vec![TokenKind::Dot, TokenKind::Identifier],
             vec![
@@ -519,6 +520,7 @@ impl<'a> Parser<'a> {
                 self.report(Diagnostic::expected_token(token, TokenKind::Dot));
             }
             _ => {
+                self.restore();
                 read_parts = false;
             }
         }
