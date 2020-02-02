@@ -14,8 +14,8 @@ TEST("is") {
   Atomic z("z");
 
   Object D("D");
-  Object C("D", &D);
-  Object B("D");
+  Object C("C", &D);
+  Object B("B");
   Object A("A", &B, &C);
   Object E("E", &C);
   Object F("F", &E);
