@@ -1,2 +1,2 @@
-pub mod markus_type;
-pub mod space;
+mod space;
+pub use space::*;
