@@ -147,7 +147,28 @@ impl<'a> TypeSpace {
 
     /// Returns the result of evaluating "`lhs` is `rhs`"
     pub fn is(&self, lhs: &MarkusType, rhs: &MarkusType) -> bool {
-        panic!("Not implemented.");
+        // Two types must be of the same order in order to be compared.
+        if lhs.dimension != rhs.dimension {
+            return false;
+        }
+
+        // `nil` is not `nil` - if that makes sense.
+        if lhs.is_nil() || rhs.is_nil() {
+            return false;
+        }
+
+        match (&lhs.type_info, &rhs.type_info) {
+            (MarkusTypeInfo::Atomic, MarkusTypeInfo::Atomic) => {
+                // Two atomic types are considered to be same if and only if
+                // they share the same id.
+                lhs.id == rhs.id
+            }
+            (MarkusTypeInfo::Atomic, MarkusTypeInfo::Union { ref members }) => {
+                // `x is T: {A, B, ...}` holds true for all x-es that are in the T.
+                members.contains(&lhs.id)
+            }
+            _ => panic!("Not implemented."),
+        }
     }
 
     /// Returns whatever the given field exists on the base type.
@@ -216,6 +237,48 @@ impl MarkusType {
                 members.push(id);
             }
             _ => panic!("union_add_member is only for union types."),
+        }
+    }
+
+    #[inline]
+    pub fn is_atomic(&self) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::Atomic => true,
+            _ => false,
+        }
+    }
+
+    #[inline]
+    pub fn is_never(&self) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::Never => true,
+            _ => false,
+        }
+    }
+
+    #[inline]
+    pub fn is_union(&self) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::Union { .. } => true,
+            _ => false,
+        }
+    }
+
+    #[inline]
+    pub fn is_object(&self) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::Object { .. } | MarkusTypeInfo::BuiltInObject { .. } => true,
+            _ => false,
+        }
+    }
+
+    /// Returns true if this type is evaluated to be `nil`.
+    #[inline]
+    pub fn is_nil(&self) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::Never => true,
+            MarkusTypeInfo::Union { ref members } => members.len() == 0,
+            _ => false,
         }
     }
 }
@@ -290,4 +353,15 @@ fn test_is() {
     let mut j_or_f = MarkusType::new_union();
     j_or_f.union_add_member(j_id);
     j_or_f.union_add_member(f_id);
+
+    let x = space.resolve_type("x").unwrap();
+    let y = space.resolve_type("y").unwrap();
+    let z = space.resolve_type("z").unwrap();
+
+    assert_eq!(space.is(x, x), true);
+    assert_eq!(space.is(x, y), false);
+    assert_eq!(space.is(x, &x_or_y), true);
+    assert_eq!(space.is(x, &y_or_z), false);
+    assert_eq!(space.is(x, &x_or_y_or_a), true);
+    assert_eq!(space.is(x, &empty), false);
 }
