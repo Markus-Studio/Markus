@@ -1,17 +1,17 @@
 #![allow(dead_code)]
 use crate::parser::ast::TypeDeclarationNode;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;
 
 type TypeId = u32;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MarkusObjectTypeField {
     name: String,
     field_type: TypeId,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum MarkusTypeInfo {
     Atomic,
     Never,
@@ -27,12 +27,12 @@ pub enum MarkusTypeInfo {
     },
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MarkusType {
     pub id: TypeId,
     /// This value indicates dimension of the actual type, a type such as
     /// `x` where x is an atomic is considered a 0-dimensional type while
-    /// `x[]` and `x[][]` are 1 and 2-dimensional accordingly.
+    /// `x[]` and `x[][]` are true and 2-dimensional accordingly.
     pub dimension: u32,
     pub type_info: MarkusTypeInfo,
 }
@@ -157,6 +157,10 @@ impl<'a> TypeSpace {
             return false;
         }
 
+        if lhs.id > 0 && lhs.id == rhs.id {
+            return true;
+        }
+
         match (&lhs.type_info, &rhs.type_info) {
             (MarkusTypeInfo::Atomic, MarkusTypeInfo::Atomic) => {
                 // Two atomic types are considered to be same if and only if
@@ -167,7 +171,55 @@ impl<'a> TypeSpace {
                 // `x is T: {A, B, ...}` holds true for all x-es that are in the T.
                 members.contains(&lhs.id)
             }
-            _ => panic!("Not implemented."),
+            (MarkusTypeInfo::Atomic, _) => {
+                // An atomic type is only assignable to another atomic.
+                false
+            }
+            (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Atomic) => {
+                // `T: {A, B, ...} is x` if and only if T = {x}
+                members.len() == 1 && members[0] == rhs.id
+            }
+            (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Object { .. })
+            | (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::BuiltInObject { .. })
+            | (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Union { .. }) => {
+                if members.len() == 0 {
+                    false
+                } else {
+                    for &type_id in members {
+                        let member = self.resolve_type_by_id(type_id).unwrap();
+                        if !self.is(member, rhs) {
+                            return false;
+                        }
+                    }
+                    true
+                }
+            }
+            (MarkusTypeInfo::Object { .. }, MarkusTypeInfo::Object { .. })
+            | (MarkusTypeInfo::Object { .. }, MarkusTypeInfo::BuiltInObject { .. })
+            | (MarkusTypeInfo::BuiltInObject { .. }, MarkusTypeInfo::Object { .. })
+            | (MarkusTypeInfo::BuiltInObject { .. }, MarkusTypeInfo::BuiltInObject { .. }) => {
+                // `o1: {all_parents} is o2` is true for all such that o2 is a member of all_parents.
+                // (we have already handled the o1 == o2 at above)
+                for parent in lhs.object_get_parents_recursive(self) {
+                    if parent == rhs.id {
+                        return true;
+                    }
+                }
+                false
+            }
+            (MarkusTypeInfo::Object { .. }, MarkusTypeInfo::Union { ref members })
+            | (MarkusTypeInfo::BuiltInObject { .. }, MarkusTypeInfo::Union { ref members }) => {
+                for &type_id in members {
+                    let member = self.resolve_type_by_id(type_id).unwrap();
+                    if self.is(lhs, member) {
+                        return true;
+                    }
+                }
+                false
+            }
+            (MarkusTypeInfo::Object { .. }, MarkusTypeInfo::Atomic)
+            | (MarkusTypeInfo::BuiltInObject { .. }, MarkusTypeInfo::Atomic) => false,
+            (MarkusTypeInfo::Never, _) | (_, MarkusTypeInfo::Never) => false,
         }
     }
 
@@ -230,16 +282,6 @@ impl MarkusType {
         }
     }
 
-    /// Add a member to a union type.
-    pub fn union_add_member(&mut self, id: TypeId) {
-        match self.type_info {
-            MarkusTypeInfo::Union { ref mut members } => {
-                members.push(id);
-            }
-            _ => panic!("union_add_member is only for union types."),
-        }
-    }
-
     #[inline]
     pub fn is_atomic(&self) -> bool {
         match self.type_info {
@@ -280,6 +322,57 @@ impl MarkusType {
             MarkusTypeInfo::Union { ref members } => members.len() == 0,
             _ => false,
         }
+    }
+
+    /// Add a member to a union type.
+    pub fn union_add_member(&mut self, id: TypeId) {
+        if let MarkusTypeInfo::Union { ref mut members } = self.type_info {
+            members.push(id);
+        } else {
+            panic!("union_add_member is only for union types.");
+        }
+    }
+
+    #[inline]
+    pub fn object_get_parents(&self, space: &TypeSpace) -> Vec<TypeId> {
+        match self.type_info {
+            MarkusTypeInfo::Object { ref ast } => {
+                let mut result: Vec<TypeId> = Vec::with_capacity(ast.bases.len());
+                for base in &ast.bases {
+                    if let Some(&id) = space.resolve_type_id(&base.value) {
+                        result.push(id);
+                    }
+                }
+                result
+            }
+            MarkusTypeInfo::BuiltInObject { ref parents, .. } => parents.clone(),
+            _ => panic!("object_get_parents is only for object types."),
+        }
+    }
+
+    /// Returns a set containing all of the parents in the current type.
+    #[inline]
+    pub fn object_get_parents_recursive(&self, space: &TypeSpace) -> HashSet<TypeId> {
+        let mut seen: HashSet<TypeId> = HashSet::new();
+        let mut to_see: VecDeque<TypeId> = VecDeque::from(self.object_get_parents(space));
+
+        while let Some(current_id) = to_see.pop_front() {
+            if seen.insert(current_id) {
+                let current_type = space.resolve_type_by_id(current_id).unwrap();
+                let current_parents = current_type.object_get_parents_recursive(space);
+                let additional = current_parents.len();
+                if additional > 0 {
+                    seen.reserve(additional);
+                    to_see.reserve(additional);
+                }
+                for new_id in current_parents {
+                    seen.insert(new_id);
+                    to_see.push_back(new_id);
+                }
+            }
+        }
+
+        seen
     }
 }
 
@@ -358,10 +451,53 @@ fn test_is() {
     let y = space.resolve_type("y").unwrap();
     let z = space.resolve_type("z").unwrap();
 
+    let a = space.resolve_type_by_id(a_id).unwrap();
+    let b = space.resolve_type_by_id(b_id).unwrap();
+    let c = space.resolve_type_by_id(c_id).unwrap();
+    let d = space.resolve_type_by_id(d_id).unwrap();
+    let e = space.resolve_type_by_id(e_id).unwrap();
+    let f = space.resolve_type_by_id(f_id).unwrap();
+    let l = space.resolve_type_by_id(l_id).unwrap();
+    let j = space.resolve_type_by_id(j_id).unwrap();
+
     assert_eq!(space.is(x, x), true);
     assert_eq!(space.is(x, y), false);
     assert_eq!(space.is(x, &x_or_y), true);
     assert_eq!(space.is(x, &y_or_z), false);
     assert_eq!(space.is(x, &x_or_y_or_a), true);
     assert_eq!(space.is(x, &empty), false);
+
+    assert_eq!(space.is(a, a), true);
+    assert_eq!(space.is(a, b), true);
+    assert_eq!(space.is(b, a), false);
+    assert_eq!(space.is(b, c), false);
+    assert_eq!(space.is(a, d), true);
+    assert_eq!(space.is(a, l), false);
+    assert_eq!(space.is(a, &a_or_l), true);
+    assert_eq!(space.is(a, &x_or_a), true);
+    assert_eq!(space.is(a, &x_or_a_or_l), true);
+    assert_eq!(space.is(a, &l_or_m), false);
+    assert_eq!(space.is(a, &b_or_c), true);
+    assert_eq!(space.is(a, &c_or_d), true);
+    assert_eq!(space.is(a, &x_or_y_or_a), true);
+    assert_eq!(space.is(a, &empty), false);
+    assert_eq!(space.is(j, d), true);
+
+    assert_eq!(space.is(y, &x_or_y), true);
+    assert_eq!(space.is(y, &empty), false);
+    assert_eq!(space.is(y, &x_or_y_or_a), true);
+    assert_eq!(space.is(y, x), false);
+    assert_eq!(space.is(y, z), false);
+
+    assert_eq!(space.is(a, &x_or_a), true);
+    assert_eq!(space.is(a, x), false);
+    assert_eq!(space.is(a, &x_or_b), true);
+    assert_eq!(space.is(a, &x_or_a_or_l), true);
+
+    assert_eq!(space.is(e, c), true);
+    assert_eq!(space.is(f, e), true);
+    assert_eq!(space.is(l, c), false);
+    assert_eq!(space.is(b, c), false);
+    assert_eq!(space.is(b, &b_or_c), true);
+    assert_eq!(space.is(c, a), false);
 }
