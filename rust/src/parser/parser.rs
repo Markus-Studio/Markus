@@ -616,6 +616,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Dot,
                 TokenKind::Identifier,
                 TokenKind::LeftParenthesis,
+                TokenKind::LeftBrace,
                 TokenKind::Parameter,
                 TokenKind::InternalVariable,
                 TokenKind::Boolean,
@@ -628,6 +629,7 @@ impl<'a> Parser<'a> {
                 TokenKind::RightParenthesis,
             ],
         ) {
+            Some(TokenKind::LeftBrace) => Some(ValueNode::Query(self.parse_query())),
             Some(TokenKind::Int) => Some(ValueNode::Int(self.consume_int_literal())),
             Some(TokenKind::Float) => Some(ValueNode::Float(self.consume_float_literal())),
             Some(TokenKind::Boolean) => Some(ValueNode::Boolean(self.consume_boolean_literal())),
@@ -676,7 +678,7 @@ impl<'a> Parser<'a> {
 
         self.collect_comma_separated(
             &mut arguments,
-            vec![TokenKind::LeftBrace, TokenKind::RightParenthesis],
+            vec![TokenKind::RightBrace, TokenKind::RightParenthesis],
             |parser| parser.parse_value(),
         );
 

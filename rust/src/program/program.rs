@@ -53,7 +53,5 @@ impl Program {
         }
     }
 
-    pub fn verify(&mut self) {
-
-    }
+    pub fn verify(&mut self) {}
 }

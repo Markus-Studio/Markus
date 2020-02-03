@@ -65,8 +65,8 @@ impl<'a> TypeSpace {
             vec![],
             vec![
                 (String::from("lat"), f32_id),
-                (String::from("long"), f32_id)
-            ]
+                (String::from("long"), f32_id),
+            ],
         );
         space
     }
@@ -254,16 +254,14 @@ impl MarkusType {
                 dimension: 0,
                 type_info: MarkusTypeInfo::BuiltInObject {
                     parents: bases,
-                    fields: fields.into_iter().collect()
+                    fields: fields.into_iter().collect(),
                 },
             },
         );
         id
     }
 
-    pub fn define_object(space: &mut TypeSpace, node: Rc<TypeDeclarationNode>) {
-
-    }
+    pub fn define_object(space: &mut TypeSpace, node: Rc<TypeDeclarationNode>) {}
 
     /// Creates a new empty union.
     pub fn new_union() -> MarkusType {
@@ -371,9 +369,7 @@ impl MarkusType {
     #[inline]
     pub fn object_owns(&self, name: &str) -> bool {
         match self.type_info {
-            MarkusTypeInfo::BuiltInObject { ref fields, .. } => {
-                fields.get(name) != None
-            }
+            MarkusTypeInfo::BuiltInObject { ref fields, .. } => fields.get(name) != None,
             MarkusTypeInfo::Object { ref ast } => {
                 for field in &ast.fields {
                     match &field.name {

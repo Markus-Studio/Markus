@@ -15,5 +15,8 @@ type Sell {
 }
 
 query AllProducts {
-  is(Product)
+  is(Product),
+  groupBy(.seller, {
+    eq(.date, .x)
+  })
 }

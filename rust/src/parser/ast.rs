@@ -94,6 +94,7 @@ pub enum ValueNode {
     Boolean(BooleanLiteralNode),
     Call(CallNode),
     Type(TypeReferenceNode),
+    Query(QueryNode),
 }
 
 #[derive(Debug, PartialEq)]
