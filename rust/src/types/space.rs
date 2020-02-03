@@ -6,7 +6,7 @@ use std::rc::Rc;
 type TypeId = u32;
 
 #[derive(Clone, Debug)]
-pub struct MarkusObjectTypeField {
+pub struct MarkusBuiltinObjectTypeField {
     name: String,
     field_type: TypeId,
 }
@@ -20,7 +20,7 @@ pub enum MarkusTypeInfo {
     },
     BuiltInObject {
         parents: Vec<TypeId>,
-        fields: Vec<MarkusObjectTypeField>,
+        fields: Vec<MarkusBuiltinObjectTypeField>,
     },
     Object {
         ast: Rc<TypeDeclarationNode>,
@@ -70,11 +70,11 @@ impl<'a> TypeSpace {
             "geo",
             vec![],
             vec![
-                MarkusObjectTypeField {
+                MarkusBuiltinObjectTypeField {
                     name: String::from("lat"),
                     field_type: f32_id,
                 },
-                MarkusObjectTypeField {
+                MarkusBuiltinObjectTypeField {
                     name: String::from("long"),
                     field_type: f32_id,
                 },
@@ -249,7 +249,7 @@ impl MarkusType {
         space: &mut TypeSpace,
         name: &str,
         parents: Vec<&str>,
-        fields: Vec<MarkusObjectTypeField>,
+        fields: Vec<MarkusBuiltinObjectTypeField>,
     ) -> TypeId {
         let id = space.get_new_type_id(name);
         let mut bases: Vec<TypeId> = Vec::with_capacity(parents.len());

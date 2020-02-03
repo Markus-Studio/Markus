@@ -2,6 +2,7 @@ extern crate markus;
 use ast::*;
 use markus::parser::*;
 use markus::program::*;
+use std::rc::Rc;
 
 // Editor tests taken from microsoft/vscode-languageserver-node
 
@@ -217,12 +218,12 @@ fn ast_type_declaration_01() {
     assert!(program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 9),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![],
             fields: vec![]
-        })]
+        }))]
     );
 }
 
@@ -234,12 +235,12 @@ fn ast_type_declaration_02() {
     assert!(program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 15),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
             fields: vec![]
-        })]
+        }))]
     );
 }
 
@@ -251,7 +252,7 @@ fn ast_type_declaration_03() {
     assert!(program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 27),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
@@ -261,7 +262,7 @@ fn ast_type_declaration_03() {
                 name: Some(IdentifierNode::new(15, "x")),
                 type_name: Some(IdentifierNode::new(18, "number")),
             }]
-        })]
+        }))]
     );
 }
 
@@ -273,7 +274,7 @@ fn ast_type_declaration_04() {
     assert!(program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 39),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
@@ -291,7 +292,7 @@ fn ast_type_declaration_04() {
                     type_name: Some(IdentifierNode::new(30, "string")),
                 }
             ]
-        })]
+        }))]
     );
 }
 
@@ -304,18 +305,18 @@ fn ast_type_declaration_error_tolerance_01() {
     assert_eq!(
         program.declarations,
         vec![
-            Declaration::Type(TypeDeclarationNode {
+            Declaration::Type(Rc::new(TypeDeclarationNode {
                 location: Span::new(0, 7),
                 name: None,
                 bases: vec![],
                 fields: vec![]
-            }),
-            Declaration::Type(TypeDeclarationNode {
+            })),
+            Declaration::Type(Rc::new(TypeDeclarationNode {
                 location: Span::new(8, 9),
                 name: Some(IdentifierNode::new(13, "B")),
                 bases: vec![],
                 fields: vec![]
-            }),
+            })),
         ]
     );
 }
@@ -328,12 +329,12 @@ fn ast_type_declaration_error_tolerance_02() {
     assert!(!program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 17),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(13, "Y")],
             fields: vec![]
-        })]
+        }))]
     );
 }
 
@@ -345,7 +346,7 @@ fn ast_type_declaration_error_tolerance_03() {
     assert!(!program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 21),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
@@ -355,7 +356,7 @@ fn ast_type_declaration_error_tolerance_03() {
                 name: Some(IdentifierNode::new(15, "x")),
                 type_name: None,
             }]
-        })]
+        }))]
     );
 }
 
@@ -367,7 +368,7 @@ fn ast_type_declaration_error_tolerance_04() {
     assert!(!program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 38),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
@@ -385,7 +386,7 @@ fn ast_type_declaration_error_tolerance_04() {
                     type_name: Some(IdentifierNode::new(29, "string")),
                 }
             ]
-        })]
+        }))]
     );
 }
 
@@ -397,7 +398,7 @@ fn ast_type_declaration_error_tolerance_05() {
     assert!(!program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 37),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
@@ -421,7 +422,7 @@ fn ast_type_declaration_error_tolerance_05() {
                     type_name: Some(IdentifierNode::new(33, "c")),
                 }
             ]
-        })]
+        }))]
     );
 }
 
@@ -433,7 +434,7 @@ fn ast_type_declaration_error_tolerance_06() {
     assert!(!program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Type(TypeDeclarationNode {
+        vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 36),
             name: Some(IdentifierNode::new(5, "A")),
             bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
@@ -451,7 +452,7 @@ fn ast_type_declaration_error_tolerance_06() {
                     type_name: Some(IdentifierNode::new(30, "string")),
                 }
             ]
-        })]
+        }))]
     );
 }
 
@@ -463,7 +464,7 @@ fn ast_query_declaration_01() {
     assert!(program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Query(QueryDeclarationNode {
+        vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 12),
             name: Some(IdentifierNode::new(6, "X")),
             parameter: vec![],
@@ -471,7 +472,7 @@ fn ast_query_declaration_01() {
                 location: Span::new(10, 2),
                 pipelines: vec![]
             }
-        })]
+        }))]
     )
 }
 
@@ -483,7 +484,7 @@ fn ast_query_declaration_02() {
     assert!(program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Query(QueryDeclarationNode {
+        vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 24),
             name: Some(IdentifierNode::new(6, "X")),
             parameter: vec![
@@ -502,7 +503,7 @@ fn ast_query_declaration_02() {
                 location: Span::new(22, 2),
                 pipelines: vec![]
             }
-        })]
+        }))]
     )
 }
 
@@ -514,7 +515,7 @@ fn ast_query_declaration_03() {
     assert!(program.is_good());
     assert_eq!(
         program.declarations,
-        vec![Declaration::Query(QueryDeclarationNode {
+        vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 15),
             name: Some(IdentifierNode::new(6, "X")),
             parameter: vec![],
@@ -526,7 +527,7 @@ fn ast_query_declaration_03() {
                     arguments: vec![]
                 }]
             }
-        })]
+        }))]
     )
 }
 

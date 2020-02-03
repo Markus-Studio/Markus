@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use crate::parser::tokenizer::Span;
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub struct IdentifierNode {
@@ -81,8 +82,8 @@ pub struct TypeReferenceNode {
 
 #[derive(Debug, PartialEq)]
 pub enum Declaration {
-    Query(QueryDeclarationNode),
-    Type(TypeDeclarationNode),
+    Query(Rc<QueryDeclarationNode>),
+    Type(Rc<TypeDeclarationNode>),
 }
 
 #[derive(Debug, PartialEq)]

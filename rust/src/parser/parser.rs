@@ -2,6 +2,7 @@
 use crate::parser::ast::*;
 use crate::parser::tokenizer::*;
 use crate::program::Diagnostic;
+use std::rc::Rc;
 
 pub struct Parser<'a> {
     tokenizer: Tokenizer<'a>,
@@ -780,13 +781,13 @@ impl<'a> Parser<'a> {
         match self.current() {
             Some(token) if token.compare_identifier(self.data, "type") => {
                 match self.parse_type_declaration() {
-                    Some(declaration) => Some(Declaration::Type(declaration)),
+                    Some(declaration) => Some(Declaration::Type(Rc::new(declaration))),
                     _ => None,
                 }
             }
             Some(token) if token.compare_identifier(self.data, "query") => {
                 match self.parse_query_declaration() {
-                    Some(declaration) => Some(Declaration::Query(declaration)),
+                    Some(declaration) => Some(Declaration::Query(Rc::new(declaration))),
                     _ => None,
                 }
             }
