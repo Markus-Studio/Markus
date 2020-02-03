@@ -6,12 +6,6 @@ use std::rc::Rc;
 type TypeId = u32;
 
 #[derive(Clone, Debug)]
-pub struct MarkusBuiltinObjectTypeField {
-    name: String,
-    field_type: TypeId,
-}
-
-#[derive(Clone, Debug)]
 pub enum MarkusTypeInfo {
     Atomic,
     Never,
@@ -20,7 +14,7 @@ pub enum MarkusTypeInfo {
     },
     BuiltInObject {
         parents: Vec<TypeId>,
-        fields: Vec<MarkusBuiltinObjectTypeField>,
+        fields: HashMap<String, TypeId>,
     },
     Object {
         ast: Rc<TypeDeclarationNode>,
@@ -70,15 +64,9 @@ impl<'a> TypeSpace {
             "geo",
             vec![],
             vec![
-                MarkusBuiltinObjectTypeField {
-                    name: String::from("lat"),
-                    field_type: f32_id,
-                },
-                MarkusBuiltinObjectTypeField {
-                    name: String::from("long"),
-                    field_type: f32_id,
-                },
-            ],
+                (String::from("lat"), f32_id),
+                (String::from("long"), f32_id)
+            ]
         );
         space
     }
@@ -249,7 +237,7 @@ impl MarkusType {
         space: &mut TypeSpace,
         name: &str,
         parents: Vec<&str>,
-        fields: Vec<MarkusBuiltinObjectTypeField>,
+        fields: Vec<(String, TypeId)>,
     ) -> TypeId {
         let id = space.get_new_type_id(name);
         let mut bases: Vec<TypeId> = Vec::with_capacity(parents.len());
@@ -266,11 +254,15 @@ impl MarkusType {
                 dimension: 0,
                 type_info: MarkusTypeInfo::BuiltInObject {
                     parents: bases,
-                    fields: fields,
+                    fields: fields.into_iter().collect()
                 },
             },
         );
         id
+    }
+
+    pub fn define_object(space: &mut TypeSpace, node: Rc<TypeDeclarationNode>) {
+
     }
 
     /// Creates a new empty union.
@@ -374,10 +366,30 @@ impl MarkusType {
 
         seen
     }
+
+    /// Returns whatever the current object owns a field with the given name.
+    #[inline]
+    pub fn object_owns(&self, name: &str) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::BuiltInObject { ref fields, .. } => {
+                fields.get(name) != None
+            }
+            MarkusTypeInfo::Object { ref ast } => {
+                for field in &ast.fields {
+                    match &field.name {
+                        Some(identifier) if identifier.value == name => return true,
+                        _ => {}
+                    }
+                }
+                false
+            }
+            _ => panic!("object_owns is only for object types."),
+        }
+    }
 }
 
 #[test]
-fn test_is() {
+fn is() {
     let mut space = TypeSpace::new();
     let x_id = MarkusType::define_atomic(&mut space, "x");
     let y_id = MarkusType::define_atomic(&mut space, "y");

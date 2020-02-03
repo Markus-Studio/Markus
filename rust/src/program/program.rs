@@ -52,4 +52,8 @@ impl Program {
             self.report(diagnostic);
         }
     }
+
+    pub fn verify(&mut self) {
+
+    }
 }

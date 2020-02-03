@@ -12,7 +12,10 @@ fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
 
     let now = Instant::now();
     program.parse();
-    println!("{}", now.elapsed().as_micros());
+    let time = now.elapsed().as_micros();
+
+    println!("{:#?}", program.declarations);
+    println!("in {} micro-sec", time);
 
     Ok(())
 }
