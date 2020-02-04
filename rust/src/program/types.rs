@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::parser::ast::TypeDeclarationNode;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;
@@ -15,6 +16,7 @@ pub enum MarkusTypeInfo {
     },
     BuiltInObject {
         id: TypeId,
+        bases: HashSet<TypeId>,
         fields: HashMap<String, TypeId>,
     },
     Object {
@@ -59,9 +61,10 @@ impl TypeSpace {
         space.define_atomic("string");
         space.define_atomic("boolean");
         space.define_atomic("time");
-        space.define_builtin_object("user", vec![]);
+        space.define_builtin_object("user", vec![], vec![]);
         space.define_builtin_object(
             "geo",
+            vec![],
             vec![
                 (String::from("lat"), f32_id),
                 (String::from("long"), f32_id),
@@ -106,12 +109,21 @@ impl TypeSpace {
     }
 
     /// Defines a new builtin object type in this type space.
-    pub fn define_builtin_object(&mut self, name: &str, fields: Vec<(String, TypeId)>) -> TypeId {
+    pub fn define_builtin_object(
+        &mut self,
+        name: &str,
+        bases: Vec<&str>,
+        fields: Vec<(String, TypeId)>,
+    ) -> TypeId {
         let id = self.get_type_id_or_create(name);
         let markus_type = MarkusType {
             dimension: 0,
             type_info: MarkusTypeInfo::BuiltInObject {
                 id: id,
+                bases: bases
+                    .into_iter()
+                    .map(|base_name| self.resolve_type(base_name).unwrap().get_id())
+                    .collect(),
                 fields: fields.into_iter().collect(),
             },
         };
@@ -135,10 +147,10 @@ impl TypeSpace {
     }
 
     /// Adds the given type to this type space.
-    pub fn add_type(&self, ast_node: Rc<TypeDeclarationNode>) {
-        if let Some(name_identifier) = ast_node.name {
-            let name = name_identifier.value;
-            let id = self.get_type_id_or_create(&name);
+    pub fn add_type(&mut self, ast_node: Rc<TypeDeclarationNode>) {
+        if let Some(name_identifier) = &ast_node.name {
+            let name = &name_identifier.value;
+            let id = self.get_type_id_or_create(name);
             let markus_type = MarkusType {
                 dimension: 0,
                 type_info: MarkusTypeInfo::Object {
@@ -220,7 +232,10 @@ impl MarkusType {
                 MarkusTypeInfo::BuiltInObject { ref id, .. },
             ) => {
                 // `o1: {all_parents} is o2` is true for all such that o2 is a member of all_parents.
-                // (we have already handled the o1 == o2 at above)
+                if self.get_id() == *id {
+                    return true;
+                }
+
                 for base_id in self.object_bases_recursive(space) {
                     if base_id == *id {
                         return true;
@@ -254,6 +269,33 @@ impl MarkusType {
             MarkusTypeInfo::Union { .. } => panic!("An union type has no id."),
         }
     }
+
+    pub fn dup(&self) -> MarkusType {
+        MarkusType {
+            dimension: self.dimension,
+            type_info: self.type_info.dup(),
+        }
+    }
+}
+
+impl MarkusTypeInfo {
+    pub fn dup(&self) -> MarkusTypeInfo {
+        match self {
+            MarkusTypeInfo::Atomic { id } => MarkusTypeInfo::Atomic { id: *id },
+            MarkusTypeInfo::Union { members } => MarkusTypeInfo::Union {
+                members: members.clone(),
+            },
+            MarkusTypeInfo::Object { id, ast } => MarkusTypeInfo::Object {
+                id: *id,
+                ast: ast.clone(),
+            },
+            MarkusTypeInfo::BuiltInObject { id, bases, fields } => MarkusTypeInfo::BuiltInObject {
+                id: *id,
+                bases: bases.clone(),
+                fields: fields.clone(),
+            },
+        }
+    }
 }
 
 impl MarkusType {
@@ -261,7 +303,7 @@ impl MarkusType {
     /// # Panics
     /// If the current type is not an object.
     pub fn object_bases(&self, space: &TypeSpace) -> HashSet<TypeId> {
-        match self.type_info {
+        match &self.type_info {
             MarkusTypeInfo::Object { ref ast, .. } => {
                 let mut result: HashSet<TypeId> = HashSet::with_capacity(ast.bases.len());
                 for base in &ast.bases {
@@ -271,7 +313,7 @@ impl MarkusType {
                 }
                 result
             }
-            MarkusTypeInfo::BuiltInObject { .. } => HashSet::with_capacity(0),
+            MarkusTypeInfo::BuiltInObject { bases, .. } => bases.clone(),
             _ => panic!("object_* is only for object types."),
         }
     }
@@ -325,17 +367,17 @@ impl MarkusType {
     pub fn object_query_field(&self, space: &TypeSpace, field_name: &str) -> Option<MarkusType> {
         match self.type_info {
             MarkusTypeInfo::BuiltInObject { ref fields, .. } => match fields.get(field_name) {
-                Some(&type_id) => Some(*space.resolve_type_by_id(type_id).unwrap()),
+                Some(&type_id) => Some(space.resolve_type_by_id(type_id).unwrap().dup()),
                 None => None,
             },
             MarkusTypeInfo::Object { ref ast, .. } => {
                 for field in &ast.fields {
                     match &field.name {
                         Some(identifier) if identifier.value == field_name => {
-                            return match field.type_name {
+                            return match &field.type_name {
                                 Some(type_identifier) => {
                                     match space.resolve_type(&type_identifier.value) {
-                                        Some(markus_type) => Some(*markus_type),
+                                        Some(markus_type) => Some(markus_type.dup()),
                                         None => None,
                                     }
                                 }
@@ -380,10 +422,105 @@ fn object_collect_bases(collected: &mut HashSet<TypeId>, space: &TypeSpace, obje
             // Now we need to add id.parents to the to_visit.
             match space.resolve_type_by_id(id) {
                 Some(markus_type) => {
-                    object_collect_bases(&mut collected, space, markus_type);
+                    object_collect_bases(collected, space, markus_type);
                 }
                 None => {}
             }
         }
     }
+}
+
+#[test]
+fn is() {
+    let mut space = TypeSpace::new();
+    let x_id = space.define_atomic("x");
+    let y_id = space.define_atomic("y");
+    let z_id = space.define_atomic("z");
+
+    let d_id = space.define_builtin_object("D", vec![], vec![]);
+    let c_id = space.define_builtin_object("C", vec!["D"], vec![]);
+    let b_id = space.define_builtin_object("B", vec![], vec![]);
+    let a_id = space.define_builtin_object("A", vec!["B", "C"], vec![]);
+    let e_id = space.define_builtin_object("E", vec!["C"], vec![]);
+    let f_id = space.define_builtin_object("F", vec!["E"], vec![]);
+    let j_id = space.define_builtin_object("J", vec!["F"], vec![]);
+    let m_id = space.define_builtin_object("M", vec![], vec![]);
+    let l_id = space.define_builtin_object("L", vec![], vec![]);
+
+    // ø
+    let empty = MarkusType::new_union(vec![]);
+    // x | y
+    let x_or_y = MarkusType::new_union(vec![x_id, y_id]);
+    // y | z
+    let y_or_z = MarkusType::new_union(vec![y_id, z_id]);
+    // x | y | A
+    let x_or_y_or_a = MarkusType::new_union(vec![x_id, y_id, a_id]);
+    // A | L
+    let a_or_l = MarkusType::new_union(vec![a_id, l_id]);
+    // L | M
+    let l_or_m = MarkusType::new_union(vec![l_id, m_id]);
+    // B | C
+    let b_or_c = MarkusType::new_union(vec![b_id, c_id]);
+    // C | D
+    let c_or_d = MarkusType::new_union(vec![c_id, d_id]);
+    // x | A
+    let x_or_a = MarkusType::new_union(vec![x_id, a_id]);
+    // x | B
+    let x_or_b = MarkusType::new_union(vec![x_id, b_id]);
+    // x | A | L
+    let x_or_a_or_l = MarkusType::new_union(vec![x_id, a_id, l_id]);
+
+    let x = space.resolve_type("x").unwrap();
+    let y = space.resolve_type("y").unwrap();
+    let z = space.resolve_type("z").unwrap();
+
+    let a = space.resolve_type_by_id(a_id).unwrap();
+    let b = space.resolve_type_by_id(b_id).unwrap();
+    let c = space.resolve_type_by_id(c_id).unwrap();
+    let d = space.resolve_type_by_id(d_id).unwrap();
+    let e = space.resolve_type_by_id(e_id).unwrap();
+    let f = space.resolve_type_by_id(f_id).unwrap();
+    let j = space.resolve_type_by_id(j_id).unwrap();
+    let l = space.resolve_type_by_id(l_id).unwrap();
+
+    assert_eq!(x.is(&space, x), true);
+    assert_eq!(x.is(&space, y), false);
+    assert_eq!(x.is(&space, &x_or_y), true);
+    assert_eq!(x.is(&space, &y_or_z), false);
+    assert_eq!(x.is(&space, &x_or_y_or_a), true);
+    assert_eq!(x.is(&space, &empty), false);
+
+    assert_eq!(a.is(&space, a), true);
+    assert_eq!(a.is(&space, b), true);
+    assert_eq!(b.is(&space, a), false);
+    assert_eq!(b.is(&space, c), false);
+    assert_eq!(a.is(&space, d), true);
+    assert_eq!(a.is(&space, l), false);
+    assert_eq!(a.is(&space, &a_or_l), true);
+    assert_eq!(a.is(&space, &x_or_a), true);
+    assert_eq!(a.is(&space, &x_or_a_or_l), true);
+    assert_eq!(a.is(&space, &l_or_m), false);
+    assert_eq!(a.is(&space, &b_or_c), true);
+    assert_eq!(a.is(&space, &c_or_d), true);
+    assert_eq!(a.is(&space, &x_or_y_or_a), true);
+    assert_eq!(a.is(&space, &empty), false);
+    assert_eq!(j.is(&space, d), true);
+
+    assert_eq!(y.is(&space, &x_or_y), true);
+    assert_eq!(y.is(&space, &empty), false);
+    assert_eq!(y.is(&space, &x_or_y_or_a), true);
+    assert_eq!(y.is(&space, x), false);
+    assert_eq!(y.is(&space, z), false);
+
+    assert_eq!(a.is(&space, &x_or_a), true);
+    assert_eq!(a.is(&space, x), false);
+    assert_eq!(a.is(&space, &x_or_b), true);
+    assert_eq!(a.is(&space, &x_or_a_or_l), true);
+
+    assert_eq!(e.is(&space, c), true);
+    assert_eq!(f.is(&space, e), true);
+    assert_eq!(l.is(&space, c), false);
+    assert_eq!(b.is(&space, c), false);
+    assert_eq!(b.is(&space, &b_or_c), true);
+    assert_eq!(c.is(&space, a), false);
 }
