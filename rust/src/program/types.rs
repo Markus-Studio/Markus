@@ -162,9 +162,85 @@ impl MarkusType {
         }
     }
 
+    /// Returns true if the current type is nil.
+    pub fn is_nil(&self) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::Union { ref members } => members.len() == 0,
+            _ => false,
+        }
+    }
+
     /// Returns the result of evaluating `self is rhs`.
-    pub fn is(&self, rhs: &MarkusType) -> bool {
-        true
+    pub fn is(&self, space: &TypeSpace, rhs: &MarkusType) -> bool {
+        if self.dimension != rhs.dimension {
+            return false;
+        }
+
+        match (&self.type_info, &rhs.type_info) {
+            (
+                MarkusTypeInfo::Atomic { id: ref lhs_id },
+                MarkusTypeInfo::Atomic { id: ref rhs_id },
+            ) => {
+                // Two atomic types are considered to be same if and only if
+                // they share the same id.
+                lhs_id == rhs_id
+            }
+            (MarkusTypeInfo::Atomic { ref id }, MarkusTypeInfo::Union { ref members }) => {
+                // `x is T: {A, B, ...}` holds true for all x-es that are in the T.
+                members.contains(&id)
+            }
+            (MarkusTypeInfo::Atomic { .. }, _) => {
+                // An atomic type is only assignable to another atomic.
+                false
+            }
+            (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Atomic { ref id }) => {
+                // `T: {A, B, ...} is x` if and only if T = {x}
+                members.len() == 1 && members.contains(id)
+            }
+            (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Object { .. })
+            | (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::BuiltInObject { .. })
+            | (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Union { .. }) => {
+                if members.len() == 0 {
+                    false
+                } else {
+                    for &type_id in members {
+                        let member = space.resolve_type_by_id(type_id).unwrap();
+                        if !member.is(space, rhs) {
+                            return false;
+                        }
+                    }
+                    true
+                }
+            }
+            (MarkusTypeInfo::Object { .. }, MarkusTypeInfo::Object { ref id, .. })
+            | (MarkusTypeInfo::Object { .. }, MarkusTypeInfo::BuiltInObject { ref id, .. })
+            | (MarkusTypeInfo::BuiltInObject { .. }, MarkusTypeInfo::Object { ref id, .. })
+            | (
+                MarkusTypeInfo::BuiltInObject { .. },
+                MarkusTypeInfo::BuiltInObject { ref id, .. },
+            ) => {
+                // `o1: {all_parents} is o2` is true for all such that o2 is a member of all_parents.
+                // (we have already handled the o1 == o2 at above)
+                for base_id in self.object_bases_recursive(space) {
+                    if base_id == *id {
+                        return true;
+                    }
+                }
+                false
+            }
+            (MarkusTypeInfo::Object { .. }, MarkusTypeInfo::Union { ref members })
+            | (MarkusTypeInfo::BuiltInObject { .. }, MarkusTypeInfo::Union { ref members }) => {
+                for &type_id in members {
+                    let member = space.resolve_type_by_id(type_id).unwrap();
+                    if self.is(space, member) {
+                        return true;
+                    }
+                }
+                false
+            }
+            (MarkusTypeInfo::Object { .. }, MarkusTypeInfo::Atomic { .. })
+            | (MarkusTypeInfo::BuiltInObject { .. }, MarkusTypeInfo::Atomic { .. }) => false,
+        }
     }
 
     /// Returns the id of the current type.
