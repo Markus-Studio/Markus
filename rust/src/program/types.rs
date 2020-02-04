@@ -1,0 +1,313 @@
+use crate::parser::ast::TypeDeclarationNode;
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::rc::Rc;
+
+/// A type id is basically a map from an string to an integer unique to
+/// every type space, it is used to prevent copying tons of strings.
+type TypeId = u32;
+
+pub enum MarkusTypeInfo {
+    Atomic {
+        id: TypeId,
+    },
+    Union {
+        members: HashSet<TypeId>,
+    },
+    BuiltInObject {
+        id: TypeId,
+        fields: HashMap<String, TypeId>,
+    },
+    Object {
+        id: TypeId,
+        ast: Rc<TypeDeclarationNode>,
+    },
+}
+
+pub struct MarkusType {
+    /// This value indicates dimension of the actual type, a type such as
+    /// `x` where x is an atomic is considered a 0-dimensional type while
+    /// `x[]` and `x[][]` are true and 2-dimensional accordingly.
+    pub dimension: u32,
+    pub type_info: MarkusTypeInfo,
+}
+
+pub struct TypeSpace {
+    type_ids: HashMap<String, TypeId>,
+    types: HashMap<TypeId, MarkusType>,
+    last_type_id: TypeId,
+}
+
+impl TypeSpace {
+    /// Creates a new empty type space.
+    pub fn new() -> TypeSpace {
+        TypeSpace {
+            type_ids: HashMap::new(),
+            types: HashMap::new(),
+            last_type_id: 1,
+        }
+    }
+
+    /// Creates a new type space containing builtin Markus types.
+    pub fn new_with_builtins() -> TypeSpace {
+        let mut space = TypeSpace::new();
+        space.define_atomic("i32");
+        space.define_atomic("i64");
+        space.define_atomic("u32");
+        space.define_atomic("u64");
+        let f32_id = space.define_atomic("f32");
+        space.define_atomic("f64");
+        space.define_atomic("string");
+        space.define_atomic("boolean");
+        space.define_atomic("time");
+        space.define_builtin_object("user", vec![]);
+        space.define_builtin_object(
+            "geo",
+            vec![
+                (String::from("lat"), f32_id),
+                (String::from("long"), f32_id),
+            ],
+        );
+        space
+    }
+
+    /// Returns the type id for the given name or creates a new one.
+    fn get_type_id_or_create(&mut self, name: &str) -> TypeId {
+        match self.type_ids.get(name) {
+            Some(&id) => id,
+            _ => {
+                let id = self.last_type_id;
+                self.last_type_id += 1;
+                self.type_ids.insert(String::from(name), id);
+                id
+            }
+        }
+    }
+
+    /// Inserts the given type to the current type space.
+    #[inline(always)]
+    fn define_type(&mut self, id: TypeId, markus_type: MarkusType) {
+        match self.types.insert(id, markus_type) {
+            Some(_) => {
+                panic!("Name already in use.");
+            }
+            _ => {}
+        }
+    }
+
+    /// Defines a new atomic type in this type space.
+    pub fn define_atomic(&mut self, name: &str) -> TypeId {
+        let id = self.get_type_id_or_create(name);
+        let markus_type = MarkusType {
+            dimension: 0,
+            type_info: MarkusTypeInfo::Atomic { id: id },
+        };
+        self.define_type(id, markus_type);
+        id
+    }
+
+    /// Defines a new builtin object type in this type space.
+    pub fn define_builtin_object(&mut self, name: &str, fields: Vec<(String, TypeId)>) -> TypeId {
+        let id = self.get_type_id_or_create(name);
+        let markus_type = MarkusType {
+            dimension: 0,
+            type_info: MarkusTypeInfo::BuiltInObject {
+                id: id,
+                fields: fields.into_iter().collect(),
+            },
+        };
+        self.define_type(id, markus_type);
+        id
+    }
+
+    /// Finds the type with the given id and returns it.
+    #[inline]
+    pub fn resolve_type_by_id(&self, id: TypeId) -> Option<&MarkusType> {
+        self.types.get(&id)
+    }
+
+    /// Finds the type with the given name and returns it.
+    #[inline]
+    pub fn resolve_type(&self, name: &str) -> Option<&MarkusType> {
+        match self.type_ids.get(name) {
+            Some(&id) => self.resolve_type_by_id(id),
+            None => None,
+        }
+    }
+
+    /// Adds the given type to this type space.
+    pub fn add_type(&self, ast_node: Rc<TypeDeclarationNode>) {
+        if let Some(name_identifier) = ast_node.name {
+            let name = name_identifier.value;
+            let id = self.get_type_id_or_create(&name);
+            let markus_type = MarkusType {
+                dimension: 0,
+                type_info: MarkusTypeInfo::Object {
+                    id: id,
+                    ast: ast_node,
+                },
+            };
+            self.define_type(id, markus_type)
+        }
+    }
+}
+
+impl MarkusType {
+    /// Creates a new union with the given members and returns it.
+    pub fn new_union(members: Vec<TypeId>) -> MarkusType {
+        MarkusType {
+            dimension: 0,
+            type_info: MarkusTypeInfo::Union {
+                members: members.into_iter().collect(),
+            },
+        }
+    }
+
+    /// Returns the result of evaluating `self is rhs`.
+    pub fn is(&self, rhs: &MarkusType) -> bool {
+        true
+    }
+
+    /// Returns the id of the current type.
+    /// # Panics
+    /// If the type is an union and has no id.
+    pub fn get_id(&self) -> TypeId {
+        match self.type_info {
+            MarkusTypeInfo::Atomic { id } => id,
+            MarkusTypeInfo::BuiltInObject { id, .. } => id,
+            MarkusTypeInfo::Object { id, .. } => id,
+            MarkusTypeInfo::Union { .. } => panic!("An union type has no id."),
+        }
+    }
+}
+
+impl MarkusType {
+    /// Returns a set containing direct bases of the current object.
+    /// # Panics
+    /// If the current type is not an object.
+    pub fn object_bases(&self, space: &TypeSpace) -> HashSet<TypeId> {
+        match self.type_info {
+            MarkusTypeInfo::Object { ref ast, .. } => {
+                let mut result: HashSet<TypeId> = HashSet::with_capacity(ast.bases.len());
+                for base in &ast.bases {
+                    if let Some(markus_type) = space.resolve_type(&base.value) {
+                        result.insert(markus_type.get_id());
+                    }
+                }
+                result
+            }
+            MarkusTypeInfo::BuiltInObject { .. } => HashSet::with_capacity(0),
+            _ => panic!("object_* is only for object types."),
+        }
+    }
+
+    /// Returns a set containing all of the bases of the current object recursively.
+    pub fn object_bases_recursive(&self, space: &TypeSpace) -> HashSet<TypeId> {
+        // TODO(qti3e) We need to somehow cache this.
+        let mut result: HashSet<TypeId> = HashSet::new();
+        result.insert(self.get_id());
+        object_collect_bases(&mut result, space, self);
+        result.remove(&self.get_id());
+        result
+    }
+
+    /// Returns true if the current object owns a field with the given name.
+    pub fn object_owns(&self, field_name: &str) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::BuiltInObject { ref fields, .. } => fields.get(field_name) != None,
+            MarkusTypeInfo::Object { ref ast, .. } => {
+                for field in &ast.fields {
+                    match &field.name {
+                        Some(identifier) if identifier.value == field_name => return true,
+                        _ => {}
+                    }
+                }
+                false
+            }
+            _ => panic!("object_owns is only for object types."),
+        }
+    }
+
+    /// Returns true if a field with the given name exists in the current object.
+    pub fn object_has_field(&self, space: &TypeSpace, field_name: &str) -> bool {
+        if self.object_owns(field_name) {
+            return true;
+        }
+
+        for &base_id in self.object_bases_recursive(space).iter() {
+            let base = space.resolve_type_by_id(base_id).unwrap();
+            if base.object_owns(field_name) {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    /// Queries the type of given filed on this object recursively.
+    /// # Panics
+    /// If the current type is not an object.
+    pub fn object_query_field(&self, space: &TypeSpace, field_name: &str) -> Option<MarkusType> {
+        match self.type_info {
+            MarkusTypeInfo::BuiltInObject { ref fields, .. } => match fields.get(field_name) {
+                Some(&type_id) => Some(*space.resolve_type_by_id(type_id).unwrap()),
+                None => None,
+            },
+            MarkusTypeInfo::Object { ref ast, .. } => {
+                for field in &ast.fields {
+                    match &field.name {
+                        Some(identifier) if identifier.value == field_name => {
+                            return match field.type_name {
+                                Some(type_identifier) => {
+                                    match space.resolve_type(&type_identifier.value) {
+                                        Some(markus_type) => Some(*markus_type),
+                                        None => None,
+                                    }
+                                }
+                                None => None,
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
+                for &base_id in self.object_bases_recursive(space).iter() {
+                    let base = space.resolve_type_by_id(base_id).unwrap();
+                    if let Some(markus_type) = base.object_query_field(space, field_name) {
+                        return Some(markus_type);
+                    }
+                }
+
+                None
+            }
+            _ => panic!("object_query_field is only for object types."),
+        }
+    }
+
+    /// Returns true if the given URI exists on this object.
+    pub fn object_has(&self, space: &TypeSpace, uri: &[&str]) -> bool {
+        match uri.len() {
+            0 => true,
+            1 => self.object_has_field(space, uri[0]),
+            _ => match self.object_query_field(space, uri[0]) {
+                Some(field_type) => field_type.object_has(space, &uri[1..]),
+                None => false,
+            },
+        }
+    }
+}
+
+fn object_collect_bases(collected: &mut HashSet<TypeId>, space: &TypeSpace, object: &MarkusType) {
+    let mut to_visit: VecDeque<TypeId> = object.object_bases(space).into_iter().collect();
+    collected.reserve(to_visit.len());
+    while let Some(id) = to_visit.pop_front() {
+        if collected.insert(id) {
+            // Now we need to add id.parents to the to_visit.
+            match space.resolve_type_by_id(id) {
+                Some(markus_type) => {
+                    object_collect_bases(&mut collected, space, markus_type);
+                }
+                None => {}
+            }
+        }
+    }
+}

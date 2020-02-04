@@ -2,13 +2,14 @@
 use crate::parser::ast::Declaration;
 use crate::parser::Parser;
 use crate::parser::Source;
-use crate::program::diagnostics;
+use crate::program::{Diagnostic, TypeSpace};
 
 pub struct Program {
     pub source: Source,
     pub declarations: Vec<Declaration>,
     /// All of the errors we encountered on this source file.
-    pub diagnostics: Vec<diagnostics::Diagnostic>,
+    pub diagnostics: Vec<Diagnostic>,
+    space: TypeSpace,
 }
 
 impl Program {
@@ -19,6 +20,7 @@ impl Program {
             source: source,
             declarations: vec![],
             diagnostics: vec![],
+            space: TypeSpace::new_with_builtins(),
         }
     }
 
@@ -29,7 +31,7 @@ impl Program {
 
     /// Use this function to report an error on this source file.
     #[inline]
-    pub fn report(&mut self, diagnostic: diagnostics::Diagnostic) {
+    pub fn report(&mut self, diagnostic: Diagnostic) {
         self.diagnostics.push(diagnostic);
     }
 

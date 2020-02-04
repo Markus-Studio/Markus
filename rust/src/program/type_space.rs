@@ -1,29 +1,29 @@
 #![allow(dead_code)]
 use crate::parser::ast::TypeDeclarationNode;
+use crate::program::Diagnostic;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;
 
 type TypeId = u32;
 
+struct TypeReference<'a> {
+    space: &'a TypeSpace,
+    id: TypeId,
+}
+
 #[derive(Clone, Debug)]
 pub enum MarkusTypeInfo {
     Atomic,
     Never,
-    Union {
-        members: Vec<TypeId>,
-    },
-    BuiltInObject {
-        parents: Vec<TypeId>,
-        fields: HashMap<String, TypeId>,
-    },
-    Object {
-        ast: Rc<TypeDeclarationNode>,
-    },
+    Union { members: Vec<TypeId> },
+    BuiltInObject { fields: HashMap<String, TypeId> },
+    Object { ast: Rc<TypeDeclarationNode> },
 }
 
 #[derive(Clone, Debug)]
 pub struct MarkusType {
     pub id: TypeId,
+    pub name: Option<String>,
     /// This value indicates dimension of the actual type, a type such as
     /// `x` where x is an atomic is considered a 0-dimensional type while
     /// `x[]` and `x[][]` are true and 2-dimensional accordingly.
@@ -32,37 +32,36 @@ pub struct MarkusType {
 }
 
 pub struct TypeSpace {
-    type_names: HashMap<String, TypeId>,
+    named_types: HashMap<String, MarkusType>,
+    all_types: HashMap<TypeId, MarkusType>,
     last_type_id: TypeId,
-    types: HashMap<TypeId, MarkusType>,
 }
 
-impl<'a> TypeSpace {
+impl TypeSpace {
     pub fn new() -> TypeSpace {
         TypeSpace {
-            type_names: HashMap::new(),
-            last_type_id: 1, // 0 is reserved for anonymous types.
-            types: HashMap::new(),
+            named_types: HashMap::new(),
+            all_types: HashMap::new(),
+            last_type_id: 1,
         }
     }
 
     /// Creates a new type space with Markus Builtin types in it.
     pub fn new_with_builtins() -> TypeSpace {
         let mut space = TypeSpace::new();
-        MarkusType::define_atomic(&mut space, "i32");
-        MarkusType::define_atomic(&mut space, "i64");
-        MarkusType::define_atomic(&mut space, "u32");
-        MarkusType::define_atomic(&mut space, "u64");
-        let f32_id = MarkusType::define_atomic(&mut space, "f32");
-        MarkusType::define_atomic(&mut space, "f64");
-        MarkusType::define_atomic(&mut space, "string");
-        MarkusType::define_atomic(&mut space, "boolean");
-        MarkusType::define_atomic(&mut space, "time");
-        MarkusType::define_builtin_object(&mut space, "user", vec![], vec![]);
-        MarkusType::define_builtin_object(
-            &mut space,
+        space.define_atomic("i32");
+        space.define_atomic("i64");
+        space.define_atomic("u32");
+        space.define_atomic("u64");
+        space.define_atomic("f32");
+        space.define_atomic("f64");
+        space.define_atomic("string");
+        space.define_atomic("boolean");
+        space.define_atomic("time");
+        let f32_id = space.resolve_type("f32").unwrap().id;
+        space.define_builtin_object("user", vec![]);
+        space.define_builtin_object(
             "geo",
-            vec![],
             vec![
                 (String::from("lat"), f32_id),
                 (String::from("long"), f32_id),
@@ -71,37 +70,29 @@ impl<'a> TypeSpace {
         space
     }
 
-    /// Returns a new type id to be used in a new type with the given name.
-    #[inline]
-    pub fn get_new_type_id(&mut self, name: &str) -> TypeId {
-        debug_assert!(name.len() > 0);
-        match self.resolve_type_id(name) {
-            Some(id) => *id,
-            None => {
-                let id = self.last_type_id;
-                self.last_type_id += 1;
-                self.type_names.insert(String::from(name), id);
-                id
-            }
-        }
+    #[inline(always)]
+    pub fn get_new_type_id(&mut self) -> TypeId {
+        let id = self.last_type_id;
+        self.last_type_id += 1;
+        id
     }
 
     #[inline(always)]
-    pub fn resolve_type_id(&self, name: &str) -> Option<&u32> {
-        self.type_names.get(name)
+    pub fn resolve_type_id(&self, name: &str) -> Option<TypeId> {
+        match self.resolve_type(name) {
+            Some(markus_type) => Some(markus_type.id),
+            None => None,
+        }
     }
 
     #[inline(always)]
     pub fn resolve_type_by_id(&self, id: TypeId) -> Option<&MarkusType> {
-        self.types.get(&id)
+        self.all_types.get(&id)
     }
 
     #[inline(always)]
     pub fn resolve_type(&self, name: &str) -> Option<&MarkusType> {
-        match self.resolve_type_id(name) {
-            Some(&id) => self.resolve_type_by_id(id),
-            None => None,
-        }
+        self.named_types.get(name)
     }
 
     /// Returns whatever a type with the given name exists in this type space.
@@ -112,25 +103,47 @@ impl<'a> TypeSpace {
         }
     }
 
-    /// Removes the given type from this type space.
-    pub fn remove(&mut self, type_name: &str) {
-        match self.resolve_type_id(type_name) {
-            Some(&id) => {
-                self.types.remove(&id);
-            }
-            _ => {}
-        }
+    /// Define a new atomic type on this type space.
+    pub fn define_atomic(&mut self, name: &str) {
+        let id = self.get_new_type_id();
+        let markus_type = MarkusType {
+            id: id,
+            name: Some(String::from(name)),
+            dimension: 0,
+            type_info: MarkusTypeInfo::Atomic,
+        };
+        self.named_types.insert(String::from(name), markus_type);
+        self.all_types.insert(id, markus_type);
     }
 
-    pub fn define_type(&mut self, name: &str, markus_type: MarkusType) {
-        let id = *self.resolve_type_id(name).unwrap();
-        assert_eq!(markus_type.id, id);
-        match self.types.insert(id, markus_type) {
-            Some(_) => {
-                panic!("Name already in use.");
-            }
-            None => {}
-        }
+    /// Define a new builtin object on this type space.
+    pub fn define_builtin_object(&mut self, name: &str, fields: Vec<(String, TypeId)>) {
+        let id = self.get_new_type_id();
+        let markus_type = MarkusType {
+            id: id,
+            name: Some(String::from(name)),
+            dimension: 0,
+            type_info: MarkusTypeInfo::BuiltInObject {
+                fields: fields.into_iter().collect(),
+            },
+        };
+        self.named_types.insert(String::from(name), markus_type);
+        self.all_types.insert(id, markus_type);
+    }
+
+    /// Removes the given type from this type space.
+    pub fn remove_type(&mut self, type_name: &str) {
+        self.named_types.remove(type_name);
+    }
+
+    /// Update the ast_node of the currently added type in the system.
+    pub fn update_type(&mut self, old_name: &str, ast_node: Rc<TypeDeclarationNode>) {
+        // TODO(qti3e)
+    }
+
+    /// Adds a new user defined type to the current system.
+    pub fn add_object_type(&mut self, ast_node: Rc<TypeDeclarationNode>) {
+        // TODO(qti3e)
     }
 
     /// Returns the result of evaluating "`lhs` is `rhs`"
@@ -145,7 +158,7 @@ impl<'a> TypeSpace {
             return false;
         }
 
-        if lhs.id > 0 && lhs.id == rhs.id {
+        if lhs.id == rhs.id {
             return true;
         }
 
@@ -212,98 +225,19 @@ impl<'a> TypeSpace {
     }
 
     /// Returns whatever the given field exists on the base type.
-    pub fn has(&self, base: &MarkusType, uri: Vec<&str>) -> bool {
-        panic!("Not implemented.");
+    pub fn has(&self, base: &MarkusType, uri: &[&str]) -> bool {
+        // TODO(qti3e)
+        false
+    }
+
+    /// Verifies the current type space and returns a vector containing diagnostics.
+    pub fn verify() -> Vec<Diagnostic> {
+        // TODO(qti3e)
+        vec![]
     }
 }
 
 impl MarkusType {
-    /// Define an atomic type with the given name on the given type space.
-    pub fn define_atomic(space: &mut TypeSpace, name: &str) -> TypeId {
-        let id = space.get_new_type_id(name);
-        space.define_type(
-            name,
-            MarkusType {
-                id: id,
-                dimension: 0,
-                type_info: MarkusTypeInfo::Atomic,
-            },
-        );
-        id
-    }
-
-    /// Define a built in object type on the type space.
-    pub fn define_builtin_object(
-        space: &mut TypeSpace,
-        name: &str,
-        parents: Vec<&str>,
-        fields: Vec<(String, TypeId)>,
-    ) -> TypeId {
-        let id = space.get_new_type_id(name);
-        let mut bases: Vec<TypeId> = Vec::with_capacity(parents.len());
-
-        for base_name in parents {
-            let base_id = *space.resolve_type_id(base_name).unwrap();
-            bases.push(base_id);
-        }
-
-        space.define_type(
-            name,
-            MarkusType {
-                id: id,
-                dimension: 0,
-                type_info: MarkusTypeInfo::BuiltInObject {
-                    parents: bases,
-                    fields: fields.into_iter().collect(),
-                },
-            },
-        );
-        id
-    }
-
-    pub fn define_object(space: &mut TypeSpace, node: Rc<TypeDeclarationNode>) {}
-
-    /// Creates a new empty union.
-    pub fn new_union() -> MarkusType {
-        MarkusType {
-            id: 0,
-            dimension: 0,
-            type_info: MarkusTypeInfo::Union { members: vec![] },
-        }
-    }
-
-    #[inline]
-    pub fn is_atomic(&self) -> bool {
-        match self.type_info {
-            MarkusTypeInfo::Atomic => true,
-            _ => false,
-        }
-    }
-
-    #[inline]
-    pub fn is_never(&self) -> bool {
-        match self.type_info {
-            MarkusTypeInfo::Never => true,
-            _ => false,
-        }
-    }
-
-    #[inline]
-    pub fn is_union(&self) -> bool {
-        match self.type_info {
-            MarkusTypeInfo::Union { .. } => true,
-            _ => false,
-        }
-    }
-
-    #[inline]
-    pub fn is_object(&self) -> bool {
-        match self.type_info {
-            MarkusTypeInfo::Object { .. } | MarkusTypeInfo::BuiltInObject { .. } => true,
-            _ => false,
-        }
-    }
-
     /// Returns true if this type is evaluated to be `nil`.
     #[inline]
     pub fn is_nil(&self) -> bool {
@@ -311,15 +245,6 @@ impl MarkusType {
             MarkusTypeInfo::Never => true,
             MarkusTypeInfo::Union { ref members } => members.len() == 0,
             _ => false,
-        }
-    }
-
-    /// Add a member to a union type.
-    pub fn union_add_member(&mut self, id: TypeId) {
-        if let MarkusTypeInfo::Union { ref mut members } = self.type_info {
-            members.push(id);
-        } else {
-            panic!("union_add_member is only for union types.");
         }
     }
 
@@ -335,7 +260,7 @@ impl MarkusType {
                 }
                 result
             }
-            MarkusTypeInfo::BuiltInObject { ref parents, .. } => parents.clone(),
+            MarkusTypeInfo::BuiltInObject { .. } => vec![],
             _ => panic!("object_get_parents is only for object types."),
         }
     }
@@ -380,6 +305,34 @@ impl MarkusType {
                 false
             }
             _ => panic!("object_owns is only for object types."),
+        }
+    }
+
+    /// Find the type of a field with the given name on this object type.
+    #[inline]
+    pub fn object_query(&self, space: &TypeSpace, name: &str) -> Option<TypeId> {
+        match self.type_info {
+            MarkusTypeInfo::BuiltInObject { ref fields, .. } => match fields.get(name) {
+                Some(&type_id) => Some(type_id),
+                _ => None,
+            },
+            MarkusTypeInfo::Object { ref ast } => {
+                for field in &ast.fields {
+                    match &field.name {
+                        Some(identifier) if identifier.value == name => {
+                            return match field.type_name {
+                                Some(type_identifier) => {
+                                    space.resolve_type_id(&type_identifier.value)
+                                }
+                                None => None,
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                None
+            }
+            _ => panic!("object_query is only for object types."),
         }
     }
 }

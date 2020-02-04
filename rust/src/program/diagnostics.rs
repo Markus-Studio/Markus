@@ -6,6 +6,9 @@ pub enum DiagnosticKind {
     EarlyEndOfFile,
     UnexpectedToken(Option<TokenKind>),
     ExpectedOneOf(Vec<TokenKind>),
+    UnresolvedName(String),
+    NameAlreadyInUse(String),
+    CircularReference(),
 }
 
 /// A diagnostic is an error happing in any phase from parsing to
