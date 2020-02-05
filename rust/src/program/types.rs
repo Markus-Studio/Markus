@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use crate::parser::ast::TypeDeclarationNode;
+use crate::program::Diagnostic;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;
 
@@ -182,6 +183,15 @@ impl MarkusType {
         }
     }
 
+    /// Returns true if the current type is an object type.
+    pub fn is_object(&self) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::Object { .. } => true,
+            MarkusTypeInfo::BuiltInObject { .. } => true,
+            _ => false,
+        }
+    }
+
     /// Returns the result of evaluating `self is rhs`.
     pub fn is(&self, space: &TypeSpace, rhs: &MarkusType) -> bool {
         if self.dimension != rhs.dimension {
@@ -270,6 +280,7 @@ impl MarkusType {
         }
     }
 
+    /// Duplicate the current type.
     pub fn dup(&self) -> MarkusType {
         MarkusType {
             dimension: self.dimension,
@@ -412,8 +423,96 @@ impl MarkusType {
             },
         }
     }
+
+    /// Verifies a user defined object type returns a vector containing all of
+    /// the diagnostics found on this object, including:
+    /// 1. Unresolved Names
+    /// 2. Base not object.
+    /// 3. Circular Reference (Both on fields and bases)
+    /// 4. Common field
+    pub fn object_verify(&self, space: &TypeSpace) -> Vec<Diagnostic> {
+        match self.type_info {
+            MarkusTypeInfo::Object { ref ast, .. } => verify_object_ast(ast, space),
+            _ => panic!(
+                "object_is_circular is only meant to be used with user defined object types."
+            ),
+        }
+    }
 }
 
+#[inline(always)]
+fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Diagnostic> {
+    let mut result: Vec<Diagnostic> = vec![];
+
+    for base_identifier in &ast.bases {
+        let base_name = &base_identifier.value;
+        // Try to resolve the name, report an error on failure.
+        match space.resolve_type(base_name) {
+            Some(base) if !base.is_object() => {
+                // Base type must be also of object type.
+                result.push(Diagnostic::base_not_object(base_identifier));
+            }
+            Some(base) => {
+                // Try to find circular bases.
+                if let Some(name_identifier) = &ast.name {
+                    let mut seen: HashSet<TypeId> = HashSet::new();
+                    let name = &name_identifier.value;
+                    let current_id = space.resolve_type(name).unwrap().get_id();
+                    seen.insert(current_id);
+                    if is_circular(space, &mut seen, current_id, base) {
+                        result.push(Diagnostic::circular_reference(base_identifier))
+                    }
+                }
+            }
+            _ => {
+                // Report the error.
+                result.push(Diagnostic::unresolved_name(base_identifier));
+            }
+        }
+    }
+
+    // TODO(qti3e) Check fields:
+    // 1. Unresolved type names
+    // 2. Circular references on non-nullable fields.
+    // 3. (if not 2) Shared name. (A name that is already present in the bases)
+
+    result
+}
+
+#[inline]
+fn is_circular(
+    space: &TypeSpace,
+    seen: &mut HashSet<TypeId>,
+    stop: TypeId,
+    visit: &MarkusType,
+) -> bool {
+    for base_id in visit.object_bases(space) {
+        if base_id == stop {
+            return true;
+        }
+
+        // Here we don't actually care about other types being circular, just
+        // find circular paths that ends with `stop`, but also we don't wanna
+        // get stuck in an infinite loop here.
+        if !seen.insert(base_id) {
+            continue;
+        }
+
+        seen.insert(base_id);
+
+        if is_circular(
+            space,
+            seen,
+            stop,
+            space.resolve_type_by_id(base_id).unwrap(),
+        ) {
+            return true;
+        }
+    }
+    false
+}
+
+#[inline]
 fn object_collect_bases(collected: &mut HashSet<TypeId>, space: &TypeSpace, object: &MarkusType) {
     let mut to_visit: VecDeque<TypeId> = object.object_bases(space).into_iter().collect();
     collected.reserve(to_visit.len());

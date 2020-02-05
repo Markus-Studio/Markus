@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::parser::{Span, Token, TokenKind};
+use crate::parser::{ast::IdentifierNode, Span, Token, TokenKind};
 
 #[derive(PartialEq, Debug)]
 pub enum DiagnosticKind {
@@ -8,7 +8,8 @@ pub enum DiagnosticKind {
     ExpectedOneOf(Vec<TokenKind>),
     UnresolvedName(String),
     NameAlreadyInUse(String),
-    CircularReference(),
+    BaseNotObject(String),
+    CircularReference,
 }
 
 /// A diagnostic is an error happing in any phase from parsing to
@@ -49,6 +50,33 @@ impl Diagnostic {
         Diagnostic {
             location: current.position,
             kind: DiagnosticKind::ExpectedOneOf(expected.to_vec()),
+        }
+    }
+
+    /// Constructs a new unresolved name token at the position of the given token
+    /// and with the given name.
+    #[inline]
+    pub fn unresolved_name(identifier: &IdentifierNode) -> Diagnostic {
+        Diagnostic {
+            location: identifier.location,
+            kind: DiagnosticKind::UnresolvedName(String::from(&identifier.value)),
+        }
+    }
+
+    #[inline]
+    pub fn base_not_object(identifier: &IdentifierNode) -> Diagnostic {
+        Diagnostic {
+            location: identifier.location,
+            kind: DiagnosticKind::BaseNotObject(String::from(&identifier.value)),
+        }
+    }
+
+    /// Constructs a new circular reference error object.
+    #[inline]
+    pub fn circular_reference(name_identifier: &IdentifierNode) -> Diagnostic {
+        Diagnostic {
+            location: name_identifier.location,
+            kind: DiagnosticKind::CircularReference,
         }
     }
 }
