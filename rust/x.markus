@@ -1,22 +1,9 @@
-type A {
-  x: A; // error
+type A: B {
+    X: P;
 }
 
-type B: A {
-  x: A; // error ?
+type P {
+    u: A;
 }
 
-type C {
-  x: B; // error? - nop, only direct references are considered circular fields
-}
-
-type B: C {}
-
-
-//////////
-
-type A: A {} // error
-
-type A: B {} // error A, B->A
-type B: A {} // error B, A->B
-// (name, seen)
+type B: A {}

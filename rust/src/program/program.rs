@@ -44,6 +44,13 @@ impl Program {
         loop {
             match parser.parse_declaration() {
                 Some(declaration) => {
+                    match &declaration {
+                        Declaration::Type(type_declaration) => {
+                            self.space.add_type(type_declaration.clone());
+                        }
+                        // TODO(qti3e)
+                        _ => {}
+                    }
                     self.declarations.push(declaration);
                 }
                 None => break,
@@ -55,5 +62,8 @@ impl Program {
         }
     }
 
-    pub fn verify(&mut self) {}
+    pub fn verify(&mut self) {
+        let mut type_errors = self.space.verify();
+        self.diagnostics.append(&mut type_errors);
+    }
 }
