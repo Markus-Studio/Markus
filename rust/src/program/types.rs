@@ -162,6 +162,24 @@ impl TypeSpace {
             self.define_type(id, markus_type)
         }
     }
+
+    /// Verifies the current type space returns a vector containing all of the
+    /// errors found on types.
+    pub fn verify(&self) -> Vec<Diagnostic> {
+        let mut result: Vec<Diagnostic> = Vec::new();
+
+        for markus_type in self.types.values() {
+            match markus_type.type_info {
+                MarkusTypeInfo::Object { .. } => {
+                    let mut errors = markus_type.object_verify(self);
+                    result.append(&mut errors);
+                }
+                _ => {}
+            }
+        }
+
+        result
+    }
 }
 
 impl MarkusType {
@@ -358,6 +376,7 @@ impl MarkusType {
 
     /// Returns true if a field with the given name exists in the current object.
     pub fn object_has_field(&self, space: &TypeSpace, field_name: &str) -> bool {
+        // TODO(qti3e) Optimize this function (maybe use a HashMap?)
         if self.object_owns(field_name) {
             return true;
         }
@@ -429,7 +448,8 @@ impl MarkusType {
     /// 1. Unresolved Names
     /// 2. Base not object.
     /// 3. Circular Reference (Both on fields and bases)
-    /// 4. Common field
+    /// 4. Common field.
+    /// 5. Name already in use.
     pub fn object_verify(&self, space: &TypeSpace) -> Vec<Diagnostic> {
         match self.type_info {
             MarkusTypeInfo::Object { ref ast, .. } => verify_object_ast(ast, space),
@@ -461,6 +481,15 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
                     seen.insert(current_id);
                     if is_circular(space, &mut seen, current_id, base) {
                         result.push(Diagnostic::circular_reference(base_identifier))
+                    } else {
+                        // Shared fields. (A name that is already present in the bases)
+                        for field in &ast.fields {
+                            if let Some(field_identifier) = &field.name {
+                                if base.object_has_field(space, &field_identifier.value) {
+                                    result.push(Diagnostic::name_already_in_use(field_identifier));
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -471,10 +500,38 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
         }
     }
 
-    // TODO(qti3e) Check fields:
-    // 1. Unresolved type names
-    // 2. Circular references on non-nullable fields.
-    // 3. (if not 2) Shared name. (A name that is already present in the bases)
+    let mut seen_names: HashSet<String> = HashSet::with_capacity(ast.fields.len());
+    for field in &ast.fields {
+        match &field.type_name {
+            Some(type_name_identifier) => {
+                let type_name = &type_name_identifier.value;
+
+                if !field.nullable {
+                    if let Some(ast_type_name) = &ast.name {
+                        if ast_type_name.value == *type_name {
+                            result.push(Diagnostic::circular_reference(&type_name_identifier));
+                        }
+                    }
+                }
+
+                if seen_names.contains(type_name) {
+                    result.push(Diagnostic::name_already_in_use(&type_name_identifier));
+                }
+
+                seen_names.insert(type_name.clone());
+
+                match space.resolve_type(type_name) {
+                    None => {
+                        // Unresolved name error.
+                        result.push(Diagnostic::unresolved_name(&type_name_identifier));
+                    }
+                    _ => {}
+                }
+            }
+            // Nothing.
+            _ => {}
+        }
+    }
 
     result
 }

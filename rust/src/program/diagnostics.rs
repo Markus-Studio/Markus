@@ -71,6 +71,14 @@ impl Diagnostic {
         }
     }
 
+    #[inline]
+    pub fn name_already_in_use(identifier: &IdentifierNode) -> Diagnostic {
+        Diagnostic {
+            location: identifier.location,
+            kind: DiagnosticKind::NameAlreadyInUse(String::from(&identifier.value)),
+        }
+    }
+
     /// Constructs a new circular reference error object.
     #[inline]
     pub fn circular_reference(name_identifier: &IdentifierNode) -> Diagnostic {
