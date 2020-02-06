@@ -6,8 +6,9 @@ use std::rc::Rc;
 
 /// A type id is basically a map from an string to an integer unique to
 /// every type space, it is used to prevent copying tons of strings.
-type TypeId = u32;
+pub type TypeId = u32;
 
+#[derive(Clone)]
 pub enum MarkusTypeInfo {
     Atomic {
         id: TypeId,
@@ -26,6 +27,7 @@ pub enum MarkusTypeInfo {
     },
 }
 
+#[derive(Clone)]
 pub struct MarkusType {
     /// This value indicates dimension of the actual type, a type such as
     /// `x` where x is an atomic is considered a 0-dimensional type while
@@ -180,6 +182,51 @@ impl TypeSpace {
 
         result
     }
+
+    /// Returns a 1D Union that contains every user defined object types.
+    pub fn get_query_input_type(&self) -> MarkusType {
+        let mut members: HashSet<TypeId> = HashSet::with_capacity(self.types.len());
+
+        for markus_type in self.types.values() {
+            match markus_type.type_info {
+                MarkusTypeInfo::Object { .. } => {
+                    members.insert(markus_type.get_id());
+                }
+                _ => {}
+            }
+        }
+
+        MarkusType {
+            dimension: 1, // It's an array.
+            type_info: MarkusTypeInfo::Union {
+                members: members
+            }
+        }
+    }
+
+    /// Returns a Union that contains every user defined object types that extends `user`.
+    pub fn get_permission_input_type(&self) -> MarkusType {
+        let mut members: HashSet<TypeId> = HashSet::with_capacity(self.types.len());
+        let user = self.resolve_type("user").unwrap();
+
+        for markus_type in self.types.values() {
+            match markus_type.type_info {
+                MarkusTypeInfo::Object { .. } => {
+                    if markus_type.is(self, user) {
+                        members.insert(markus_type.get_id());
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        MarkusType {
+            dimension: 0,
+            type_info: MarkusTypeInfo::Union {
+                members: members
+            }
+        }
+    }
 }
 
 impl MarkusType {
@@ -297,34 +344,6 @@ impl MarkusType {
             MarkusTypeInfo::Union { .. } => panic!("An union type has no id."),
         }
     }
-
-    /// Duplicate the current type.
-    pub fn dup(&self) -> MarkusType {
-        MarkusType {
-            dimension: self.dimension,
-            type_info: self.type_info.dup(),
-        }
-    }
-}
-
-impl MarkusTypeInfo {
-    pub fn dup(&self) -> MarkusTypeInfo {
-        match self {
-            MarkusTypeInfo::Atomic { id } => MarkusTypeInfo::Atomic { id: *id },
-            MarkusTypeInfo::Union { members } => MarkusTypeInfo::Union {
-                members: members.clone(),
-            },
-            MarkusTypeInfo::Object { id, ast } => MarkusTypeInfo::Object {
-                id: *id,
-                ast: ast.clone(),
-            },
-            MarkusTypeInfo::BuiltInObject { id, bases, fields } => MarkusTypeInfo::BuiltInObject {
-                id: *id,
-                bases: bases.clone(),
-                fields: fields.clone(),
-            },
-        }
-    }
 }
 
 impl MarkusType {
@@ -394,10 +413,11 @@ impl MarkusType {
     /// Queries the type of given filed on this object recursively.
     /// # Panics
     /// If the current type is not an object.
+    #[inline]
     pub fn object_query_field(&self, space: &TypeSpace, field_name: &str) -> Option<MarkusType> {
         match self.type_info {
             MarkusTypeInfo::BuiltInObject { ref fields, .. } => match fields.get(field_name) {
-                Some(&type_id) => Some(space.resolve_type_by_id(type_id).unwrap().dup()),
+                Some(&type_id) => Some(space.resolve_type_by_id(type_id).unwrap().clone()),
                 None => None,
             },
             MarkusTypeInfo::Object { ref ast, .. } => {
@@ -407,7 +427,7 @@ impl MarkusType {
                             return match &field.type_name {
                                 Some(type_identifier) => {
                                     match space.resolve_type(&type_identifier.value) {
-                                        Some(markus_type) => Some(markus_type.dup()),
+                                        Some(markus_type) => Some(markus_type.clone()),
                                         None => None,
                                     }
                                 }

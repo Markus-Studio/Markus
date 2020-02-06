@@ -9,7 +9,7 @@ pub struct Program {
     pub declarations: Vec<Declaration>,
     /// All of the errors we encountered on this source file.
     pub diagnostics: Vec<Diagnostic>,
-    space: TypeSpace,
+    type_space: TypeSpace,
 }
 
 impl Program {
@@ -20,7 +20,7 @@ impl Program {
             source: source,
             declarations: vec![],
             diagnostics: vec![],
-            space: TypeSpace::new_with_builtins(),
+            type_space: TypeSpace::new_with_builtins(),
         }
     }
 
@@ -46,7 +46,8 @@ impl Program {
                 Some(declaration) => {
                     match &declaration {
                         Declaration::Type(type_declaration) => {
-                            self.space.add_type(type_declaration.clone());
+                            // TODO(qti3e) Handle already in use name, currently panics.
+                            self.type_space.add_type(type_declaration.clone());
                         }
                         // TODO(qti3e)
                         _ => {}
@@ -63,7 +64,7 @@ impl Program {
     }
 
     pub fn verify(&mut self) {
-        let mut type_errors = self.space.verify();
+        let mut type_errors = self.type_space.verify();
         self.diagnostics.append(&mut type_errors);
     }
 }

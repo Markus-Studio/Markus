@@ -3,6 +3,12 @@ use crate::parser::tokenizer::Span;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
+pub enum Declaration {
+    Query(Rc<QueryDeclarationNode>),
+    Type(Rc<TypeDeclarationNode>),
+}
+
+#[derive(Debug, PartialEq)]
 pub struct IdentifierNode {
     pub location: Span,
     pub value: String,
@@ -78,12 +84,6 @@ pub struct AccessNode {
 pub struct TypeReferenceNode {
     pub location: Span,
     pub name: IdentifierNode,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Declaration {
-    Query(Rc<QueryDeclarationNode>),
-    Type(Rc<TypeDeclarationNode>),
 }
 
 #[derive(Debug, PartialEq)]
