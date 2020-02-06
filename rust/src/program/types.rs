@@ -16,6 +16,10 @@ pub enum MarkusTypeInfo {
     Union {
         members: HashSet<TypeId>,
     },
+    OneOf {
+        id: TypeId,
+        cases: HashSet<TypeId>,
+    },
     BuiltInObject {
         id: TypeId,
         bases: HashSet<TypeId>,
@@ -55,14 +59,14 @@ impl TypeSpace {
     /// Creates a new type space containing builtin Markus types.
     pub fn new_with_builtins() -> TypeSpace {
         let mut space = TypeSpace::new();
-        space.define_atomic("i32");
-        space.define_atomic("i64");
-        space.define_atomic("u32");
-        space.define_atomic("u64");
+        let i32_id = space.define_atomic("i32");
+        let i64_id = space.define_atomic("i64");
+        let u32_id = space.define_atomic("u32");
+        let u64_id = space.define_atomic("u64");
         let f32_id = space.define_atomic("f32");
-        space.define_atomic("f64");
+        let f64_id = space.define_atomic("f64");
         space.define_atomic("string");
-        space.define_atomic("boolean");
+        space.define_atomic("bool");
         space.define_atomic("time");
         space.define_builtin_object("user", vec![], vec![]);
         space.define_builtin_object(
@@ -73,6 +77,9 @@ impl TypeSpace {
                 (String::from("long"), f32_id),
             ],
         );
+        space.define_one_of("%neg-int", vec![i32_id, i64_id]);
+        space.define_one_of("%int", vec![i32_id, i64_id, u32_id, u64_id]);
+        space.define_one_of("%float", vec![f32_id, f64_id]);
         space
     }
 
@@ -106,6 +113,20 @@ impl TypeSpace {
         let markus_type = MarkusType {
             dimension: 0,
             type_info: MarkusTypeInfo::Atomic { id: id },
+        };
+        self.define_type(id, markus_type);
+        id
+    }
+
+    /// Defines a new builtin one-of type in this type space.
+    pub fn define_one_of(&mut self, name: &str, cases: Vec<TypeId>) -> TypeId {
+        let id = self.get_type_id_or_create(name);
+        let markus_type = MarkusType {
+            dimension: 0,
+            type_info: MarkusTypeInfo::OneOf {
+                id: id,
+                cases: cases.into_iter().collect(),
+            },
         };
         self.define_type(id, markus_type);
         id
@@ -198,9 +219,7 @@ impl TypeSpace {
 
         MarkusType {
             dimension: 1, // It's an array.
-            type_info: MarkusTypeInfo::Union {
-                members: members
-            }
+            type_info: MarkusTypeInfo::Union { members: members },
         }
     }
 
@@ -222,9 +241,7 @@ impl TypeSpace {
 
         MarkusType {
             dimension: 0,
-            type_info: MarkusTypeInfo::Union {
-                members: members
-            }
+            type_info: MarkusTypeInfo::Union { members: members },
         }
     }
 }
@@ -264,6 +281,24 @@ impl MarkusType {
         }
 
         match (&self.type_info, &rhs.type_info) {
+            (MarkusTypeInfo::OneOf { cases, .. }, _) => {
+                for case_id in cases {
+                    let case = space.resolve_type_by_id(*case_id).unwrap();
+                    if case.is(space, rhs) {
+                        return true;
+                    }
+                }
+                false
+            }
+            (_, MarkusTypeInfo::OneOf { cases, .. }) => {
+                for case_id in cases {
+                    let case = space.resolve_type_by_id(*case_id).unwrap();
+                    if self.is(space, case) {
+                        return true;
+                    }
+                }
+                false
+            }
             (
                 MarkusTypeInfo::Atomic { id: ref lhs_id },
                 MarkusTypeInfo::Atomic { id: ref rhs_id },
@@ -274,7 +309,22 @@ impl MarkusType {
             }
             (MarkusTypeInfo::Atomic { ref id }, MarkusTypeInfo::Union { ref members }) => {
                 // `x is T: {A, B, ...}` holds true for all x-es that are in the T.
-                members.contains(&id)
+                for member in members {
+                    if member == id {
+                        return true;
+                    }
+
+                    let resolved_type = space.resolve_type_by_id(*member).unwrap();
+                    match resolved_type.type_info {
+                        MarkusTypeInfo::OneOf { .. } => {
+                            if self.is(space, resolved_type) {
+                                return true;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                false
             }
             (MarkusTypeInfo::Atomic { .. }, _) => {
                 // An atomic type is only assignable to another atomic.
@@ -282,7 +332,28 @@ impl MarkusType {
             }
             (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Atomic { ref id }) => {
                 // `T: {A, B, ...} is x` if and only if T = {x}
-                members.len() == 1 && members.contains(id)
+                if members.len() != 1 {
+                    return false;
+                }
+
+                let mut iter = members.iter();
+                let member = iter.next().unwrap();
+
+                if member == id {
+                    return true;
+                }
+
+                let resolved_type = space.resolve_type_by_id(*member).unwrap();
+                match resolved_type.type_info {
+                    MarkusTypeInfo::OneOf { .. } => {
+                        if resolved_type.is(space, rhs) {
+                            return true;
+                        }
+                    }
+                    _ => {}
+                }
+
+                false
             }
             (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Object { .. })
             | (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::BuiltInObject { .. })
@@ -341,6 +412,7 @@ impl MarkusType {
             MarkusTypeInfo::Atomic { id } => id,
             MarkusTypeInfo::BuiltInObject { id, .. } => id,
             MarkusTypeInfo::Object { id, .. } => id,
+            MarkusTypeInfo::OneOf { id, .. } => id,
             MarkusTypeInfo::Union { .. } => panic!("An union type has no id."),
         }
     }

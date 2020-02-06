@@ -552,7 +552,23 @@ fn ast_int_literal() {
     assert_eq!(
         *ast,
         ValueNode::Int(IntLiteralNode {
-            location: Span::new(13, 2)
+            location: Span::new(13, 2),
+            neg: false
+        })
+    );
+}
+
+#[test]
+fn ast_neg_int_literal() {
+    let source = "query X() {a(-3)}";
+    let mut program = Program::new(Source::new("foo.x", source));
+    program.parse();
+    let ast = get_value_ast(&program);
+    assert_eq!(
+        *ast,
+        ValueNode::Int(IntLiteralNode {
+            location: Span::new(13, 2),
+            neg: true
         })
     );
 }

@@ -17,6 +17,7 @@ pub struct IdentifierNode {
 #[derive(Debug, PartialEq)]
 pub struct IntLiteralNode {
     pub location: Span,
+    pub neg: bool,
 }
 
 #[derive(Debug, PartialEq)]

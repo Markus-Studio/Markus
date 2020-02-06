@@ -460,8 +460,10 @@ impl<'a> Parser<'a> {
         let token = self.current().unwrap();
         debug_assert_eq!(token.kind, TokenKind::Int);
         self.advance(1);
+        let index = token.position.offset;
         IntLiteralNode {
             location: token.position,
+            neg: self.data[index] == 45,
         }
     }
 
