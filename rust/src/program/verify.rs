@@ -98,6 +98,10 @@ impl CallNode {
                         ValueNode::Call(call) => {
                             ctx.path_enter();
                             call.apply_pipeline_changes(diagnostics, ctx);
+                            if ctx.get_current().is_nil() {
+                                diagnostics.push(Diagnostic::reached_nil(call));
+                                break;
+                            }
                             ctx.path_exit();
                         }
                         _ => {
@@ -107,13 +111,16 @@ impl CallNode {
                     }
                 }
                 ctx.branch_out();
-                return;
             }
             ("and", _) => {
                 for argument in &self.arguments {
                     match argument {
                         ValueNode::Call(call) => {
                             call.apply_pipeline_changes(diagnostics, ctx);
+                            if ctx.get_current().is_nil() {
+                                diagnostics.push(Diagnostic::reached_nil(call));
+                                break;
+                            }
                         }
                         _ => {
                             // TODO(qti3e) Report an error - Only pipelines are
@@ -121,17 +128,19 @@ impl CallNode {
                         }
                     }
                 }
-                return;
             }
-            ("is", 1) => {
-                if let ValueNode::Type(type_reference) = &self.arguments[0] {
-                    return;
+            ("is", 1) => match &self.arguments[0] {
+                ValueNode::Type(type_reference) => {}
+                _ => {
+                    // Report error, unexpected argument.
+                }
+            },
+            _ => {
+                if let Some(name_identifier) = &self.callee_name {
+                    diagnostics.push(Diagnostic::unresolved_name(name_identifier));
                 }
             }
-            _ => {}
         }
-
-        // TODO(qti3e) Report error, name not found.
     }
 }
 
@@ -143,6 +152,10 @@ impl QueryNode {
     ) -> MarkusType {
         for pipeline in &self.pipelines {
             pipeline.apply_pipeline_changes(diagnostics, ctx);
+            if ctx.get_current().is_nil() {
+                diagnostics.push(Diagnostic::reached_nil(pipeline));
+                break;
+            }
         }
         ctx.get_current().clone()
     }

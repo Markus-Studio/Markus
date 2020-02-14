@@ -1,9 +1,31 @@
-type A: B {
-    X: P;
+type Product {
+    name: string;
+    price: u32;
 }
 
-type P {
-    u: A;
+type City: geo {
+    name: string;
 }
 
-type B: A {}
+type Seller: user {
+    name: string;
+    last_name: string;
+    city: City;
+}
+
+type Sell {
+    seller: Seller;
+    city: City;
+    date: time;
+}
+
+type SellRecord {
+    sell: Sell;
+    product: Product;
+    soldAt: u32; # Price at the time of sell.
+    quantity: u32;
+}
+
+query hey() {
+    p()
+}

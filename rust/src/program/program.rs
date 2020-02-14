@@ -66,5 +66,10 @@ impl Program {
     pub fn verify(&mut self) {
         let mut type_errors = self.type_space.verify();
         self.diagnostics.append(&mut type_errors);
+        for declaration in &self.declarations {
+            if let Declaration::Query(query) = declaration {
+                query.verify(&mut self.diagnostics, &self.type_space);
+            }
+        }
     }
 }

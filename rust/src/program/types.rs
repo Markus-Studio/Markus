@@ -635,6 +635,15 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
 
     let mut seen_names: HashSet<String> = HashSet::with_capacity(ast.fields.len());
     for field in &ast.fields {
+        if let Some(field_name_identifier) = &field.name {
+            let field_name = &field_name_identifier.value;
+            if seen_names.contains(field_name) {
+                result.push(Diagnostic::name_already_in_use(&field_name_identifier));
+            }
+
+            seen_names.insert(field_name.clone());
+        }
+
         match &field.type_name {
             Some(type_name_identifier) => {
                 let type_name = &type_name_identifier.value;
@@ -646,12 +655,6 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
                         }
                     }
                 }
-
-                if seen_names.contains(type_name) {
-                    result.push(Diagnostic::name_already_in_use(&type_name_identifier));
-                }
-
-                seen_names.insert(type_name.clone());
 
                 match space.resolve_type(type_name) {
                     None => {

@@ -1,5 +1,8 @@
 #![allow(dead_code)]
-use crate::parser::{ast::IdentifierNode, Span, Token, TokenKind};
+use crate::parser::{
+    ast::{CallNode, IdentifierNode},
+    Span, Token, TokenKind,
+};
 
 #[derive(PartialEq, Debug)]
 pub enum DiagnosticKind {
@@ -10,6 +13,7 @@ pub enum DiagnosticKind {
     NameAlreadyInUse(String),
     BaseNotObject(String),
     CircularReference,
+    ReachedNIL,
 }
 
 /// A diagnostic is an error happing in any phase from parsing to
@@ -85,6 +89,14 @@ impl Diagnostic {
         Diagnostic {
             location: name_identifier.location,
             kind: DiagnosticKind::CircularReference,
+        }
+    }
+
+    #[inline]
+    pub fn reached_nil(call: &CallNode) -> Diagnostic {
+        Diagnostic {
+            location: call.location,
+            kind: DiagnosticKind::ReachedNIL,
         }
     }
 }
