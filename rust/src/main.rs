@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     program.verify();
     let v_time = v_now.elapsed().as_micros();
 
-    println!("{:#?}", program.declarations);
+    // println!("{:#?}", program.declarations);
     println!(">>> parsed in {} micro-sec", time);
     println!("Diagnostics:");
     println!("{:#?}", program.diagnostics);

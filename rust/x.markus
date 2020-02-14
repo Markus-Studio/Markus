@@ -27,6 +27,6 @@ type SellRecord {
 }
 
 query hey() {
-    is(Product),
-    is(Sell)
+    or(is(Product), is(Sell)),
+    eq(98, 46)
 }

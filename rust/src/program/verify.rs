@@ -132,8 +132,8 @@ impl CallNode {
                 ValueNode::Type(type_reference) => {
                     match ctx.space.resolve_type(&type_reference.name.value) {
                         Some(arg) => {
-                            let current = ctx.get_current();
-                            ctx.set_current(current.filter(ctx.space, arg));
+                            let filtered_type = ctx.get_current().filter(ctx.space, arg);
+                            ctx.set_current(filtered_type);
                         }
                         _ => {
                             diagnostics.push(Diagnostic::unresolved_name(&type_reference.name));
@@ -145,6 +145,19 @@ impl CallNode {
                 }
             },
             ("is", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),
+            ("eq", 2) => match (&self.arguments[0], &self.arguments[1]) {
+                (ValueNode::Query(_), _) | (ValueNode::Type(_), _) => {
+                    diagnostics.push(Diagnostic::unexpected_argument(&self.arguments[0]));
+                }
+                (_, ValueNode::Query(_)) | (_, ValueNode::Type(_)) => {
+                    diagnostics.push(Diagnostic::unexpected_argument(&self.arguments[1]));
+                }
+                (lhs, rhs) => {
+                    lhs.get_type(ctx.space);
+                    rhs.get_type(ctx.space);
+                }
+            },
+            ("eq", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),
             _ => diagnostics.push(Diagnostic::unresolved_name(name_id)),
         }
     }
@@ -156,8 +169,10 @@ impl QueryNode {
         diagnostics: &mut Vec<Diagnostic>,
         ctx: &mut QueryValidatorContext,
     ) -> MarkusType {
+        println!("T {}", ctx.get_current().to_string(ctx.space));
         for pipeline in &self.pipelines {
             pipeline.apply_pipeline_changes(diagnostics, ctx);
+            println!("T {}", ctx.get_current().to_string(ctx.space));
             if ctx.get_current().is_nil() {
                 diagnostics.push(Diagnostic::reached_nil(pipeline));
                 break;

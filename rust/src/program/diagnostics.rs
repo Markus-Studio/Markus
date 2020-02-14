@@ -16,6 +16,7 @@ pub enum DiagnosticKind {
     ReachedNIL,
     ExpectedArgumentPipeline,
     ExpectedArgumentType,
+    UnexpectedArgument,
     NoMatchingSignature,
 }
 
@@ -124,6 +125,14 @@ impl Diagnostic {
         Diagnostic {
             location: name.location,
             kind: DiagnosticKind::NoMatchingSignature,
+        }
+    }
+
+    #[inline]
+    pub fn unexpected_argument(node: &ValueNode) -> Diagnostic {
+        Diagnostic {
+            location: node.get_location(),
+            kind: DiagnosticKind::UnexpectedArgument,
         }
     }
 }

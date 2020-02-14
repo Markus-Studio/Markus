@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use crate::parser::ast::TypeDeclarationNode;
 use crate::program::Diagnostic;
+use bimap::BiMap;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;
 
@@ -41,7 +42,7 @@ pub struct MarkusType {
 }
 
 pub struct TypeSpace {
-    type_ids: HashMap<String, TypeId>,
+    type_names: BiMap<String, TypeId>,
     types: HashMap<TypeId, MarkusType>,
     last_type_id: TypeId,
 }
@@ -50,7 +51,7 @@ impl TypeSpace {
     /// Creates a new empty type space.
     pub fn new() -> TypeSpace {
         TypeSpace {
-            type_ids: HashMap::new(),
+            type_names: BiMap::new(),
             types: HashMap::new(),
             last_type_id: 1,
         }
@@ -85,12 +86,12 @@ impl TypeSpace {
 
     /// Returns the type id for the given name or creates a new one.
     fn get_type_id_or_create(&mut self, name: &str) -> TypeId {
-        match self.type_ids.get(name) {
+        match self.type_names.get_by_left(&String::from(name)) {
             Some(&id) => id,
             _ => {
                 let id = self.last_type_id;
                 self.last_type_id += 1;
-                self.type_ids.insert(String::from(name), id);
+                self.type_names.insert(String::from(name), id);
                 id
             }
         }
@@ -105,6 +106,11 @@ impl TypeSpace {
             }
             _ => {}
         }
+    }
+
+    #[inline]
+    pub fn get_type_name(&self, id: TypeId) -> String {
+        self.type_names.get_by_right(&id).unwrap().to_string()
     }
 
     /// Defines a new atomic type in this type space.
@@ -164,7 +170,7 @@ impl TypeSpace {
     /// Finds the type with the given name and returns it.
     #[inline]
     pub fn resolve_type(&self, name: &str) -> Option<&MarkusType> {
-        match self.type_ids.get(name) {
+        match self.type_names.get_by_left(&String::from(name)) {
             Some(&id) => self.resolve_type_by_id(id),
             None => None,
         }
@@ -753,6 +759,38 @@ fn object_collect_bases(collected: &mut HashSet<TypeId>, space: &TypeSpace, obje
                 None => {}
             }
         }
+    }
+}
+
+impl MarkusType {
+    pub fn to_string(&self, space: &TypeSpace) -> String {
+        let mut type_str = match &self.type_info {
+            MarkusTypeInfo::Atomic { id, .. }
+            | MarkusTypeInfo::BuiltInObject { id, .. }
+            | MarkusTypeInfo::OneOf { id, .. }
+            | MarkusTypeInfo::Object { id, .. } => space.get_type_name(*id),
+            MarkusTypeInfo::Union { members, .. } => match members.len() {
+                0 => String::from("ø"),
+                1 => space.get_type_name(*members.iter().next().unwrap()),
+                _ => {
+                    let mut result = String::from("(");
+                    for (index, member) in members.iter().enumerate() {
+                        if index > 0 {
+                            result.push_str(" | ")
+                        }
+                        result.push_str(&space.get_type_name(*member));
+                    }
+                    result.push_str(")");
+                    result
+                }
+            },
+        };
+
+        for _ in 0..self.dimension {
+            type_str.push_str("[]");
+        }
+
+        type_str
     }
 }
 
