@@ -464,6 +464,14 @@ impl MarkusType {
         }
     }
 
+    /// Returns the current type but with the request dimension.
+    pub fn with_dimension(&self, dimension: u32) -> MarkusType {
+        MarkusType {
+            dimension: dimension,
+            type_info: self.type_info.clone(),
+        }
+    }
+
     /// Filters the current type to contain only those that are extended of
     /// the base, it's actually result of the `is(base)` pipeline.
     pub fn filter(&self, space: &TypeSpace, base: &MarkusType) -> MarkusType {

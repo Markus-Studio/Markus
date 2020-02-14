@@ -26,7 +26,8 @@ type SellRecord {
     quantity: u32;
 }
 
-query hey() {
+query hey($x: Product) {
     or(is(Product), is(Sell)),
-    eq(98, 46)
+    is(Product),
+    eq(98, $x)
 }

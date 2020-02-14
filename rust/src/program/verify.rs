@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use crate::parser::ast::{CallNode, IntLiteralNode, QueryDeclarationNode, QueryNode, ValueNode};
+use crate::parser::ast::{CallNode, IntLiteralNode, QueryDeclarationNode};
+use crate::parser::ast::{QueryNode, ValueNode, VariableReferenceNode};
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
 use std::collections::HashMap;
 
@@ -57,19 +58,49 @@ impl<'a> QueryValidatorContext<'a> {
     }
 }
 
+impl VariableReferenceNode {
+    pub fn get_type(
+        &self,
+        diagnostics: &mut Vec<Diagnostic>,
+        ctx: &mut QueryValidatorContext,
+    ) -> MarkusType {
+        match self {
+            VariableReferenceNode::Current => {
+                let current = ctx.get_current();
+                current.with_dimension(current.dimension - 1)
+            }
+            VariableReferenceNode::Internal(id) | VariableReferenceNode::Variable(id) => {
+                if let Some(variable_type) = ctx.variables.get(&id.value) {
+                    variable_type.clone()
+                } else {
+                    MarkusType::new_union(Vec::new())
+                }
+            }
+        }
+    }
+}
+
 impl ValueNode {
     /// Computes and returns type of this value.
-    pub fn get_type(&self, space: &TypeSpace) -> Option<MarkusType> {
+    pub fn get_type(
+        &self,
+        diagnostics: &mut Vec<Diagnostic>,
+        ctx: &mut QueryValidatorContext,
+    ) -> MarkusType {
         match self {
             ValueNode::Int(IntLiteralNode { neg, .. }) => {
                 if *neg {
-                    Some(space.resolve_type("%neg-int").unwrap().clone())
+                    ctx.space.resolve_type("%neg-int").unwrap().clone()
                 } else {
-                    Some(space.resolve_type("%int").unwrap().clone())
+                    ctx.space.resolve_type("%int").unwrap().clone()
                 }
             }
-            ValueNode::Float(_) => Some(space.resolve_type("%float").unwrap().clone()),
-            ValueNode::Boolean(_) => Some(space.resolve_type("bool").unwrap().clone()),
+            ValueNode::Float(_) => ctx.space.resolve_type("%float").unwrap().clone(),
+            ValueNode::Boolean(_) => ctx.space.resolve_type("bool").unwrap().clone(),
+            ValueNode::Access(access) => {
+                let base_type = access.base.get_type(diagnostics, ctx);
+                base_type
+            }
             _ => panic!("Not implemented."),
         }
     }
@@ -84,7 +115,7 @@ impl CallNode {
     ) {
         if None == self.callee_name {
             // An error is already reported about this pipeline not having a name.
-            // TODO(qti3e) Still check type of non-call the arguments.
+            // TODO(qti3e) Still check type of the non-call/query arguments.
             return;
         }
 
@@ -153,8 +184,10 @@ impl CallNode {
                     diagnostics.push(Diagnostic::unexpected_argument(&self.arguments[1]));
                 }
                 (lhs, rhs) => {
-                    lhs.get_type(ctx.space);
-                    rhs.get_type(ctx.space);
+                    let lhs_type = lhs.get_type(diagnostics, ctx);
+                    let rhs_type = rhs.get_type(diagnostics, ctx);
+                    println!("lhs-type: {}", lhs_type.to_string(ctx.space));
+                    println!("rhs-type: {}", rhs_type.to_string(ctx.space));
                 }
             },
             ("eq", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),
@@ -190,6 +223,34 @@ impl QueryDeclarationNode {
             current: vec![space.get_query_input_type()],
             variables: HashMap::new(),
         };
+
+        for parameter in &self.parameter {
+            if None == parameter.name || None == parameter.type_name {
+                continue;
+            }
+
+            match (parameter.name.as_ref(), parameter.type_name.as_ref()) {
+                (Some(parameter_name), None) => {
+                    if context.variables.contains_key(&parameter_name.value) {
+                        diagnostics.push(Diagnostic::name_already_in_use(&parameter_name));
+                    }
+                }
+                (None, _) | (None, None) => {}
+                (Some(parameter_name), Some(type_name)) => {
+                    let name = String::from(&parameter_name.value);
+
+                    if context.variables.contains_key(&name) {
+                        diagnostics.push(Diagnostic::name_already_in_use(&parameter_name));
+                    }
+
+                    if let Some(parameter_type) = space.resolve_type(&type_name.value) {
+                        context.variables.insert(name, parameter_type.clone());
+                    } else {
+                        diagnostics.push(Diagnostic::unresolved_name(&type_name));
+                    }
+                }
+            }
+        }
 
         self.query.get_type(diagnostics, &mut context);
     }
