@@ -1,9 +1,10 @@
 #![allow(dead_code)]
-use crate::parser::ast::{IntLiteralNode, QueryDeclarationNode, QueryNode, ValueNode};
-use crate::program::{MarkusType, TypeSpace};
+use crate::parser::ast::{CallNode, IntLiteralNode, QueryDeclarationNode, QueryNode, ValueNode};
+use crate::program::{Diagnostic, MarkusType, TypeSpace};
 use std::collections::HashMap;
 
-struct QueryValidatorContext<'a> {
+#[derive(Clone)]
+pub struct QueryValidatorContext<'a> {
     space: &'a TypeSpace,
     branches: Vec<Vec<MarkusType>>,
     current: Vec<MarkusType>,
@@ -74,13 +75,88 @@ impl ValueNode {
     }
 }
 
+impl CallNode {
+    #[inline]
+    pub fn apply_pipeline_changes(
+        &self,
+        diagnostics: &mut Vec<Diagnostic>,
+        ctx: &mut QueryValidatorContext,
+    ) {
+        if None == self.callee_name {
+            // An error is already reported about this pipeline not having a name.
+            // TODO(qti3e) Still check type of non-call the arguments.
+            return;
+        }
+
+        let callee_name = self.callee_name.as_ref().unwrap().value.as_str();
+
+        match (callee_name, self.arguments.len()) {
+            ("or", _) => {
+                ctx.branch_in();
+                for argument in &self.arguments {
+                    match argument {
+                        ValueNode::Call(call) => {
+                            ctx.path_enter();
+                            call.apply_pipeline_changes(diagnostics, ctx);
+                            ctx.path_exit();
+                        }
+                        _ => {
+                            // TODO(qti3e) Report an error - Only pipelines are
+                            // allowed within an `or`.
+                        }
+                    }
+                }
+                ctx.branch_out();
+                return;
+            }
+            ("and", _) => {
+                for argument in &self.arguments {
+                    match argument {
+                        ValueNode::Call(call) => {
+                            call.apply_pipeline_changes(diagnostics, ctx);
+                        }
+                        _ => {
+                            // TODO(qti3e) Report an error - Only pipelines are
+                            // allowed within an `and`.
+                        }
+                    }
+                }
+                return;
+            }
+            ("is", 1) => {
+                if let ValueNode::Type(type_reference) = &self.arguments[0] {
+                    return;
+                }
+            }
+            _ => {}
+        }
+
+        // TODO(qti3e) Report error, name not found.
+    }
+}
+
+impl QueryNode {
+    pub fn get_type(
+        &self,
+        diagnostics: &mut Vec<Diagnostic>,
+        ctx: &mut QueryValidatorContext,
+    ) -> MarkusType {
+        for pipeline in &self.pipelines {
+            pipeline.apply_pipeline_changes(diagnostics, ctx);
+        }
+        ctx.get_current().clone()
+    }
+}
+
 impl QueryDeclarationNode {
-    pub fn verify<'a>(space: &'a TypeSpace) {
-        let context = QueryValidatorContext {
+    pub fn verify<'a>(&self, diagnostics: &mut Vec<Diagnostic>, space: &'a TypeSpace) {
+        let mut context = QueryValidatorContext {
             space: space,
             branches: Vec::new(),
             current: vec![space.get_query_input_type()],
             variables: HashMap::new(),
         };
+
+        self.query.get_type(diagnostics, &mut context);
     }
 }
