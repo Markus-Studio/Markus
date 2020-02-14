@@ -116,3 +116,17 @@ impl IdentifierNode {
         }
     }
 }
+
+impl ValueNode {
+    pub fn get_location(&self) -> Span {
+        match self {
+            ValueNode::Access(value) => value.location,
+            ValueNode::Boolean(value) => value.location,
+            ValueNode::Call(value) => value.location,
+            ValueNode::Float(value) => value.location,
+            ValueNode::Int(value) => value.location,
+            ValueNode::Query(value) => value.location,
+            ValueNode::Type(value) => value.location,
+        }
+    }
+}

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::parser::{
-    ast::{CallNode, IdentifierNode},
+    ast::{CallNode, IdentifierNode, ValueNode},
     Span, Token, TokenKind,
 };
 
@@ -14,6 +14,8 @@ pub enum DiagnosticKind {
     BaseNotObject(String),
     CircularReference,
     ReachedNIL,
+    ExpectedArgumentPipeline,
+    NoMatchingSignature,
 }
 
 /// A diagnostic is an error happing in any phase from parsing to
@@ -97,6 +99,22 @@ impl Diagnostic {
         Diagnostic {
             location: call.location,
             kind: DiagnosticKind::ReachedNIL,
+        }
+    }
+
+    #[inline]
+    pub fn expected_argument_pipeline(node: &ValueNode) -> Diagnostic {
+        Diagnostic {
+            location: node.get_location(),
+            kind: DiagnosticKind::ExpectedArgumentPipeline,
+        }
+    }
+
+    #[inline]
+    pub fn no_matching_signature(name: &IdentifierNode) -> Diagnostic {
+        Diagnostic {
+            location: name.location,
+            kind: DiagnosticKind::NoMatchingSignature,
         }
     }
 }

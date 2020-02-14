@@ -88,7 +88,8 @@ impl CallNode {
             return;
         }
 
-        let callee_name = self.callee_name.as_ref().unwrap().value.as_str();
+        let name_id = self.callee_name.as_ref().unwrap();
+        let callee_name = name_id.value.as_str();
 
         match (callee_name, self.arguments.len()) {
             ("or", _) => {
@@ -105,8 +106,7 @@ impl CallNode {
                             ctx.path_exit();
                         }
                         _ => {
-                            // TODO(qti3e) Report an error - Only pipelines are
-                            // allowed within an `or`.
+                            diagnostics.push(Diagnostic::expected_argument_pipeline(argument));
                         }
                     }
                 }
@@ -123,23 +123,21 @@ impl CallNode {
                             }
                         }
                         _ => {
-                            // TODO(qti3e) Report an error - Only pipelines are
-                            // allowed within an `and`.
+                            diagnostics.push(Diagnostic::expected_argument_pipeline(argument));
                         }
                     }
                 }
             }
             ("is", 1) => match &self.arguments[0] {
-                ValueNode::Type(type_reference) => {}
+                ValueNode::Type(type_reference) => {
+                    //
+                }
                 _ => {
                     // Report error, unexpected argument.
                 }
             },
-            _ => {
-                if let Some(name_identifier) = &self.callee_name {
-                    diagnostics.push(Diagnostic::unresolved_name(name_identifier));
-                }
-            }
+            ("is", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),
+            _ => diagnostics.push(Diagnostic::unresolved_name(name_id)),
         }
     }
 }
