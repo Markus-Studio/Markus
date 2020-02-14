@@ -130,10 +130,18 @@ impl CallNode {
             }
             ("is", 1) => match &self.arguments[0] {
                 ValueNode::Type(type_reference) => {
-                    //
+                    match ctx.space.resolve_type(&type_reference.name.value) {
+                        Some(arg) => {
+                            let current = ctx.get_current();
+                            ctx.set_current(current.filter(ctx.space, arg));
+                        }
+                        _ => {
+                            diagnostics.push(Diagnostic::unresolved_name(&type_reference.name));
+                        }
+                    }
                 }
                 _ => {
-                    // Report error, unexpected argument.
+                    diagnostics.push(Diagnostic::expected_argument_type(&self.arguments[0]));
                 }
             },
             ("is", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),

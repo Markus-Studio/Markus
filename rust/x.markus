@@ -27,5 +27,6 @@ type SellRecord {
 }
 
 query hey() {
-    is()
+    is(Product),
+    is(Sell)
 }

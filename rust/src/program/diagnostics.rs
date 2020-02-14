@@ -15,6 +15,7 @@ pub enum DiagnosticKind {
     CircularReference,
     ReachedNIL,
     ExpectedArgumentPipeline,
+    ExpectedArgumentType,
     NoMatchingSignature,
 }
 
@@ -107,6 +108,14 @@ impl Diagnostic {
         Diagnostic {
             location: node.get_location(),
             kind: DiagnosticKind::ExpectedArgumentPipeline,
+        }
+    }
+
+    #[inline]
+    pub fn expected_argument_type(node: &ValueNode) -> Diagnostic {
+        Diagnostic {
+            location: node.get_location(),
+            kind: DiagnosticKind::ExpectedArgumentType,
         }
     }
 

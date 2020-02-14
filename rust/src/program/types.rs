@@ -457,6 +457,40 @@ impl MarkusType {
             type_info: MarkusTypeInfo::Union { members: members },
         }
     }
+
+    /// Filters the current type to contain only those that are extended of
+    /// the base, it's actually result of the `is(base)` pipeline.
+    pub fn filter(&self, space: &TypeSpace, base: &MarkusType) -> MarkusType {
+        let mut members: HashSet<TypeId> = HashSet::new();
+
+        match &self.type_info {
+            MarkusTypeInfo::Atomic { id, .. }
+            | MarkusTypeInfo::BuiltInObject { id, .. }
+            | MarkusTypeInfo::Object { id, .. } => {
+                if self.is(space, base) {
+                    members.insert(*id);
+                }
+            }
+            MarkusTypeInfo::Union {
+                members: union_members,
+                ..
+            } => {
+                for member in union_members {
+                    if space.resolve_type_by_id(*member).unwrap().is(space, base) {
+                        members.insert(*member);
+                    }
+                }
+            }
+            MarkusTypeInfo::OneOf { .. } => {
+                panic!("Filter is not meant to be used with `OneOf` type.")
+            }
+        }
+
+        MarkusType {
+            dimension: self.dimension,
+            type_info: MarkusTypeInfo::Union { members: members },
+        }
+    }
 }
 
 impl MarkusType {
