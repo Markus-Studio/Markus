@@ -69,6 +69,7 @@ impl TypeSpace {
         space.define_atomic("string");
         space.define_atomic("bool");
         space.define_atomic("time");
+        space.define_atomic("null");
         space.define_builtin_object("user", vec![], vec![]);
         space.define_builtin_object(
             "geo",

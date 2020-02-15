@@ -34,6 +34,7 @@ pub struct BooleanLiteralNode {
 #[derive(Debug, PartialEq)]
 pub struct ParameterNode {
     pub location: Span,
+    pub optional: bool,
     pub name: Option<IdentifierNode>,
     pub type_name: Option<IdentifierNode>,
 }

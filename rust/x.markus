@@ -1,7 +1,8 @@
-action x($x: P) {
-    validate x(53, $p);
+type Product {
+    name: string;
+    price: u32;
+}
 
-    update {} {
-        .x: 5
-    };
+query X($p?: Product) {
+    eq(.name, $p.name)
 }

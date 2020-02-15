@@ -426,6 +426,21 @@ impl<'a> Parser<'a> {
             TokenKind::RightBrace,
         ]);
 
+        let optional = match self.expect_optional(
+            TokenKind::Question,
+            vec![
+                TokenKind::Colon,
+                TokenKind::Identifier,
+                TokenKind::Comma,
+                TokenKind::RightParenthesis,
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+            ],
+        ) {
+            Some(_) => true,
+            _ => false,
+        };
+
         self.expect(
             TokenKind::Colon,
             vec![
@@ -447,6 +462,7 @@ impl<'a> Parser<'a> {
 
         Some(ParameterNode {
             location: self.get_location(start),
+            optional,
             name,
             type_name,
         })
@@ -990,6 +1006,8 @@ impl<'a> Parser<'a> {
                 TokenKind::DeleteKeyword,
             ],
         ) {
+            // It might possibly be an `Object Binding` so we use up to 2 lookahead tokens
+            // to make sure that this is actually a `Query`.
             Some(TokenKind::LeftBrace) => match self.lookahead(1) {
                 Some(token) => match token.kind {
                     TokenKind::Identifier => match self.lookahead(2) {

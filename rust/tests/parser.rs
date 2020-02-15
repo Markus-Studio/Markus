@@ -490,11 +490,13 @@ fn ast_query_declaration_02() {
             parameters: vec![
                 ParameterNode {
                     location: Span::new(8, 5),
+                    optional: false,
                     name: Some(IdentifierNode::new(8, "$a")),
                     type_name: Some(IdentifierNode::new(12, "X"))
                 },
                 ParameterNode {
                     location: Span::new(15, 5),
+                    optional: false,
                     name: Some(IdentifierNode::new(15, "$b")),
                     type_name: Some(IdentifierNode::new(19, "Y"))
                 }

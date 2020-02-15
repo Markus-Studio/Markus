@@ -307,12 +307,13 @@ impl QueryNode {
 impl QueryDeclarationNode {
     pub fn verify<'a>(&self, diagnostics: &mut Vec<Diagnostic>, space: &'a TypeSpace) {
         let mut context = QueryValidatorContext {
-            space: space,
+            space,
             branches: Vec::new(),
             current: vec![space.get_query_input_type()],
             variables: HashMap::new(),
         };
 
+        let null_id = space.resolve_type("null").unwrap().get_id();
         for parameter in &self.parameters {
             if None == parameter.name || None == parameter.type_name {
                 continue;
@@ -333,7 +334,14 @@ impl QueryDeclarationNode {
                     }
 
                     if let Some(parameter_type) = space.resolve_type(&type_name.value) {
-                        context.variables.insert(name, parameter_type.clone());
+                        if parameter.optional {
+                            let type_id = parameter_type.get_id();
+                            context
+                                .variables
+                                .insert(name, MarkusType::new_union(vec![null_id, type_id]));
+                        } else {
+                            context.variables.insert(name, parameter_type.clone());
+                        }
                     } else {
                         diagnostics.push(Diagnostic::unresolved_name(&type_name));
                     }
