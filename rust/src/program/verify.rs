@@ -156,6 +156,7 @@ impl CallNode {
                 }
                 ctx.branch_out();
             }
+
             ("and", _) => {
                 for argument in &self.arguments {
                     match argument {
@@ -172,6 +173,7 @@ impl CallNode {
                     }
                 }
             }
+
             ("is", 1) => match &self.arguments[0] {
                 ValueNode::Type(type_reference) => {
                     match ctx.space.resolve_type(&type_reference.name.value) {
@@ -189,7 +191,8 @@ impl CallNode {
                 }
             },
             ("is", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),
-            ("eq", 2) => match (&self.arguments[0], &self.arguments[1]) {
+
+            ("neq", 2) | ("eq", 2) => match (&self.arguments[0], &self.arguments[1]) {
                 (ValueNode::Query(_), _) | (ValueNode::Type(_), _) => {
                     diagnostics.push(Diagnostic::unexpected_argument(&self.arguments[0]));
                 }
@@ -199,8 +202,6 @@ impl CallNode {
                 (lhs, rhs) => {
                     let lhs_type = lhs.get_type(diagnostics, ctx);
                     let rhs_type = rhs.get_type(diagnostics, ctx);
-                    println!("lhs-type: {}", lhs_type.to_string(ctx.space));
-                    println!("rhs-type: {}", rhs_type.to_string(ctx.space));
                     if !(lhs_type.is(ctx.space, &rhs_type) || rhs_type.is(ctx.space, &lhs_type)) {
                         diagnostics.push(Diagnostic::mismatched_types(
                             lhs_type.to_string(ctx.space),
@@ -210,7 +211,44 @@ impl CallNode {
                     }
                 }
             },
-            ("eq", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),
+            ("neq", _) | ("eq", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),
+
+            ("lte", 2) | ("lt", 2) | ("gte", 2) | ("gt", 2) => {
+                match (&self.arguments[0], &self.arguments[1]) {
+                    (ValueNode::Query(_), _) | (ValueNode::Type(_), _) => {
+                        diagnostics.push(Diagnostic::unexpected_argument(&self.arguments[0]));
+                    }
+                    (_, ValueNode::Query(_)) | (_, ValueNode::Type(_)) => {
+                        diagnostics.push(Diagnostic::unexpected_argument(&self.arguments[1]));
+                    }
+                    (lhs, rhs) => {
+                        let lhs_type = lhs.get_type(diagnostics, ctx);
+                        let rhs_type = rhs.get_type(diagnostics, ctx);
+                        if !(lhs_type.is(ctx.space, &rhs_type) || rhs_type.is(ctx.space, &lhs_type))
+                        {
+                            diagnostics.push(Diagnostic::mismatched_types(
+                                lhs_type.to_string(ctx.space),
+                                rhs_type.to_string(ctx.space),
+                                rhs.get_location(),
+                            ))
+                        }
+                        let int_type = ctx.space.resolve_type("%int").unwrap();
+                        let float_type = ctx.space.resolve_type("%float").unwrap();
+                        if !(lhs_type.is(ctx.space, int_type) || lhs_type.is(ctx.space, float_type))
+                        {
+                            diagnostics.push(Diagnostic::mismatched_types(
+                                lhs_type.to_string(ctx.space),
+                                String::from("(%int | %float)"),
+                                rhs.get_location(),
+                            ))
+                        }
+                    }
+                }
+            }
+            ("lte", _) | ("lt", _) | ("gte", _) | ("gt", _) => {
+                diagnostics.push(Diagnostic::no_matching_signature(name_id))
+            }
+
             _ => diagnostics.push(Diagnostic::unresolved_name(name_id)),
         }
     }
