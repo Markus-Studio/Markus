@@ -104,7 +104,12 @@ impl ValueNode {
                 match base_type.query(ctx.space, &uri) {
                     Some(data_type) => data_type,
                     _ => {
-                        // TODO(qti3e) Report an error.
+                        let type_str = base_type.to_string(ctx.space);
+                        diagnostics.push(Diagnostic::field_not_found(
+                            type_str,
+                            uri,
+                            access.location,
+                        ));
                         MarkusType::new_union(Vec::with_capacity(0))
                     }
                 }
@@ -196,6 +201,13 @@ impl CallNode {
                     let rhs_type = rhs.get_type(diagnostics, ctx);
                     println!("lhs-type: {}", lhs_type.to_string(ctx.space));
                     println!("rhs-type: {}", rhs_type.to_string(ctx.space));
+                    if !(lhs_type.is(ctx.space, &rhs_type) || rhs_type.is(ctx.space, &lhs_type)) {
+                        diagnostics.push(Diagnostic::mismatched_types(
+                            lhs_type.to_string(ctx.space),
+                            rhs_type.to_string(ctx.space),
+                            rhs.get_location(),
+                        ))
+                    }
                 }
             },
             ("eq", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),

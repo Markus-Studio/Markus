@@ -18,9 +18,11 @@ pub enum DiagnosticKind {
     ExpectedArgumentType,
     UnexpectedArgument,
     NoMatchingSignature,
+    FieldNotFound(String, Vec<String>),
+    MismatchedTypes(String, String),
 }
 
-/// A diagnostic is an error happing in any phase from parsing to
+/// A diagnostic is an error happened in any phase from parsing to
 /// type validation and so on.
 #[derive(PartialEq, Debug)]
 pub struct Diagnostic {
@@ -133,6 +135,26 @@ impl Diagnostic {
         Diagnostic {
             location: node.get_location(),
             kind: DiagnosticKind::UnexpectedArgument,
+        }
+    }
+
+    #[inline]
+    pub fn field_not_found(type_str: String, uri: Vec<&str>, location: Span) -> Diagnostic {
+        let uri_str = uri
+            .iter()
+            .map(|s| String::from(*s))
+            .collect::<Vec<String>>();
+        Diagnostic {
+            location: location,
+            kind: DiagnosticKind::FieldNotFound(type_str, uri_str),
+        }
+    }
+
+    #[inline]
+    pub fn mismatched_types(type_str1: String, type_str2: String, location: Span) -> Diagnostic {
+        Diagnostic {
+            location: location,
+            kind: DiagnosticKind::MismatchedTypes(type_str1, type_str2),
         }
     }
 }
