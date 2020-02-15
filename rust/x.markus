@@ -1,2 +1,10 @@
 action x($x: P) {
+    validate x(53, $p);
+
+    create User {
+        .x: 5,
+        .y: create X {
+            .y: 45
+        }
+    };
 }

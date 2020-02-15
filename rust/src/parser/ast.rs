@@ -97,7 +97,7 @@ pub struct ActionDeclarationNode {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct PropertyBindingNode {
+pub struct ObjectBindingNode {
     pub location: Span,
     pub bindings: Vec<FieldBindingNode>,
 }
@@ -115,7 +115,7 @@ pub enum BindingValueNode {
     Int(IntLiteralNode),
     Float(FloatLiteralNode),
     Boolean(BooleanLiteralNode),
-    Call(CallNode),
+    Call(CallNode), // TODO(qti3e) Currently this `call` can contain `query`.
     Create(CreateStatementNode),
 }
 
@@ -137,7 +137,7 @@ pub struct ValidateStatementNode {
 pub struct CreateStatementNode {
     pub location: Span,
     pub base: Option<IdentifierNode>,
-    pub binding: Option<PropertyBindingNode>,
+    pub binding: Option<ObjectBindingNode>,
 }
 
 #[derive(Debug, PartialEq)]

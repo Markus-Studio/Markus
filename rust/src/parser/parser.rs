@@ -657,6 +657,8 @@ impl<'a> Parser<'a> {
             TokenKind::Parameter,
             TokenKind::InternalVariable,
             TokenKind::Dot,
+            //
+            TokenKind::Semicolon,
         ]);
 
         self.expect(
@@ -798,7 +800,180 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    pub fn parse_action_statement(&mut self) -> Option<ActionStatement> {
+    fn parse_create_statement(&mut self) -> CreateStatementNode {
+        let start = self.current_source_position();
+        self.expect(TokenKind::CreateKeyword, vec![TokenKind::Identifier]);
+
+        let base = self.parse_identifier(vec![
+            TokenKind::LeftBrace,
+            TokenKind::ValidateKeyword,
+            TokenKind::CreateKeyword,
+            TokenKind::UpdateKeyword,
+            TokenKind::DeleteKeyword,
+            TokenKind::TypeKeyword,
+            TokenKind::ActionKeyword,
+            TokenKind::PermissionKeyword,
+            TokenKind::QueryKeyword,
+            TokenKind::Semicolon,
+        ]);
+        let binding = self.parse_object_binding();
+
+        CreateStatementNode {
+            location: self.get_location(start),
+            base,
+            binding,
+        }
+    }
+
+    #[inline]
+    fn parse_binding_value(&mut self) -> Option<BindingValueNode> {
+        match self.find_first_of(
+            &vec![
+                TokenKind::Dot,
+                TokenKind::Identifier,
+                TokenKind::LeftParenthesis,
+                TokenKind::Parameter,
+                TokenKind::InternalVariable,
+                TokenKind::Boolean,
+                TokenKind::Int,
+                TokenKind::Float,
+                TokenKind::CreateKeyword,
+                TokenKind::Identifier,
+            ],
+            vec![
+                TokenKind::Comma,
+                TokenKind::RightBrace,
+                TokenKind::RightParenthesis,
+            ],
+        ) {
+            Some(TokenKind::Int) => Some(BindingValueNode::Int(self.consume_int_literal())),
+            Some(TokenKind::Float) => Some(BindingValueNode::Float(self.consume_float_literal())),
+            Some(TokenKind::Boolean) => {
+                Some(BindingValueNode::Boolean(self.consume_boolean_literal()))
+            }
+            Some(TokenKind::Dot)
+            | Some(TokenKind::Parameter)
+            | Some(TokenKind::InternalVariable) => {
+                Some(BindingValueNode::Access(self.consume_access()))
+            }
+            Some(TokenKind::LeftParenthesis) => {
+                Some(BindingValueNode::Call(self.parse_call().unwrap()))
+            }
+            Some(TokenKind::CreateKeyword) | Some(TokenKind::Identifier) => {
+                Some(BindingValueNode::Create(self.parse_create_statement()))
+            }
+            _ => None,
+        }
+    }
+
+    #[inline]
+    fn parse_binding(&mut self) -> Option<FieldBindingNode> {
+        let start = self.current_source_position();
+        let mut uri: Vec<IdentifierNode> = Vec::new();
+
+        self.expect(
+            TokenKind::Dot,
+            vec![
+                TokenKind::Comma,
+                TokenKind::Colon,
+                TokenKind::Parameter,
+                TokenKind::InternalVariable,
+                TokenKind::Boolean,
+                TokenKind::Int,
+                TokenKind::Float,
+            ],
+        );
+
+        self.collect_separated_by(
+            &mut uri,
+            vec![TokenKind::Colon, TokenKind::Comma],
+            |parser| {
+                parser.parse_identifier(vec![
+                    TokenKind::Dot,
+                    TokenKind::Comma,
+                    TokenKind::Colon,
+                    TokenKind::Parameter,
+                    TokenKind::InternalVariable,
+                    TokenKind::Boolean,
+                    TokenKind::Int,
+                    TokenKind::Float,
+                ])
+            },
+            TokenKind::Dot,
+        );
+
+        self.expect(
+            TokenKind::Colon,
+            vec![
+                TokenKind::Semicolon,
+                TokenKind::Identifier,
+                TokenKind::RightBrace,
+                TokenKind::Comma,
+            ],
+        );
+
+        let value = self.parse_binding_value();
+
+        Some(FieldBindingNode {
+            location: self.get_location(start),
+            uri,
+            value,
+        })
+    }
+
+    #[inline]
+    fn parse_object_binding(&mut self) -> Option<ObjectBindingNode> {
+        let start = self.current_source_position();
+
+        match self.expect(
+            TokenKind::LeftBrace,
+            vec![
+                TokenKind::Identifier,
+                TokenKind::LeftParenthesis,
+                TokenKind::Semicolon,
+            ],
+        ) {
+            None => {
+                return None;
+            }
+            _ => {}
+        };
+
+        let mut bindings: Vec<FieldBindingNode> = vec![];
+
+        self.collect_comma_separated(
+            &mut bindings,
+            vec![
+                TokenKind::RightBrace,
+                TokenKind::TypeKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::QueryKeyword,
+                TokenKind::Semicolon,
+            ],
+            |parser| parser.parse_binding(),
+        );
+
+        self.expect(
+            TokenKind::RightBrace,
+            vec![
+                TokenKind::TypeKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::QueryKeyword,
+                TokenKind::Identifier,
+                TokenKind::Semicolon,
+            ],
+        );
+
+        Some(ObjectBindingNode {
+            location: self.get_location(start),
+            bindings,
+        })
+    }
+
+    #[inline]
+    fn parse_action_statement(&mut self) -> Option<ActionStatement> {
         let semicolon_breaks = vec![
             TokenKind::RightBrace,
             TokenKind::ValidateKeyword,
@@ -825,41 +1000,26 @@ impl<'a> Parser<'a> {
                 let start = self.current_source_position();
                 self.advance(1);
                 let value = self.parse_call();
+                let location = self.get_location(start);
+
                 self.expect(TokenKind::Semicolon, semicolon_breaks);
 
                 Some(ActionStatement::Validate(ValidateStatementNode {
-                    location: self.get_location(start),
+                    location,
                     value,
                 }))
             }
             Some(TokenKind::CreateKeyword) => {
-                let start = self.current_source_position();
-                self.advance(1);
-                let base = self.parse_identifier(vec![
-                    TokenKind::LeftBrace,
-                    TokenKind::ValidateKeyword,
-                    TokenKind::CreateKeyword,
-                    TokenKind::UpdateKeyword,
-                    TokenKind::DeleteKeyword,
-                    TokenKind::TypeKeyword,
-                    TokenKind::ActionKeyword,
-                    TokenKind::PermissionKeyword,
-                    TokenKind::QueryKeyword,
-                ]);
+                let stmt = self.parse_create_statement();
                 self.expect(TokenKind::Semicolon, semicolon_breaks);
-
-                Some(ActionStatement::Create(CreateStatementNode {
-                    location: self.get_location(start),
-                    base,
-                    binding: None,
-                }))
+                Some(ActionStatement::Create(stmt))
             }
             _ => None,
         }
     }
 
     #[inline]
-    pub fn parse_action_declaration(&mut self) -> Option<ActionDeclarationNode> {
+    fn parse_action_declaration(&mut self) -> Option<ActionDeclarationNode> {
         debug_assert!(self.current().unwrap().kind == TokenKind::ActionKeyword);
         let start = self.current_source_position();
         self.advance(1);
