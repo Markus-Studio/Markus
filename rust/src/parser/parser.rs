@@ -712,11 +712,28 @@ impl<'a> Parser<'a> {
             vec![TokenKind::Identifier, TokenKind::LeftParenthesis],
         );
 
-        self.collect_comma_separated(&mut pipelines, vec![TokenKind::RightBrace], |parser| {
-            parser.parse_call()
-        });
+        self.collect_comma_separated(
+            &mut pipelines,
+            vec![
+                TokenKind::RightBrace,
+                TokenKind::TypeKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::QueryKeyword,
+            ],
+            |parser| parser.parse_call(),
+        );
 
-        self.expect(TokenKind::RightBrace, vec![TokenKind::Identifier]);
+        self.expect(
+            TokenKind::RightBrace,
+            vec![
+                TokenKind::TypeKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::QueryKeyword,
+                TokenKind::Identifier,
+            ],
+        );
 
         QueryNode {
             location: self.get_location(start),
@@ -781,13 +798,102 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
+    pub fn parse_action_statement(&mut self) -> Option<ActionStatement> {
+        let semicolon_breaks = vec![
+            TokenKind::RightBrace,
+            TokenKind::ValidateKeyword,
+            TokenKind::CreateKeyword,
+            TokenKind::UpdateKeyword,
+            TokenKind::DeleteKeyword,
+            TokenKind::TypeKeyword,
+            TokenKind::ActionKeyword,
+            TokenKind::PermissionKeyword,
+            TokenKind::QueryKeyword,
+        ];
+
+        match self.find_first_of(
+            &vec![TokenKind::ValidateKeyword, TokenKind::CreateKeyword],
+            vec![
+                TokenKind::RightBrace,
+                TokenKind::TypeKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::QueryKeyword,
+            ],
+        ) {
+            Some(TokenKind::ValidateKeyword) => {
+                let start = self.current_source_position();
+                self.advance(1);
+                let value = self.parse_call();
+                self.expect(TokenKind::Semicolon, semicolon_breaks);
+
+                Some(ActionStatement::Validate(ValidateStatementNode {
+                    location: self.get_location(start),
+                    value,
+                }))
+            }
+            Some(TokenKind::CreateKeyword) => {
+                let start = self.current_source_position();
+                self.advance(1);
+                let base = self.parse_identifier(vec![
+                    TokenKind::LeftBrace,
+                    TokenKind::ValidateKeyword,
+                    TokenKind::CreateKeyword,
+                    TokenKind::UpdateKeyword,
+                    TokenKind::DeleteKeyword,
+                    TokenKind::TypeKeyword,
+                    TokenKind::ActionKeyword,
+                    TokenKind::PermissionKeyword,
+                    TokenKind::QueryKeyword,
+                ]);
+                self.expect(TokenKind::Semicolon, semicolon_breaks);
+
+                Some(ActionStatement::Create(CreateStatementNode {
+                    location: self.get_location(start),
+                    base,
+                    binding: None,
+                }))
+            }
+            _ => None,
+        }
+    }
+
+    #[inline]
     pub fn parse_action_declaration(&mut self) -> Option<ActionDeclarationNode> {
         debug_assert!(self.current().unwrap().kind == TokenKind::ActionKeyword);
         let start = self.current_source_position();
         self.advance(1);
 
         let (name, parameters) = self.parse_with_parameter_header();
-        let statements: Vec<ActionStatement> = Vec::new();
+        let mut statements: Vec<ActionStatement> = Vec::new();
+
+        self.expect(
+            TokenKind::LeftBrace,
+            vec![TokenKind::Identifier, TokenKind::LeftParenthesis],
+        );
+
+        self.collect(
+            &mut statements,
+            vec![
+                TokenKind::RightBrace,
+                TokenKind::TypeKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::QueryKeyword,
+            ],
+            |parser| parser.parse_action_statement(),
+        );
+
+        self.expect(
+            TokenKind::RightBrace,
+            vec![
+                TokenKind::TypeKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::QueryKeyword,
+                TokenKind::Identifier,
+            ],
+        );
 
         Some(ActionDeclarationNode {
             location: self.get_location(start),

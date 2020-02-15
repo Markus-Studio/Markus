@@ -116,15 +116,28 @@ pub enum BindingValueNode {
     Float(FloatLiteralNode),
     Boolean(BooleanLiteralNode),
     Call(CallNode),
-    Create(Option<IdentifierNode>, Option<PropertyBindingNode>),
+    Create(CreateStatementNode),
 }
 
 #[derive(Debug, PartialEq)]
 pub enum ActionStatement {
-    Validate(QueryNode),
-    Create(Option<IdentifierNode>, Option<PropertyBindingNode>),
-    Update(Option<ActionValueReference>, Option<PropertyBindingNode>),
-    Delete(Option<ActionValueReference>),
+    Validate(ValidateStatementNode),
+    Create(CreateStatementNode),
+    // Update(Span, Option<ActionValueReference>, Option<PropertyBindingNode>),
+    // Delete(Span, Option<ActionValueReference>),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ValidateStatementNode {
+    pub location: Span,
+    pub value: Option<CallNode>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct CreateStatementNode {
+    pub location: Span,
+    pub base: Option<IdentifierNode>,
+    pub binding: Option<PropertyBindingNode>,
 }
 
 #[derive(Debug, PartialEq)]
