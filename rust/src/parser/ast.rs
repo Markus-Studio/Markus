@@ -6,6 +6,7 @@ use std::rc::Rc;
 pub enum Declaration {
     Query(Rc<QueryDeclarationNode>),
     Type(Rc<TypeDeclarationNode>),
+    Action(Rc<ActionDeclarationNode>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -85,6 +86,52 @@ pub struct AccessNode {
 pub struct TypeReferenceNode {
     pub location: Span,
     pub name: IdentifierNode,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ActionDeclarationNode {
+    pub location: Span,
+    pub name: Option<IdentifierNode>,
+    pub parameters: Vec<ParameterNode>,
+    pub statements: Vec<ActionStatement>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct PropertyBindingNode {
+    pub location: Span,
+    pub bindings: Vec<FieldBindingNode>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct FieldBindingNode {
+    pub location: Span,
+    pub uri: Vec<IdentifierNode>,
+    pub value: Option<BindingValueNode>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum BindingValueNode {
+    Access(AccessNode),
+    Int(IntLiteralNode),
+    Float(FloatLiteralNode),
+    Boolean(BooleanLiteralNode),
+    Call(CallNode),
+    Create(Option<IdentifierNode>, Option<PropertyBindingNode>),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ActionStatement {
+    Validate(QueryNode),
+    Create(Option<IdentifierNode>, Option<PropertyBindingNode>),
+    Update(Option<ActionValueReference>, Option<PropertyBindingNode>),
+    Delete(Option<ActionValueReference>),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ActionValueReference {
+    Query(QueryNode),
+    Internal(IdentifierNode),
+    Variable(IdentifierNode),
 }
 
 #[derive(Debug, PartialEq)]

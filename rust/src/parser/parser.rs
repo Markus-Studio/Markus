@@ -775,13 +775,22 @@ impl<'a> Parser<'a> {
         })
     }
 
+    #[inline]
+    pub fn parse_action_declaration(&mut self) -> Option<ActionDeclarationNode> {
+        None
+    }
+
     pub fn parse_declaration(&mut self) -> Option<Declaration> {
         if self.tokenizer.is_eof() {
             return None;
         }
 
         match self.find_first_of(
-            &vec![TokenKind::QueryKeyword, TokenKind::TypeKeyword],
+            &vec![
+                TokenKind::QueryKeyword,
+                TokenKind::TypeKeyword,
+                TokenKind::ActionKeyword,
+            ],
             vec![],
         ) {
             Some(TokenKind::TypeKeyword) => match self.parse_type_declaration() {
@@ -790,6 +799,10 @@ impl<'a> Parser<'a> {
             },
             Some(TokenKind::QueryKeyword) => match self.parse_query_declaration() {
                 Some(declaration) => Some(Declaration::Query(Rc::new(declaration))),
+                _ => None,
+            },
+            Some(TokenKind::ActionKeyword) => match self.parse_action_declaration() {
+                Some(declaration) => Some(Declaration::Action(Rc::new(declaration))),
                 _ => None,
             },
             _ => None,
