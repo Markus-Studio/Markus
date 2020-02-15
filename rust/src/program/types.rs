@@ -505,6 +505,62 @@ impl MarkusType {
             type_info: MarkusTypeInfo::Union { members: members },
         }
     }
+
+    /// Queries the given URI on the current type, returns `None` if
+    /// the field did not existed on the current object.
+    pub fn query(&self, space: &TypeSpace, uri: &[&str]) -> Option<MarkusType> {
+        match &self.type_info {
+            MarkusTypeInfo::Atomic { .. } => None,
+            MarkusTypeInfo::OneOf { .. } => {
+                // TODO(qti3e).
+                panic!("Type query for `OneOf` is not implemented.")
+            }
+            MarkusTypeInfo::BuiltInObject { .. } | MarkusTypeInfo::Object { .. } => {
+                self.object_query(space, uri)
+            }
+            MarkusTypeInfo::Union { members } => {
+                if members.len() == 0 {
+                    return None;
+                }
+
+                let mut dimension = std::u32::MAX;
+                let mut new_members: HashSet<TypeId> = HashSet::new();
+                for member in members {
+                    match space.resolve_type_by_id(*member).unwrap().query(space, uri) {
+                        Some(data_type) => {
+                            if dimension == std::u32::MAX {
+                                dimension = data_type.dimension;
+                            } else if dimension != data_type.dimension {
+                                return None;
+                            }
+
+                            match &data_type.type_info {
+                                MarkusTypeInfo::Atomic { id, .. }
+                                | MarkusTypeInfo::BuiltInObject { id, .. }
+                                | MarkusTypeInfo::Object { id, .. } => {
+                                    new_members.insert(*id);
+                                }
+                                MarkusTypeInfo::Union { members: u_members } => {
+                                    new_members.extend(u_members.iter());
+                                }
+                                _ => {}
+                            }
+                        }
+                        None => {
+                            return None;
+                        }
+                    }
+                }
+
+                Some(MarkusType {
+                    dimension: dimension,
+                    type_info: MarkusTypeInfo::Union {
+                        members: new_members,
+                    },
+                })
+            }
+        }
+    }
 }
 
 impl MarkusType {
@@ -620,6 +676,20 @@ impl MarkusType {
             _ => match self.object_query_field(space, uri[0]) {
                 Some(field_type) => field_type.object_has(space, &uri[1..]),
                 None => false,
+            },
+        }
+    }
+
+    /// Returns the given field on the current object.
+    /// # Panics
+    /// If the current type is not an object.
+    pub fn object_query(&self, space: &TypeSpace, uri: &[&str]) -> Option<MarkusType> {
+        match uri.len() {
+            0 => Some(self.clone()),
+            1 => self.object_query_field(space, uri[0]),
+            _ => match self.object_query_field(space, uri[0]) {
+                Some(field_type) => field_type.object_query(space, &uri[1..]),
+                None => None,
             },
         }
     }

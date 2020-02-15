@@ -73,7 +73,8 @@ impl VariableReferenceNode {
                 if let Some(variable_type) = ctx.variables.get(&id.value) {
                     variable_type.clone()
                 } else {
-                    MarkusType::new_union(Vec::new())
+                    diagnostics.push(Diagnostic::unresolved_name(&id));
+                    MarkusType::new_union(Vec::with_capacity(0))
                 }
             }
         }
@@ -98,8 +99,15 @@ impl ValueNode {
             ValueNode::Float(_) => ctx.space.resolve_type("%float").unwrap().clone(),
             ValueNode::Boolean(_) => ctx.space.resolve_type("bool").unwrap().clone(),
             ValueNode::Access(access) => {
+                let uri: Vec<&str> = access.parts.iter().map(|p| &*p.value).collect();
                 let base_type = access.base.get_type(diagnostics, ctx);
-                base_type
+                match base_type.query(ctx.space, &uri) {
+                    Some(data_type) => data_type,
+                    _ => {
+                        // TODO(qti3e) Report an error.
+                        MarkusType::new_union(Vec::with_capacity(0))
+                    }
+                }
             }
             _ => panic!("Not implemented."),
         }
@@ -235,7 +243,7 @@ impl QueryDeclarationNode {
                         diagnostics.push(Diagnostic::name_already_in_use(&parameter_name));
                     }
                 }
-                (None, _) | (None, None) => {}
+                (None, _) => {}
                 (Some(parameter_name), Some(type_name)) => {
                     let name = String::from(&parameter_name.value);
 

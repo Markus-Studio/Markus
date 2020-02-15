@@ -29,5 +29,5 @@ type SellRecord {
 query hey($x: Product) {
     or(is(Product), is(Sell)),
     is(Product),
-    eq(98, $x)
+    eq(98, $x.price)
 }
