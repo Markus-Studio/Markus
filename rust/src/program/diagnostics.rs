@@ -16,6 +16,7 @@ pub enum DiagnosticKind {
     ReachedNIL,
     ExpectedArgumentPipeline,
     ExpectedArgumentType,
+    ExpectedArgumentField,
     UnexpectedArgument,
     NoMatchingSignature,
     FieldNotFound(String, Vec<String>),
@@ -123,6 +124,14 @@ impl Diagnostic {
     }
 
     #[inline]
+    pub fn expected_argument_field(node: &ValueNode) -> Diagnostic {
+        Diagnostic {
+            location: node.get_location(),
+            kind: DiagnosticKind::ExpectedArgumentField,
+        }
+    }
+
+    #[inline]
     pub fn no_matching_signature(name: &IdentifierNode) -> Diagnostic {
         Diagnostic {
             location: name.location,
@@ -145,7 +154,7 @@ impl Diagnostic {
             .map(|s| String::from(*s))
             .collect::<Vec<String>>();
         Diagnostic {
-            location: location,
+            location,
             kind: DiagnosticKind::FieldNotFound(type_str, uri_str),
         }
     }
@@ -153,7 +162,7 @@ impl Diagnostic {
     #[inline]
     pub fn mismatched_types(type_str1: String, type_str2: String, location: Span) -> Diagnostic {
         Diagnostic {
-            location: location,
+            location,
             kind: DiagnosticKind::MismatchedTypes(type_str1, type_str2),
         }
     }

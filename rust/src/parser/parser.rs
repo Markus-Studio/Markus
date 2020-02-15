@@ -23,7 +23,7 @@ impl<'a> Parser<'a> {
     pub fn new(data: &'a Vec<u16>, position: usize) -> Parser<'a> {
         Parser {
             tokenizer: Tokenizer::new(data, position),
-            data: data,
+            data,
             tokens: vec![],
             current_token_index: 0,
             state_stack: vec![(0, 0)],
@@ -363,9 +363,9 @@ impl<'a> Parser<'a> {
 
         Some(TypeFieldNode {
             location: self.get_location(start),
-            nullable: nullable,
-            name: name,
-            type_name: type_name,
+            nullable,
+            name,
+            type_name,
         })
     }
 
@@ -408,9 +408,9 @@ impl<'a> Parser<'a> {
 
         Some(TypeDeclarationNode {
             location: self.get_location(start),
-            name: name,
-            bases: bases,
-            fields: fields,
+            name,
+            bases,
+            fields,
         })
     }
 
@@ -447,8 +447,8 @@ impl<'a> Parser<'a> {
 
         Some(ParameterNode {
             location: self.get_location(start),
-            name: name,
-            type_name: type_name,
+            name,
+            type_name,
         })
     }
 
@@ -563,8 +563,8 @@ impl<'a> Parser<'a> {
 
         AccessNode {
             location: self.get_location(start),
-            base: base,
-            parts: parts,
+            base,
+            parts,
         }
     }
 
@@ -698,7 +698,7 @@ impl<'a> Parser<'a> {
         Some(CallNode {
             location: self.get_location(start),
             callee_name: name,
-            arguments: arguments,
+            arguments,
         })
     }
 
@@ -720,19 +720,12 @@ impl<'a> Parser<'a> {
 
         QueryNode {
             location: self.get_location(start),
-            pipelines: pipelines,
+            pipelines,
         }
     }
 
-    /// Parse a query declaration assuming that the `query` token is already
-    /// seen but not consumed.
     #[inline]
-    fn parse_query_declaration(&mut self) -> Option<QueryDeclarationNode> {
-        debug_assert!(self.current().unwrap().kind == TokenKind::QueryKeyword);
-
-        let start = self.current_source_position();
-        self.advance(1);
-
+    fn parse_with_parameter_header(&mut self) -> (Option<IdentifierNode>, Vec<ParameterNode>) {
         let name = self.parse_identifier(vec![TokenKind::LeftParenthesis, TokenKind::LeftBrace]);
         let mut parameters: Vec<ParameterNode> = vec![];
 
@@ -765,19 +758,43 @@ impl<'a> Parser<'a> {
             ],
         );
 
+        (name, parameters)
+    }
+
+    /// Parse a query declaration assuming that the `query` token is already
+    /// seen but not consumed.
+    #[inline]
+    fn parse_query_declaration(&mut self) -> Option<QueryDeclarationNode> {
+        debug_assert!(self.current().unwrap().kind == TokenKind::QueryKeyword);
+        let start = self.current_source_position();
+        self.advance(1);
+
+        let (name, parameters) = self.parse_with_parameter_header();
         let query = self.parse_query();
 
         Some(QueryDeclarationNode {
             location: self.get_location(start),
-            name: name,
-            parameter: parameters,
-            query: query,
+            name,
+            parameters,
+            query,
         })
     }
 
     #[inline]
     pub fn parse_action_declaration(&mut self) -> Option<ActionDeclarationNode> {
-        None
+        debug_assert!(self.current().unwrap().kind == TokenKind::ActionKeyword);
+        let start = self.current_source_position();
+        self.advance(1);
+
+        let (name, parameters) = self.parse_with_parameter_header();
+        let statements: Vec<ActionStatement> = Vec::new();
+
+        Some(ActionDeclarationNode {
+            location: self.get_location(start),
+            name,
+            parameters,
+            statements,
+        })
     }
 
     pub fn parse_declaration(&mut self) -> Option<Declaration> {

@@ -1,6 +1,6 @@
 type Product {
     name: string;
-    price: u32;
+    price: f32;
 }
 
 type City: geo {
@@ -27,8 +27,6 @@ type SellRecord {
 }
 
 query hey($x: Product) {
-    or(is(Product), is(Sell)),
     is(Product),
-    eq(54, $x.price),
-    lt($x.price, .price)
+    sum(.price)
 }

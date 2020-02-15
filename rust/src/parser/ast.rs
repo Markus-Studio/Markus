@@ -42,7 +42,7 @@ pub struct ParameterNode {
 pub struct QueryDeclarationNode {
     pub location: Span,
     pub name: Option<IdentifierNode>,
-    pub parameter: Vec<ParameterNode>,
+    pub parameters: Vec<ParameterNode>,
     pub query: QueryNode,
 }
 

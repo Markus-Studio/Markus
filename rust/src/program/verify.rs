@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use crate::parser::ast::{CallNode, IntLiteralNode, QueryDeclarationNode};
 use crate::parser::ast::{QueryNode, ValueNode, VariableReferenceNode};
+use crate::parser::Span;
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
 use std::collections::HashMap;
 
@@ -249,6 +250,36 @@ impl CallNode {
                 diagnostics.push(Diagnostic::no_matching_signature(name_id))
             }
 
+            ("sum", 0) => {
+                let value_type = ctx.get_current().clone();
+                sum_pipeline(
+                    diagnostics,
+                    ctx,
+                    &value_type,
+                    self.arguments[0].get_location(),
+                );
+            }
+            ("sum", 1) => match &self.arguments[0] {
+                ValueNode::Access(access_node) => match access_node.base {
+                    VariableReferenceNode::Current => {
+                        let field_type = self.arguments[0].get_type(diagnostics, ctx);
+                        sum_pipeline(
+                            diagnostics,
+                            ctx,
+                            &field_type,
+                            self.arguments[0].get_location(),
+                        );
+                    }
+                    _ => {
+                        diagnostics.push(Diagnostic::expected_argument_field(&self.arguments[0]));
+                    }
+                },
+                _ => {
+                    diagnostics.push(Diagnostic::expected_argument_field(&self.arguments[0]));
+                }
+            },
+            ("sum", _) => diagnostics.push(Diagnostic::no_matching_signature(name_id)),
+
             _ => diagnostics.push(Diagnostic::unresolved_name(name_id)),
         }
     }
@@ -282,7 +313,7 @@ impl QueryDeclarationNode {
             variables: HashMap::new(),
         };
 
-        for parameter in &self.parameter {
+        for parameter in &self.parameters {
             if None == parameter.name || None == parameter.type_name {
                 continue;
             }
@@ -312,4 +343,39 @@ impl QueryDeclarationNode {
 
         self.query.get_type(diagnostics, &mut context);
     }
+}
+
+#[inline(always)]
+fn sum_pipeline(
+    diagnostics: &mut Vec<Diagnostic>,
+    ctx: &mut QueryValidatorContext,
+    field_type: &MarkusType,
+    location: Span,
+) {
+    let unsigned_type = ctx.space.resolve_type("%unsigned-int").unwrap();
+    if field_type.is(ctx.space, unsigned_type) {
+        let u64_type = ctx.space.resolve_type("u64").unwrap();
+        ctx.set_current(u64_type.clone());
+        return;
+    }
+
+    let int_type = ctx.space.resolve_type("%int").unwrap();
+    if field_type.is(ctx.space, int_type) {
+        let i64_type = ctx.space.resolve_type("i64").unwrap();
+        ctx.set_current(i64_type.clone());
+        return;
+    }
+
+    let float_type = ctx.space.resolve_type("%float").unwrap();
+    if field_type.is(ctx.space, float_type) {
+        let f64_type = ctx.space.resolve_type("f64").unwrap();
+        ctx.set_current(f64_type.clone());
+        return;
+    }
+
+    diagnostics.push(Diagnostic::mismatched_types(
+        field_type.to_string(ctx.space),
+        String::from("numeric"),
+        location,
+    ))
 }
