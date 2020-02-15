@@ -36,6 +36,26 @@ pub enum TokenKind {
     Int,
     /// A float literal token.
     Float,
+    /// `query` keyword.
+    QueryKeyword,
+    /// `type` keyword.
+    TypeKeyword,
+    /// `action` keyword.
+    ActionKeyword,
+    /// `permission` keyword.
+    PermissionKeyword,
+    /// `validate` keyword.
+    ValidateKeyword,
+    /// `create` keyword.
+    CreateKeyword,
+    /// `update` keyword.
+    UpdateKeyword,
+    /// `delete` keyword.
+    DeleteKeyword,
+    /// `for` keyword.
+    ForKeyword,
+    /// `in` keyword.
+    InKeyword,
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -279,22 +299,28 @@ impl<'a> Tokenizer<'a> {
                 }
             }
             '0'..='9' | '+' | '-' => self.eat_numeric_token(),
-            't' => match self.eat_identifier() {
-                Some(4) if self.compare(Span::new(start, 4), "true") => {
-                    Some(Token::new(TokenKind::Boolean, start, 4))
-                }
-                Some(size) => Some(Token::new(TokenKind::Identifier, start, size)),
-                None => Some(Token::new(TokenKind::Unknown, start, 1)),
-            },
-            'f' => match self.eat_identifier() {
-                Some(5) if self.compare(Span::new(start, 5), "false") => {
-                    Some(Token::new(TokenKind::Boolean, start, 5))
-                }
-                Some(size) => Some(Token::new(TokenKind::Identifier, start, size)),
-                None => Some(Token::new(TokenKind::Unknown, start, 1)),
-            },
             c if is_identifier_start(c) => match self.eat_identifier() {
-                Some(size) => Some(Token::new(TokenKind::Identifier, start, size)),
+                Some(size) => {
+                    let word = String::from_utf16(&self.data[start..start + size]).unwrap();
+                    Some(Token::new(
+                        match word.as_str() {
+                            "true" | "false" => TokenKind::Boolean,
+                            "query" => TokenKind::QueryKeyword,
+                            "type" => TokenKind::TypeKeyword,
+                            "action" => TokenKind::ActionKeyword,
+                            "permission" => TokenKind::PermissionKeyword,
+                            "create" => TokenKind::CreateKeyword,
+                            "update" => TokenKind::UpdateKeyword,
+                            "delete" => TokenKind::DeleteKeyword,
+                            "validate" => TokenKind::ValidateKeyword,
+                            "for" => TokenKind::ForKeyword,
+                            "in" => TokenKind::InKeyword,
+                            _ => TokenKind::Identifier,
+                        },
+                        start,
+                        size,
+                    ))
+                }
                 None => Some(Token::new(TokenKind::Unknown, start, 1)),
             },
             _ => {
@@ -313,7 +339,7 @@ impl<'a> Iterator for Tokenizer<'a> {
     }
 }
 
-#[inline]
+#[inline(always)]
 fn is_identifier_start(c: char) -> bool {
     match c {
         'a'..='z' | 'A'..='Z' | '_' => true,
@@ -321,7 +347,7 @@ fn is_identifier_start(c: char) -> bool {
     }
 }
 
-#[inline]
+#[inline(always)]
 fn is_identifier_part(c: char) -> bool {
     match c {
         'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => true,
@@ -329,7 +355,7 @@ fn is_identifier_part(c: char) -> bool {
     }
 }
 
-#[inline]
+#[inline(always)]
 fn is_digit(c: char) -> bool {
     match c {
         '0'..='9' => true,

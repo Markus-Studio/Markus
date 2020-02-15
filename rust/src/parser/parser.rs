@@ -371,10 +371,7 @@ impl<'a> Parser<'a> {
 
     #[inline]
     fn parse_type_declaration(&mut self) -> Option<TypeDeclarationNode> {
-        debug_assert!(self
-            .current()
-            .unwrap()
-            .compare_identifier(self.data, "type"));
+        debug_assert!(self.current().unwrap().kind == TokenKind::TypeKeyword);
 
         let start = self.current_source_position();
         // Consume `type`.
@@ -731,10 +728,7 @@ impl<'a> Parser<'a> {
     /// seen but not consumed.
     #[inline]
     fn parse_query_declaration(&mut self) -> Option<QueryDeclarationNode> {
-        debug_assert!(self
-            .current()
-            .unwrap()
-            .compare_identifier(self.data, "query"));
+        debug_assert!(self.current().unwrap().kind == TokenKind::QueryKeyword);
 
         let start = self.current_source_position();
         self.advance(1);
@@ -782,19 +776,22 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse_declaration(&mut self) -> Option<Declaration> {
-        match self.current() {
-            Some(token) if token.compare_identifier(self.data, "type") => {
-                match self.parse_type_declaration() {
-                    Some(declaration) => Some(Declaration::Type(Rc::new(declaration))),
-                    _ => None,
-                }
-            }
-            Some(token) if token.compare_identifier(self.data, "query") => {
-                match self.parse_query_declaration() {
-                    Some(declaration) => Some(Declaration::Query(Rc::new(declaration))),
-                    _ => None,
-                }
-            }
+        if self.tokenizer.is_eof() {
+            return None;
+        }
+
+        match self.find_first_of(
+            &vec![TokenKind::QueryKeyword, TokenKind::TypeKeyword],
+            vec![],
+        ) {
+            Some(TokenKind::TypeKeyword) => match self.parse_type_declaration() {
+                Some(declaration) => Some(Declaration::Type(Rc::new(declaration))),
+                _ => None,
+            },
+            Some(TokenKind::QueryKeyword) => match self.parse_query_declaration() {
+                Some(declaration) => Some(Declaration::Query(Rc::new(declaration))),
+                _ => None,
+            },
             _ => None,
         }
     }
