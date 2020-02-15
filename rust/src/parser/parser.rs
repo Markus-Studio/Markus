@@ -973,6 +973,60 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
+    fn parse_action_base(&mut self) -> Option<ActionBase> {
+        let current = self.current();
+        match self.find_first_of(
+            &vec![
+                TokenKind::LeftBrace,
+                TokenKind::Parameter,
+                TokenKind::InternalVariable,
+            ],
+            vec![
+                TokenKind::Semicolon,
+                TokenKind::RightBrace,
+                TokenKind::ValidateKeyword,
+                TokenKind::CreateKeyword,
+                TokenKind::UpdateKeyword,
+                TokenKind::DeleteKeyword,
+            ],
+        ) {
+            Some(TokenKind::LeftBrace) => match self.lookahead(1) {
+                Some(token) => match token.kind {
+                    TokenKind::Identifier => match self.lookahead(2) {
+                        Some(l2) => match l2.kind {
+                            TokenKind::Dot | TokenKind::Colon => {
+                                self.report(Diagnostic::expected_action_base(current.unwrap()));
+                                None
+                            }
+                            _ => Some(ActionBase::Query(self.parse_query())),
+                        },
+                        None => Some(ActionBase::Query(self.parse_query())),
+                    },
+                    TokenKind::RightBrace | TokenKind::LeftParenthesis => {
+                        Some(ActionBase::Query(self.parse_query()))
+                    }
+                    _ => {
+                        self.report(Diagnostic::expected_action_base(current.unwrap()));
+                        None
+                    }
+                },
+                None => {
+                    self.report(Diagnostic::expected_action_base(current.unwrap()));
+                    None
+                }
+            },
+            Some(TokenKind::Parameter) => Some(ActionBase::Variable(
+                self.parse_identifier_from_parameter(vec![]).unwrap(),
+            )),
+            Some(TokenKind::InternalVariable) => Some(ActionBase::Variable(
+                self.parse_identifier_from_internal_variable(vec![])
+                    .unwrap(),
+            )),
+            _ => None,
+        }
+    }
+
+    #[inline]
     fn parse_action_statement(&mut self) -> Option<ActionStatement> {
         let semicolon_breaks = vec![
             TokenKind::RightBrace,
@@ -987,7 +1041,12 @@ impl<'a> Parser<'a> {
         ];
 
         match self.find_first_of(
-            &vec![TokenKind::ValidateKeyword, TokenKind::CreateKeyword],
+            &vec![
+                TokenKind::ValidateKeyword,
+                TokenKind::CreateKeyword,
+                TokenKind::UpdateKeyword,
+                TokenKind::DeleteKeyword,
+            ],
             vec![
                 TokenKind::RightBrace,
                 TokenKind::TypeKeyword,
@@ -1001,9 +1060,7 @@ impl<'a> Parser<'a> {
                 self.advance(1);
                 let value = self.parse_call();
                 let location = self.get_location(start);
-
                 self.expect(TokenKind::Semicolon, semicolon_breaks);
-
                 Some(ActionStatement::Validate(ValidateStatementNode {
                     location,
                     value,
@@ -1013,6 +1070,30 @@ impl<'a> Parser<'a> {
                 let stmt = self.parse_create_statement();
                 self.expect(TokenKind::Semicolon, semicolon_breaks);
                 Some(ActionStatement::Create(stmt))
+            }
+            Some(TokenKind::UpdateKeyword) => {
+                let start = self.current_source_position();
+                self.advance(1);
+                let base = self.parse_action_base();
+                let updates = self.parse_object_binding();
+                let location = self.get_location(start);
+                self.expect(TokenKind::Semicolon, semicolon_breaks);
+                Some(ActionStatement::Update(UpdateStatementNode {
+                    location,
+                    base,
+                    updates,
+                }))
+            }
+            Some(TokenKind::DeleteKeyword) => {
+                let start = self.current_source_position();
+                self.advance(1);
+                let base = self.parse_action_base();
+                let location = self.get_location(start);
+                self.expect(TokenKind::Semicolon, semicolon_breaks);
+                Some(ActionStatement::Delete(DeleteStatementNode {
+                    location,
+                    base,
+                }))
             }
             _ => None,
         }

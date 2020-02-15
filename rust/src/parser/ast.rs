@@ -123,8 +123,8 @@ pub enum BindingValueNode {
 pub enum ActionStatement {
     Validate(ValidateStatementNode),
     Create(CreateStatementNode),
-    // Update(Span, Option<ActionValueReference>, Option<PropertyBindingNode>),
-    // Delete(Span, Option<ActionValueReference>),
+    Update(UpdateStatementNode),
+    Delete(DeleteStatementNode),
 }
 
 #[derive(Debug, PartialEq)]
@@ -141,7 +141,20 @@ pub struct CreateStatementNode {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum ActionValueReference {
+pub struct UpdateStatementNode {
+    pub location: Span,
+    pub base: Option<ActionBase>,
+    pub updates: Option<ObjectBindingNode>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct DeleteStatementNode {
+    pub location: Span,
+    pub base: Option<ActionBase>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ActionBase {
     Query(QueryNode),
     Internal(IdentifierNode),
     Variable(IdentifierNode),

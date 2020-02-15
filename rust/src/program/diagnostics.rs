@@ -12,6 +12,7 @@ pub enum DiagnosticKind {
     UnresolvedName(String),
     NameAlreadyInUse(String),
     BaseNotObject(String),
+    ExpectedActionBase,
     CircularReference,
     ReachedNIL,
     ExpectedArgumentPipeline,
@@ -61,6 +62,14 @@ impl Diagnostic {
         Diagnostic {
             location: current.position,
             kind: DiagnosticKind::ExpectedOneOf(expected.to_vec()),
+        }
+    }
+
+    #[inline]
+    pub fn expected_action_base(current: Token) -> Diagnostic {
+        Diagnostic {
+            location: current.position,
+            kind: DiagnosticKind::ExpectedActionBase,
         }
     }
 
