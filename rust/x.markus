@@ -4,5 +4,5 @@ type Product {
 }
 
 query X($p?: Product) {
-    eq(.name, $p.name)
+    eq(.name, "X")
 }

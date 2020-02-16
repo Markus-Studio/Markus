@@ -32,6 +32,11 @@ pub struct BooleanLiteralNode {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct StringLiteralNode {
+    pub location: Span,
+}
+
+#[derive(Debug, PartialEq)]
 pub struct ParameterNode {
     pub location: Span,
     pub optional: bool,
@@ -116,7 +121,9 @@ pub enum BindingValueNode {
     Int(IntLiteralNode),
     Float(FloatLiteralNode),
     Boolean(BooleanLiteralNode),
-    Call(CallNode), // TODO(qti3e) Currently this `call` can contain `query`.
+    String(StringLiteralNode),
+    // TODO(qti3e) Currently this `call` can contain `query` which is not allowed.
+    Call(CallNode),
     Create(CreateStatementNode),
 }
 
@@ -167,6 +174,7 @@ pub enum ValueNode {
     Int(IntLiteralNode),
     Float(FloatLiteralNode),
     Boolean(BooleanLiteralNode),
+    String(StringLiteralNode),
     Call(CallNode),
     Type(TypeReferenceNode),
     Query(QueryNode),
@@ -196,6 +204,7 @@ impl ValueNode {
         match self {
             ValueNode::Access(value) => value.location,
             ValueNode::Boolean(value) => value.location,
+            ValueNode::String(value) => value.location,
             ValueNode::Call(value) => value.location,
             ValueNode::Float(value) => value.location,
             ValueNode::Int(value) => value.location,

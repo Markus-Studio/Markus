@@ -36,6 +36,8 @@ pub enum TokenKind {
     Int,
     /// A float literal token.
     Float,
+    // An string literal token.
+    String,
     /// `query` keyword.
     QueryKeyword,
     /// `type` keyword.
@@ -243,6 +245,34 @@ impl<'a> Tokenizer<'a> {
                     }
                 }
                 self.read_next_token()
+            }
+            '"' => {
+                // String literal.
+                self.advance(1);
+                let mut escaped = false;
+                loop {
+                    match self.char() {
+                        Some('\\') => {
+                            escaped = !escaped;
+                            self.advance(1);
+                        }
+                        Some('"') if !escaped => {
+                            self.advance(1);
+                            break;
+                        }
+                        Some('\n') | None => {
+                            self.position = start;
+                            self.advance(1);
+                            return Some(Token::new(TokenKind::Unknown, start, 1));
+                        }
+                        Some(_) => {
+                            escaped = false;
+                            self.advance(1);
+                        }
+                    }
+                }
+
+                Some(Token::new(TokenKind::String, start, self.position - start))
             }
             '(' => {
                 self.advance(1);
