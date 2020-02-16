@@ -38,6 +38,8 @@ pub enum TokenKind {
     Float,
     // An string literal token.
     String,
+    // `null` literal, it can't be referenced as a type.
+    Null,
     /// `query` keyword.
     QueryKeyword,
     /// `type` keyword.
@@ -345,6 +347,7 @@ impl<'a> Tokenizer<'a> {
                             "validate" => TokenKind::ValidateKeyword,
                             "for" => TokenKind::ForKeyword,
                             "in" => TokenKind::InKeyword,
+                            "null" => TokenKind::Null,
                             _ => TokenKind::Identifier,
                         },
                         start,

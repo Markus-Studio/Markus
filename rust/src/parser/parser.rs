@@ -501,6 +501,16 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
+    fn consume_null_literal(&mut self) -> NullLiteralNode {
+        let token = self.current().unwrap();
+        debug_assert_eq!(token.kind, TokenKind::Null);
+        self.advance(1);
+        NullLiteralNode {
+            location: token.position,
+        }
+    }
+
+    #[inline]
     fn consume_string_literal(&mut self) -> StringLiteralNode {
         let token = self.current().unwrap();
         debug_assert_eq!(token.kind, TokenKind::String);
@@ -542,6 +552,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Parameter,
                 TokenKind::InternalVariable,
                 TokenKind::Boolean,
+                TokenKind::Null,
                 TokenKind::String,
                 TokenKind::Int,
                 TokenKind::Float,
@@ -569,6 +580,7 @@ impl<'a> Parser<'a> {
                     TokenKind::Parameter,
                     TokenKind::InternalVariable,
                     TokenKind::Boolean,
+                    TokenKind::Null,
                     TokenKind::String,
                     TokenKind::Int,
                     TokenKind::Float,
@@ -581,6 +593,7 @@ impl<'a> Parser<'a> {
                         TokenKind::Parameter,
                         TokenKind::InternalVariable,
                         TokenKind::Boolean,
+                        TokenKind::Null,
                         TokenKind::String,
                         TokenKind::Int,
                         TokenKind::Float,
@@ -648,6 +661,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Parameter,
                 TokenKind::InternalVariable,
                 TokenKind::Boolean,
+                TokenKind::Null,
                 TokenKind::String,
                 TokenKind::Int,
                 TokenKind::Float,
@@ -662,6 +676,7 @@ impl<'a> Parser<'a> {
             Some(TokenKind::Int) => Some(ValueNode::Int(self.consume_int_literal())),
             Some(TokenKind::Float) => Some(ValueNode::Float(self.consume_float_literal())),
             Some(TokenKind::Boolean) => Some(ValueNode::Boolean(self.consume_boolean_literal())),
+            Some(TokenKind::Null) => Some(ValueNode::Null(self.consume_null_literal())),
             Some(TokenKind::String) => Some(ValueNode::String(self.consume_string_literal())),
             Some(TokenKind::Dot)
             | Some(TokenKind::Parameter)
@@ -866,6 +881,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Parameter,
                 TokenKind::InternalVariable,
                 TokenKind::Boolean,
+                TokenKind::Null,
                 TokenKind::String,
                 TokenKind::Int,
                 TokenKind::Float,
@@ -880,6 +896,7 @@ impl<'a> Parser<'a> {
         ) {
             Some(TokenKind::Int) => Some(BindingValueNode::Int(self.consume_int_literal())),
             Some(TokenKind::Float) => Some(BindingValueNode::Float(self.consume_float_literal())),
+            Some(TokenKind::Null) => Some(BindingValueNode::Null(self.consume_null_literal())),
             Some(TokenKind::Boolean) => {
                 Some(BindingValueNode::Boolean(self.consume_boolean_literal()))
             }
@@ -914,6 +931,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Parameter,
                 TokenKind::InternalVariable,
                 TokenKind::Boolean,
+                TokenKind::Null,
                 TokenKind::String,
                 TokenKind::Int,
                 TokenKind::Float,
@@ -931,6 +949,7 @@ impl<'a> Parser<'a> {
                     TokenKind::Parameter,
                     TokenKind::InternalVariable,
                     TokenKind::Boolean,
+                    TokenKind::Null,
                     TokenKind::String,
                     TokenKind::Int,
                     TokenKind::Float,

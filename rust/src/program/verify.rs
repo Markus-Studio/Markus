@@ -99,6 +99,7 @@ impl ValueNode {
             }
             ValueNode::Float(_) => ctx.space.resolve_type("%float").unwrap().clone(),
             ValueNode::Boolean(_) => ctx.space.resolve_type("bool").unwrap().clone(),
+            ValueNode::Null(_) => ctx.space.resolve_type("null").unwrap().clone(),
             ValueNode::String(_) => ctx.space.resolve_type("string").unwrap().clone(),
             ValueNode::Access(access) => {
                 let uri: Vec<&str> = access.parts.iter().map(|p| &*p.value).collect();
