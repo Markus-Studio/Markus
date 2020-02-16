@@ -1158,6 +1158,23 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
+    fn parse_permission_declaration(&mut self) -> Option<PermissionDeclarationNode> {
+        debug_assert!(self.current().unwrap().kind == TokenKind::PermissionKeyword);
+        let start = self.current_source_position();
+        self.advance(1);
+
+        let (name, parameters) = self.parse_with_parameter_header();
+        let query = self.parse_query();
+
+        Some(PermissionDeclarationNode {
+            location: self.get_location(start),
+            name,
+            parameters,
+            query,
+        })
+    }
+
+    #[inline]
     fn parse_action_declaration(&mut self) -> Option<ActionDeclarationNode> {
         debug_assert!(self.current().unwrap().kind == TokenKind::ActionKeyword);
         let start = self.current_source_position();
@@ -1212,6 +1229,7 @@ impl<'a> Parser<'a> {
                 TokenKind::QueryKeyword,
                 TokenKind::TypeKeyword,
                 TokenKind::ActionKeyword,
+                TokenKind::PermissionKeyword,
             ],
             vec![],
         ) {
@@ -1225,6 +1243,10 @@ impl<'a> Parser<'a> {
             },
             Some(TokenKind::ActionKeyword) => match self.parse_action_declaration() {
                 Some(declaration) => Some(Declaration::Action(Rc::new(declaration))),
+                _ => None,
+            },
+            Some(TokenKind::PermissionKeyword) => match self.parse_permission_declaration() {
+                Some(declaration) => Some(Declaration::Permission(Rc::new(declaration))),
                 _ => None,
             },
             _ => None,

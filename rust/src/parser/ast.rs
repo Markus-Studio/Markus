@@ -7,6 +7,7 @@ pub enum Declaration {
     Query(Rc<QueryDeclarationNode>),
     Type(Rc<TypeDeclarationNode>),
     Action(Rc<ActionDeclarationNode>),
+    Permission(Rc<PermissionDeclarationNode>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -172,6 +173,14 @@ pub enum ActionBase {
     Query(QueryNode),
     Internal(IdentifierNode),
     Variable(IdentifierNode),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct PermissionDeclarationNode {
+    pub location: Span,
+    pub name: Option<IdentifierNode>,
+    pub parameters: Vec<ParameterNode>,
+    pub query: QueryNode,
 }
 
 #[derive(Debug, PartialEq)]
