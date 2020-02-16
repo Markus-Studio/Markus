@@ -235,10 +235,7 @@ impl TextEdit {
     /// the given text.
     pub fn replace(start: Position, end: Position, text: String) -> TextEdit {
         TextEdit {
-            range: Range {
-                start: start,
-                end: end,
-            },
+            range: Range { start, end },
             new_text: text,
         }
     }
@@ -303,7 +300,7 @@ impl TextEditResult {
     pub fn new(start: usize, end: usize, delta: i32) -> TextEditResult {
         TextEditResult {
             range: Span::from_positions(start, end),
-            delta: delta,
+            delta,
         }
     }
 }

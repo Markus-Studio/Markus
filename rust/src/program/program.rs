@@ -17,7 +17,7 @@ impl Program {
     /// parse the data, you should call .parse() after the construction.
     pub fn new(source: Source) -> Program {
         Program {
-            source: source,
+            source,
             declarations: vec![],
             diagnostics: vec![],
             type_space: TypeSpace::new_with_builtins(),

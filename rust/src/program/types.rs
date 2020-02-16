@@ -132,7 +132,7 @@ impl TypeSpace {
         let markus_type = MarkusType {
             dimension: 0,
             type_info: MarkusTypeInfo::OneOf {
-                id: id,
+                id,
                 cases: cases.into_iter().collect(),
             },
         };
@@ -179,16 +179,13 @@ impl TypeSpace {
     }
 
     /// Adds the given type to this type space.
-    pub fn add_type(&mut self, ast_node: Rc<TypeDeclarationNode>) {
-        if let Some(name_identifier) = &ast_node.name {
+    pub fn add_type(&mut self, ast: Rc<TypeDeclarationNode>) {
+        if let Some(name_identifier) = &ast.name {
             let name = &name_identifier.value;
             let id = self.get_type_id_or_create(name);
             let markus_type = MarkusType {
                 dimension: 0,
-                type_info: MarkusTypeInfo::Object {
-                    id: id,
-                    ast: ast_node,
-                },
+                type_info: MarkusTypeInfo::Object { id, ast },
             };
             self.define_type(id, markus_type)
         }

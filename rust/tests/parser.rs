@@ -467,6 +467,7 @@ fn ast_query_declaration_01() {
         vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 12),
             name: Some(IdentifierNode::new(6, "X")),
+            guards: vec![],
             parameters: vec![],
             query: QueryNode {
                 location: Span::new(10, 2),
@@ -487,6 +488,7 @@ fn ast_query_declaration_02() {
         vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 24),
             name: Some(IdentifierNode::new(6, "X")),
+            guards: vec![],
             parameters: vec![
                 ParameterNode {
                     location: Span::new(8, 5),
@@ -520,6 +522,7 @@ fn ast_query_declaration_03() {
         vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 15),
             name: Some(IdentifierNode::new(6, "X")),
+            guards: vec![],
             parameters: vec![],
             query: QueryNode {
                 location: Span::new(10, 5),

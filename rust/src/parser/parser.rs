@@ -791,7 +791,14 @@ impl<'a> Parser<'a> {
 
     #[inline]
     fn parse_with_parameter_header(&mut self) -> (Option<IdentifierNode>, Vec<ParameterNode>) {
-        let name = self.parse_identifier(vec![TokenKind::LeftParenthesis, TokenKind::LeftBrace]);
+        let name = self.parse_identifier(vec![
+            TokenKind::LeftParenthesis,
+            TokenKind::LeftBrace,
+            TokenKind::Parameter,
+            TokenKind::Question,
+            TokenKind::Colon,
+            TokenKind::AllowKeyword,
+        ]);
         let mut parameters: Vec<ParameterNode> = vec![];
 
         self.expect(
@@ -804,12 +811,17 @@ impl<'a> Parser<'a> {
                 TokenKind::RightParenthesis,
                 TokenKind::LeftBrace,
                 TokenKind::RightBrace,
+                TokenKind::AllowKeyword,
             ],
         );
 
         self.collect_comma_separated(
             &mut parameters,
-            vec![TokenKind::LeftBrace, TokenKind::RightParenthesis],
+            vec![
+                TokenKind::LeftBrace,
+                TokenKind::RightParenthesis,
+                TokenKind::AllowKeyword,
+            ],
             |parser| Some(parser.parse_parameter()),
         );
 
@@ -820,6 +832,7 @@ impl<'a> Parser<'a> {
                 TokenKind::RightBrace,
                 TokenKind::Identifier,
                 TokenKind::LeftParenthesis,
+                TokenKind::AllowKeyword,
             ],
         );
 
@@ -835,11 +848,24 @@ impl<'a> Parser<'a> {
         self.advance(1);
 
         let (name, parameters) = self.parse_with_parameter_header();
+        let mut guards: Vec<GuardNode> = Vec::new();
+        self.collect(
+            &mut guards,
+            vec![
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+                TokenKind::Identifier,
+                TokenKind::LeftParenthesis,
+            ],
+            |parser| parser.parse_guard(),
+        );
+
         let query = self.parse_query();
 
         QueryDeclarationNode {
             location: self.get_location(start),
             name,
+            guards,
             parameters,
             query,
         }
@@ -1196,7 +1222,19 @@ impl<'a> Parser<'a> {
         self.advance(1);
 
         let (name, parameters) = self.parse_with_parameter_header();
+        let mut guards: Vec<GuardNode> = Vec::new();
         let mut statements: Vec<ActionStatement> = Vec::new();
+
+        self.collect(
+            &mut guards,
+            vec![
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+                TokenKind::Identifier,
+                TokenKind::LeftParenthesis,
+            ],
+            |parser| parser.parse_guard(),
+        );
 
         self.expect(
             TokenKind::LeftBrace,
@@ -1229,9 +1267,49 @@ impl<'a> Parser<'a> {
         ActionDeclarationNode {
             location: self.get_location(start),
             name,
+            guards,
             parameters,
             statements,
         }
+    }
+
+    fn parse_guard(&mut self) -> Option<GuardNode> {
+        let start = self.current_source_position();
+
+        match self.expect_optional(
+            TokenKind::AllowKeyword,
+            vec![
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+                TokenKind::TypeKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::QueryKeyword,
+            ],
+        ) {
+            Some(_) => {}
+            None => return None,
+        }
+
+        let call = match self.find_first_of(
+            &vec![TokenKind::Identifier, TokenKind::LeftParenthesis],
+            vec![
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+                TokenKind::TypeKeyword,
+                TokenKind::PermissionKeyword,
+                TokenKind::ActionKeyword,
+                TokenKind::QueryKeyword,
+            ],
+        ) {
+            Some(_) => Some(self.parse_call()),
+            _ => None,
+        };
+
+        Some(GuardNode {
+            location: self.get_location(start),
+            call,
+        })
     }
 
     pub fn parse_declaration(&mut self) -> Option<Declaration> {

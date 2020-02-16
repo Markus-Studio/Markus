@@ -4,10 +4,10 @@ use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub enum Declaration {
-    Query(Rc<QueryDeclarationNode>),
     Type(Rc<TypeDeclarationNode>),
-    Action(Rc<ActionDeclarationNode>),
     Permission(Rc<PermissionDeclarationNode>),
+    Query(Rc<QueryDeclarationNode>),
+    Action(Rc<ActionDeclarationNode>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -53,6 +53,7 @@ pub struct ParameterNode {
 #[derive(Debug, PartialEq)]
 pub struct QueryDeclarationNode {
     pub location: Span,
+    pub guards: Vec<GuardNode>,
     pub name: Option<IdentifierNode>,
     pub parameters: Vec<ParameterNode>,
     pub query: QueryNode,
@@ -104,6 +105,7 @@ pub struct TypeReferenceNode {
 pub struct ActionDeclarationNode {
     pub location: Span,
     pub name: Option<IdentifierNode>,
+    pub guards: Vec<GuardNode>,
     pub parameters: Vec<ParameterNode>,
     pub statements: Vec<ActionStatement>,
 }
@@ -181,6 +183,12 @@ pub struct PermissionDeclarationNode {
     pub name: Option<IdentifierNode>,
     pub parameters: Vec<ParameterNode>,
     pub query: QueryNode,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct GuardNode {
+    pub location: Span,
+    pub call: Option<CallNode>,
 }
 
 #[derive(Debug, PartialEq)]

@@ -20,8 +20,6 @@ pub enum TokenKind {
     Semicolon,
     /// `:` Token.
     Colon,
-    /// `@` Token.
-    At,
     /// `?` Token.
     Question,
     /// An identifier token.
@@ -60,6 +58,8 @@ pub enum TokenKind {
     ForKeyword,
     /// `in` keyword.
     InKeyword,
+    /// `allow` keyword.
+    AllowKeyword,
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -304,10 +304,6 @@ impl<'a> Tokenizer<'a> {
                 self.advance(1);
                 Some(Token::new(TokenKind::Colon, start, 1))
             }
-            '@' => {
-                self.advance(1);
-                Some(Token::new(TokenKind::At, start, 1))
-            }
             '?' => {
                 self.advance(1);
                 Some(Token::new(TokenKind::Question, start, 1))
@@ -347,6 +343,7 @@ impl<'a> Tokenizer<'a> {
                             "validate" => TokenKind::ValidateKeyword,
                             "for" => TokenKind::ForKeyword,
                             "in" => TokenKind::InKeyword,
+                            "allow" => TokenKind::AllowKeyword,
                             "null" => TokenKind::Null,
                             _ => TokenKind::Identifier,
                         },
@@ -431,7 +428,7 @@ impl Span {
     pub fn new(start: usize, size: usize) -> Span {
         Span {
             offset: start,
-            size: size,
+            size,
         }
     }
 

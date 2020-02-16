@@ -3,6 +3,14 @@ type Product {
     price: u32;
 }
 
-query X($p?: Product) {
-    eq(.name, "X")
+type Person {}
+type Admin: user, Person {}
+type Seller: user, Person {}
+
+permission admin($num: i32) {
+    is(Admin)
+}
+
+query getSellers() allow admin(54) {
+    is(Seller)
 }
