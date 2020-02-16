@@ -329,7 +329,7 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    fn parse_type_field(&mut self) -> Option<TypeFieldNode> {
+    fn parse_type_field(&mut self) -> TypeFieldNode {
         let start = self.current_source_position();
 
         let name = self.parse_identifier(vec![TokenKind::Question, TokenKind::Semicolon]);
@@ -361,16 +361,16 @@ impl<'a> Parser<'a> {
             vec![TokenKind::Identifier, TokenKind::RightBrace],
         );
 
-        Some(TypeFieldNode {
+        TypeFieldNode {
             location: self.get_location(start),
             nullable,
             name,
             type_name,
-        })
+        }
     }
 
     #[inline]
-    fn parse_type_declaration(&mut self) -> Option<TypeDeclarationNode> {
+    fn parse_type_declaration(&mut self) -> TypeDeclarationNode {
         debug_assert!(self.current().unwrap().kind == TokenKind::TypeKeyword);
 
         let start = self.current_source_position();
@@ -402,20 +402,20 @@ impl<'a> Parser<'a> {
             ],
         );
         self.collect(&mut fields, vec![TokenKind::RightBrace], |parser| {
-            parser.parse_type_field()
+            Some(parser.parse_type_field())
         });
         self.expect(TokenKind::RightBrace, vec![TokenKind::Identifier]);
 
-        Some(TypeDeclarationNode {
+        TypeDeclarationNode {
             location: self.get_location(start),
             name,
             bases,
             fields,
-        })
+        }
     }
 
     #[inline]
-    fn parse_parameter(&mut self) -> Option<ParameterNode> {
+    fn parse_parameter(&mut self) -> ParameterNode {
         let start = self.current_source_position();
         let name = self.parse_identifier_from_parameter(vec![
             TokenKind::Colon,
@@ -460,12 +460,12 @@ impl<'a> Parser<'a> {
             TokenKind::RightBrace,
         ]);
 
-        Some(ParameterNode {
+        ParameterNode {
             location: self.get_location(start),
             optional,
             name,
             type_name,
-        })
+        }
     }
 
     #[inline]
@@ -641,7 +641,7 @@ impl<'a> Parser<'a> {
         ) {
             Some(_) => {
                 self.current_token_index = current_index;
-                ValueNode::Call(self.parse_call().unwrap())
+                ValueNode::Call(self.parse_call())
             }
             None => {
                 self.current_token_index = current_index;
@@ -681,14 +681,14 @@ impl<'a> Parser<'a> {
             Some(TokenKind::Dot)
             | Some(TokenKind::Parameter)
             | Some(TokenKind::InternalVariable) => Some(ValueNode::Access(self.consume_access())),
-            Some(TokenKind::LeftParenthesis) => Some(ValueNode::Call(self.parse_call().unwrap())),
+            Some(TokenKind::LeftParenthesis) => Some(ValueNode::Call(self.parse_call())),
             Some(TokenKind::Identifier) => Some(self.consume_type_reference_or_call()),
             _ => None,
         }
     }
 
     #[inline]
-    fn parse_call(&mut self) -> Option<CallNode> {
+    fn parse_call(&mut self) -> CallNode {
         let start = self.current_source_position();
         let mut arguments: Vec<ValueNode> = vec![];
 
@@ -743,11 +743,11 @@ impl<'a> Parser<'a> {
             ],
         );
 
-        Some(CallNode {
+        CallNode {
             location: self.get_location(start),
             callee_name: name,
             arguments,
-        })
+        }
     }
 
     #[inline]
@@ -769,7 +769,7 @@ impl<'a> Parser<'a> {
                 TokenKind::PermissionKeyword,
                 TokenKind::QueryKeyword,
             ],
-            |parser| parser.parse_call(),
+            |parser| Some(parser.parse_call()),
         );
 
         self.expect(
@@ -810,7 +810,7 @@ impl<'a> Parser<'a> {
         self.collect_comma_separated(
             &mut parameters,
             vec![TokenKind::LeftBrace, TokenKind::RightParenthesis],
-            |parser| parser.parse_parameter(),
+            |parser| Some(parser.parse_parameter()),
         );
 
         self.expect(
@@ -829,7 +829,7 @@ impl<'a> Parser<'a> {
     /// Parse a query declaration assuming that the `query` token is already
     /// seen but not consumed.
     #[inline]
-    fn parse_query_declaration(&mut self) -> Option<QueryDeclarationNode> {
+    fn parse_query_declaration(&mut self) -> QueryDeclarationNode {
         debug_assert!(self.current().unwrap().kind == TokenKind::QueryKeyword);
         let start = self.current_source_position();
         self.advance(1);
@@ -837,12 +837,12 @@ impl<'a> Parser<'a> {
         let (name, parameters) = self.parse_with_parameter_header();
         let query = self.parse_query();
 
-        Some(QueryDeclarationNode {
+        QueryDeclarationNode {
             location: self.get_location(start),
             name,
             parameters,
             query,
-        })
+        }
     }
 
     #[inline]
@@ -908,9 +908,7 @@ impl<'a> Parser<'a> {
             | Some(TokenKind::InternalVariable) => {
                 Some(BindingValueNode::Access(self.consume_access()))
             }
-            Some(TokenKind::LeftParenthesis) => {
-                Some(BindingValueNode::Call(self.parse_call().unwrap()))
-            }
+            Some(TokenKind::LeftParenthesis) => Some(BindingValueNode::Call(self.parse_call())),
             Some(TokenKind::CreateKeyword) | Some(TokenKind::Identifier) => {
                 Some(BindingValueNode::Create(self.parse_create_statement()))
             }
@@ -919,7 +917,7 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    fn parse_binding(&mut self) -> Option<FieldBindingNode> {
+    fn parse_binding(&mut self) -> FieldBindingNode {
         let start = self.current_source_position();
         let mut uri: Vec<IdentifierNode> = Vec::new();
 
@@ -970,11 +968,11 @@ impl<'a> Parser<'a> {
 
         let value = self.parse_binding_value();
 
-        Some(FieldBindingNode {
+        FieldBindingNode {
             location: self.get_location(start),
             uri,
             value,
-        })
+        }
     }
 
     #[inline]
@@ -1007,7 +1005,7 @@ impl<'a> Parser<'a> {
                 TokenKind::QueryKeyword,
                 TokenKind::Semicolon,
             ],
-            |parser| parser.parse_binding(),
+            |parser| Some(parser.parse_binding()),
         );
 
         self.expect(
@@ -1116,7 +1114,24 @@ impl<'a> Parser<'a> {
             Some(TokenKind::ValidateKeyword) => {
                 let start = self.current_source_position();
                 self.advance(1);
-                let value = self.parse_call();
+                let value = match self.find_first_of(
+                    &vec![TokenKind::Identifier, TokenKind::LeftParenthesis],
+                    vec![
+                        TokenKind::Semicolon,
+                        TokenKind::RightBrace,
+                        TokenKind::ValidateKeyword,
+                        TokenKind::CreateKeyword,
+                        TokenKind::UpdateKeyword,
+                        TokenKind::DeleteKeyword,
+                        TokenKind::TypeKeyword,
+                        TokenKind::ActionKeyword,
+                        TokenKind::PermissionKeyword,
+                        TokenKind::QueryKeyword,
+                    ],
+                ) {
+                    Some(_) => Some(self.parse_call()),
+                    _ => None,
+                };
                 let location = self.get_location(start);
                 self.expect(TokenKind::Semicolon, semicolon_breaks);
                 Some(ActionStatement::Validate(ValidateStatementNode {
@@ -1158,7 +1173,7 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    fn parse_permission_declaration(&mut self) -> Option<PermissionDeclarationNode> {
+    fn parse_permission_declaration(&mut self) -> PermissionDeclarationNode {
         debug_assert!(self.current().unwrap().kind == TokenKind::PermissionKeyword);
         let start = self.current_source_position();
         self.advance(1);
@@ -1166,16 +1181,16 @@ impl<'a> Parser<'a> {
         let (name, parameters) = self.parse_with_parameter_header();
         let query = self.parse_query();
 
-        Some(PermissionDeclarationNode {
+        PermissionDeclarationNode {
             location: self.get_location(start),
             name,
             parameters,
             query,
-        })
+        }
     }
 
     #[inline]
-    fn parse_action_declaration(&mut self) -> Option<ActionDeclarationNode> {
+    fn parse_action_declaration(&mut self) -> ActionDeclarationNode {
         debug_assert!(self.current().unwrap().kind == TokenKind::ActionKeyword);
         let start = self.current_source_position();
         self.advance(1);
@@ -1211,12 +1226,12 @@ impl<'a> Parser<'a> {
             ],
         );
 
-        Some(ActionDeclarationNode {
+        ActionDeclarationNode {
             location: self.get_location(start),
             name,
             parameters,
             statements,
-        })
+        }
     }
 
     pub fn parse_declaration(&mut self) -> Option<Declaration> {
@@ -1233,22 +1248,18 @@ impl<'a> Parser<'a> {
             ],
             vec![],
         ) {
-            Some(TokenKind::TypeKeyword) => match self.parse_type_declaration() {
-                Some(declaration) => Some(Declaration::Type(Rc::new(declaration))),
-                _ => None,
-            },
-            Some(TokenKind::QueryKeyword) => match self.parse_query_declaration() {
-                Some(declaration) => Some(Declaration::Query(Rc::new(declaration))),
-                _ => None,
-            },
-            Some(TokenKind::ActionKeyword) => match self.parse_action_declaration() {
-                Some(declaration) => Some(Declaration::Action(Rc::new(declaration))),
-                _ => None,
-            },
-            Some(TokenKind::PermissionKeyword) => match self.parse_permission_declaration() {
-                Some(declaration) => Some(Declaration::Permission(Rc::new(declaration))),
-                _ => None,
-            },
+            Some(TokenKind::TypeKeyword) => {
+                Some(Declaration::Type(Rc::new(self.parse_type_declaration())))
+            }
+            Some(TokenKind::QueryKeyword) => {
+                Some(Declaration::Query(Rc::new(self.parse_query_declaration())))
+            }
+            Some(TokenKind::ActionKeyword) => Some(Declaration::Action(Rc::new(
+                self.parse_action_declaration(),
+            ))),
+            Some(TokenKind::PermissionKeyword) => Some(Declaration::Permission(Rc::new(
+                self.parse_permission_declaration(),
+            ))),
             _ => None,
         }
     }
