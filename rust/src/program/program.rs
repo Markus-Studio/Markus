@@ -68,8 +68,14 @@ impl Program {
         let mut type_errors = self.type_space.verify();
         self.diagnostics.append(&mut type_errors);
         for declaration in &self.declarations {
-            if let Declaration::Query(query) = declaration {
-                query.verify(&mut self.diagnostics, &self.type_space);
+            match declaration {
+                Declaration::Query(query) => {
+                    query.verify(&mut self.diagnostics, &self.type_space);
+                }
+                Declaration::Permission(permission) => {
+                    permission.verify(&mut self.diagnostics, &self.type_space);
+                }
+                _ => {}
             }
         }
     }

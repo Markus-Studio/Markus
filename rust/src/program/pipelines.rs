@@ -144,6 +144,7 @@ fn apply_pipeline_changes(call: &CallNode, ctx: &mut VerifierContext) {
             .diagnostics
             .push(Diagnostic::no_matching_signature(name_id)),
 
+        ("sum", _) if ctx.only_filters => {}
         ("sum", 0) => {
             let value_type = ctx.get_current().clone();
             sum_pipeline(ctx, &value_type, call.arguments[0].get_location());
