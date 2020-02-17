@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::parser::tokenizer::Span;
 use std::rc::Rc;
 
@@ -209,18 +208,6 @@ pub enum VariableReferenceNode {
     Current,
     Internal(IdentifierNode),
     Variable(IdentifierNode),
-}
-
-impl IdentifierNode {
-    pub fn new(start: usize, value: &str) -> IdentifierNode {
-        IdentifierNode {
-            location: Span {
-                offset: start,
-                size: value.chars().count(),
-            },
-            value: String::from(value),
-        }
-    }
 }
 
 impl ValueNode {

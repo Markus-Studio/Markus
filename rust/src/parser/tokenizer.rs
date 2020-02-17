@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TokenKind {
     /// An unknown character.
@@ -82,14 +80,6 @@ pub struct Tokenizer<'a> {
 impl<'a> Tokenizer<'a> {
     pub fn new(data: &'a Vec<u16>, position: usize) -> Tokenizer<'a> {
         Tokenizer { data, position }
-    }
-
-    pub fn set_position(&mut self, position: usize) {
-        if position >= self.data.len() {
-            panic!("Out of range.");
-        }
-
-        self.position = position;
     }
 
     #[inline]
@@ -213,11 +203,6 @@ impl<'a> Tokenizer<'a> {
             start,
             self.position - start,
         ))
-    }
-
-    #[inline]
-    fn compare(&self, span: Span, data: &str) -> bool {
-        String::from_utf16(&self.data[span.offset..span.offset + span.size]).unwrap() == data
     }
 
     #[inline]
@@ -394,29 +379,7 @@ impl Token {
     pub fn new(kind: TokenKind, start: usize, size: usize) -> Token {
         Token {
             position: Span::new(start, size),
-            kind: kind,
-        }
-    }
-
-    pub fn is_identifer(&self) -> bool {
-        match self.kind {
-            TokenKind::Identifier => true,
-            _ => false,
-        }
-    }
-
-    pub fn compare_identifier(&self, data: &Vec<u16>, word: &str) -> bool {
-        match self.kind {
-            TokenKind::Identifier => {
-                let w16: Vec<u16> = word.encode_utf16().collect();
-                if w16.len() != self.position.size {
-                    false
-                } else {
-                    data[self.position.offset..self.position.offset + self.position.size]
-                        == w16[0..self.position.size]
-                }
-            }
-            _ => false,
+            kind,
         }
     }
 }

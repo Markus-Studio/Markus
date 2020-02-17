@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::parser::ast::TypeDeclarationNode;
 use crate::program::Diagnostic;
 use bimap::BiMap;

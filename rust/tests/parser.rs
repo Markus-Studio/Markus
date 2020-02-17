@@ -7,6 +7,17 @@ use std::rc::Rc;
 // Editor tests taken from microsoft/vscode-languageserver-node
 
 #[cfg(test)]
+fn fake_id(start: usize, value: &str) -> IdentifierNode {
+    IdentifierNode {
+        location: Span {
+            offset: start,
+            size: value.chars().count(),
+        },
+        value: String::from(value),
+    }
+}
+
+#[cfg(test)]
 fn get_source(data: &str) -> Source {
     Source::new("foo://bar", data)
 }
@@ -196,6 +207,22 @@ fn source_edit_multiline() {
     assert_eq!("0\n1World\nHello3\n4", source.get_content_utf8());
 }
 
+#[cfg(test)]
+fn compare_identifier(token: Token, data: &Vec<u16>, word: &str) -> bool {
+    match token.kind {
+        TokenKind::Identifier => {
+            let w16: Vec<u16> = word.encode_utf16().collect();
+            if w16.len() != token.position.size {
+                false
+            } else {
+                data[token.position.offset..token.position.offset + token.position.size]
+                    == w16[0..token.position.size]
+            }
+        }
+        _ => false,
+    }
+}
+
 #[test]
 fn tokenizer_basic() {
     let source = "query x { }";
@@ -203,10 +230,9 @@ fn tokenizer_basic() {
     let tokens: Vec<Token> = Tokenizer::new(&data, 0).collect();
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].kind, TokenKind::QueryKeyword);
-    assert!(!tokens[2].is_identifer());
+    assert_ne!(tokens[2].kind, TokenKind::Identifier);
 
-    assert!(!tokens[0].compare_identifier(&data, "Hello World"));
-    assert!(tokens[1].compare_identifier(&data, "x"));
+    assert!(compare_identifier(tokens[1], &data, "x"));
     // TODO(qti3e) Test other tokens too.
 }
 
@@ -220,7 +246,7 @@ fn ast_type_declaration_01() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 9),
-            name: Some(IdentifierNode::new(5, "A")),
+            name: Some(fake_id(5, "A")),
             bases: vec![],
             fields: vec![]
         }))]
@@ -237,8 +263,8 @@ fn ast_type_declaration_02() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 15),
-            name: Some(IdentifierNode::new(5, "A")),
-            bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
+            name: Some(fake_id(5, "A")),
+            bases: vec![fake_id(8, "X"), fake_id(11, "Y")],
             fields: vec![]
         }))]
     );
@@ -254,13 +280,13 @@ fn ast_type_declaration_03() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 27),
-            name: Some(IdentifierNode::new(5, "A")),
-            bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
+            name: Some(fake_id(5, "A")),
+            bases: vec![fake_id(8, "X"), fake_id(11, "Y")],
             fields: vec![TypeFieldNode {
                 location: Span::new(15, 10),
                 nullable: false,
-                name: Some(IdentifierNode::new(15, "x")),
-                type_name: Some(IdentifierNode::new(18, "number")),
+                name: Some(fake_id(15, "x")),
+                type_name: Some(fake_id(18, "number")),
             }]
         }))]
     );
@@ -276,20 +302,20 @@ fn ast_type_declaration_04() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 39),
-            name: Some(IdentifierNode::new(5, "A")),
-            bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
+            name: Some(fake_id(5, "A")),
+            bases: vec![fake_id(8, "X"), fake_id(11, "Y")],
             fields: vec![
                 TypeFieldNode {
                     location: Span::new(15, 10),
                     nullable: false,
-                    name: Some(IdentifierNode::new(15, "x")),
-                    type_name: Some(IdentifierNode::new(18, "number")),
+                    name: Some(fake_id(15, "x")),
+                    type_name: Some(fake_id(18, "number")),
                 },
                 TypeFieldNode {
                     location: Span::new(26, 11),
                     nullable: true,
-                    name: Some(IdentifierNode::new(26, "p")),
-                    type_name: Some(IdentifierNode::new(30, "string")),
+                    name: Some(fake_id(26, "p")),
+                    type_name: Some(fake_id(30, "string")),
                 }
             ]
         }))]
@@ -313,7 +339,7 @@ fn ast_type_declaration_error_tolerance_01() {
             })),
             Declaration::Type(Rc::new(TypeDeclarationNode {
                 location: Span::new(8, 9),
-                name: Some(IdentifierNode::new(13, "B")),
+                name: Some(fake_id(13, "B")),
                 bases: vec![],
                 fields: vec![]
             })),
@@ -331,8 +357,8 @@ fn ast_type_declaration_error_tolerance_02() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 17),
-            name: Some(IdentifierNode::new(5, "A")),
-            bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(13, "Y")],
+            name: Some(fake_id(5, "A")),
+            bases: vec![fake_id(8, "X"), fake_id(13, "Y")],
             fields: vec![]
         }))]
     );
@@ -348,12 +374,12 @@ fn ast_type_declaration_error_tolerance_03() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 21),
-            name: Some(IdentifierNode::new(5, "A")),
-            bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
+            name: Some(fake_id(5, "A")),
+            bases: vec![fake_id(8, "X"), fake_id(11, "Y")],
             fields: vec![TypeFieldNode {
                 location: Span::new(15, 4),
                 nullable: false,
-                name: Some(IdentifierNode::new(15, "x")),
+                name: Some(fake_id(15, "x")),
                 type_name: None,
             }]
         }))]
@@ -370,20 +396,20 @@ fn ast_type_declaration_error_tolerance_04() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 38),
-            name: Some(IdentifierNode::new(5, "A")),
-            bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
+            name: Some(fake_id(5, "A")),
+            bases: vec![fake_id(8, "X"), fake_id(11, "Y")],
             fields: vec![
                 TypeFieldNode {
                     location: Span::new(15, 10),
                     nullable: false,
-                    name: Some(IdentifierNode::new(15, "x")),
-                    type_name: Some(IdentifierNode::new(18, "number")),
+                    name: Some(fake_id(15, "x")),
+                    type_name: Some(fake_id(18, "number")),
                 },
                 TypeFieldNode {
                     location: Span::new(26, 10),
                     nullable: true,
                     name: None,
-                    type_name: Some(IdentifierNode::new(29, "string")),
+                    type_name: Some(fake_id(29, "string")),
                 }
             ]
         }))]
@@ -400,14 +426,14 @@ fn ast_type_declaration_error_tolerance_05() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 37),
-            name: Some(IdentifierNode::new(5, "A")),
-            bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
+            name: Some(fake_id(5, "A")),
+            bases: vec![fake_id(8, "X"), fake_id(11, "Y")],
             fields: vec![
                 TypeFieldNode {
                     location: Span::new(15, 10),
                     nullable: false,
-                    name: Some(IdentifierNode::new(15, "x")),
-                    type_name: Some(IdentifierNode::new(18, "number")),
+                    name: Some(fake_id(15, "x")),
+                    type_name: Some(fake_id(18, "number")),
                 },
                 TypeFieldNode {
                     location: Span::new(26, 3),
@@ -418,8 +444,8 @@ fn ast_type_declaration_error_tolerance_05() {
                 TypeFieldNode {
                     location: Span::new(30, 5),
                     nullable: false,
-                    name: Some(IdentifierNode::new(30, "y")),
-                    type_name: Some(IdentifierNode::new(33, "c")),
+                    name: Some(fake_id(30, "y")),
+                    type_name: Some(fake_id(33, "c")),
                 }
             ]
         }))]
@@ -436,20 +462,20 @@ fn ast_type_declaration_error_tolerance_06() {
         program.declarations,
         vec![Declaration::Type(Rc::new(TypeDeclarationNode {
             location: Span::new(0, 36),
-            name: Some(IdentifierNode::new(5, "A")),
-            bases: vec![IdentifierNode::new(8, "X"), IdentifierNode::new(11, "Y")],
+            name: Some(fake_id(5, "A")),
+            bases: vec![fake_id(8, "X"), fake_id(11, "Y")],
             fields: vec![
                 TypeFieldNode {
                     location: Span::new(15, 9),
                     nullable: false,
-                    name: Some(IdentifierNode::new(15, "x")),
-                    type_name: Some(IdentifierNode::new(18, "number")),
+                    name: Some(fake_id(15, "x")),
+                    type_name: Some(fake_id(18, "number")),
                 },
                 TypeFieldNode {
                     location: Span::new(26, 10),
                     nullable: true,
-                    name: Some(IdentifierNode::new(26, "p")),
-                    type_name: Some(IdentifierNode::new(30, "string")),
+                    name: Some(fake_id(26, "p")),
+                    type_name: Some(fake_id(30, "string")),
                 }
             ]
         }))]
@@ -466,7 +492,7 @@ fn ast_query_declaration_01() {
         program.declarations,
         vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 12),
-            name: Some(IdentifierNode::new(6, "X")),
+            name: Some(fake_id(6, "X")),
             guards: vec![],
             parameters: vec![],
             query: QueryNode {
@@ -487,20 +513,20 @@ fn ast_query_declaration_02() {
         program.declarations,
         vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 24),
-            name: Some(IdentifierNode::new(6, "X")),
+            name: Some(fake_id(6, "X")),
             guards: vec![],
             parameters: vec![
                 ParameterNode {
                     location: Span::new(8, 5),
                     optional: false,
-                    name: Some(IdentifierNode::new(8, "$a")),
-                    type_name: Some(IdentifierNode::new(12, "X"))
+                    name: Some(fake_id(8, "$a")),
+                    type_name: Some(fake_id(12, "X"))
                 },
                 ParameterNode {
                     location: Span::new(15, 5),
                     optional: false,
-                    name: Some(IdentifierNode::new(15, "$b")),
-                    type_name: Some(IdentifierNode::new(19, "Y"))
+                    name: Some(fake_id(15, "$b")),
+                    type_name: Some(fake_id(19, "Y"))
                 }
             ],
             query: QueryNode {
@@ -521,14 +547,14 @@ fn ast_query_declaration_03() {
         program.declarations,
         vec![Declaration::Query(Rc::new(QueryDeclarationNode {
             location: Span::new(0, 15),
-            name: Some(IdentifierNode::new(6, "X")),
+            name: Some(fake_id(6, "X")),
             guards: vec![],
             parameters: vec![],
             query: QueryNode {
                 location: Span::new(10, 5),
                 pipelines: vec![CallNode {
                     location: Span::new(11, 3),
-                    callee_name: Some(IdentifierNode::new(11, "a")),
+                    callee_name: Some(fake_id(11, "a")),
                     arguments: vec![]
                 }]
             }
@@ -630,7 +656,7 @@ fn ast_type_reference() {
         *ast,
         ValueNode::Type(TypeReferenceNode {
             location: Span::new(13, 3),
-            name: IdentifierNode::new(13, "Ya_")
+            name: fake_id(13, "Ya_")
         })
     );
 }
@@ -646,7 +672,7 @@ fn ast_field_current() {
         ValueNode::Access(AccessNode {
             location: Span::new(13, 2),
             base: VariableReferenceNode::Current,
-            parts: vec![IdentifierNode::new(14, "x")]
+            parts: vec![fake_id(14, "x")]
         })
     );
 }
@@ -661,8 +687,8 @@ fn ast_field_parameter() {
         *ast,
         ValueNode::Access(AccessNode {
             location: Span::new(13, 4),
-            base: VariableReferenceNode::Variable(IdentifierNode::new(13, "$a")),
-            parts: vec![IdentifierNode::new(16, "x")]
+            base: VariableReferenceNode::Variable(fake_id(13, "$a")),
+            parts: vec![fake_id(16, "x")]
         })
     );
 }
@@ -677,8 +703,8 @@ fn ast_field_internal() {
         *ast,
         ValueNode::Access(AccessNode {
             location: Span::new(13, 4),
-            base: VariableReferenceNode::Internal(IdentifierNode::new(13, "%a")),
-            parts: vec![IdentifierNode::new(16, "x")]
+            base: VariableReferenceNode::Internal(fake_id(13, "%a")),
+            parts: vec![fake_id(16, "x")]
         })
     );
 }

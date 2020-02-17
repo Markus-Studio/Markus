@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::parser::{
     ast::{CallNode, IdentifierNode, ValueNode},
     Span, Token, TokenKind,
