@@ -7,6 +7,7 @@ pub struct VerifierContext<'a> {
     pub space: &'a TypeSpace,
     pub diagnostics: &'a mut Vec<Diagnostic>,
     pub symbol_table: HashMap<String, MarkusType>,
+    pub only_filters: bool,
     branches: Vec<Vec<MarkusType>>,
     current: Vec<MarkusType>,
 }
@@ -74,6 +75,7 @@ impl QueryDeclarationNode {
             diagnostics,
             branches: Vec::new(),
             current: vec![space.get_query_input_type()],
+            only_filters: false,
             symbol_table: HashMap::new(),
         };
 
