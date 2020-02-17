@@ -171,6 +171,7 @@ pub struct DeleteStatementNode {
 
 #[derive(Debug, PartialEq)]
 pub enum ActionBase {
+    // TODO(qti3e) Query(), Access()
     Query(QueryNode),
     Internal(IdentifierNode),
     Variable(IdentifierNode),

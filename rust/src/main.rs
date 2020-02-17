@@ -1,3 +1,5 @@
+mod common;
+mod ir;
 mod parser;
 mod program;
 use std::fs;

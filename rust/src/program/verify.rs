@@ -85,6 +85,13 @@ impl<'a> VerifierContext<'a> {
         }
     }
 
+    /// To be used in groupBy.
+    #[inline]
+    pub fn branch_pop(&mut self) -> MarkusType {
+        let types = self.branches.pop().unwrap();
+        MarkusType::create_union_from(types)
+    }
+
     #[inline]
     pub fn path_enter(&mut self) {
         let current_type = self.get_current().clone();

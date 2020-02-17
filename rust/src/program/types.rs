@@ -177,6 +177,12 @@ impl TypeSpace {
         }
     }
 
+    /// Returns true if a typ with the given name exists in this type space.
+    #[inline]
+    pub fn contains(&self, name: &str) -> bool {
+        self.type_names.contains_left(&String::from(name))
+    }
+
     /// Adds the given type to this type space.
     pub fn add_type(&mut self, ast: Rc<TypeDeclarationNode>) {
         if let Some(name_identifier) = &ast.name {
