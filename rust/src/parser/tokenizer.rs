@@ -68,7 +68,7 @@ pub struct Span {
     pub size: usize,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Token {
     pub position: Span,
     pub kind: TokenKind,
@@ -81,10 +81,7 @@ pub struct Tokenizer<'a> {
 
 impl<'a> Tokenizer<'a> {
     pub fn new(data: &'a Vec<u16>, position: usize) -> Tokenizer<'a> {
-        Tokenizer {
-            data: data,
-            position: position,
-        }
+        Tokenizer { data, position }
     }
 
     pub fn set_position(&mut self, position: usize) {

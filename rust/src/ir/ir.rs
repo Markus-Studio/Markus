@@ -225,8 +225,7 @@ impl Funnel {
             | Funnel::Lte { .. }
             | Funnel::Lt { .. }
             | Funnel::Gt { .. }
-            | Funnel::Gte { .. }
-            | Funnel::Unique { .. } => FunnelKind::Filter,
+            | Funnel::Gte { .. } => FunnelKind::Filter,
             Funnel::ReduceStore { .. }
             | Funnel::GroupBy { .. }
             | Funnel::AggregationAvg { .. }
@@ -243,7 +242,8 @@ impl Funnel {
             | Funnel::AggregationWithMax { .. }
             | Funnel::AggregationWithMin { .. }
             | Funnel::AggregationSort { .. }
-            | Funnel::AggregationTake { .. } => FunnelKind::Reduce,
+            | Funnel::AggregationTake { .. }
+            | Funnel::Unique { .. } => FunnelKind::Reduce,
             Funnel::Add { .. }
             | Funnel::Sub { .. }
             | Funnel::Mul { .. }

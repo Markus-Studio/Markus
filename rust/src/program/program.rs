@@ -2,6 +2,7 @@
 use crate::parser::ast::Declaration;
 use crate::parser::Parser;
 use crate::parser::Source;
+use crate::program::verify;
 use crate::program::{Diagnostic, TypeSpace};
 
 pub struct Program {

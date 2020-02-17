@@ -1317,6 +1317,11 @@ impl<'a> Parser<'a> {
             return None;
         }
 
+        match self.current() {
+            None => return None,
+            _ => {}
+        }
+
         match self.find_first_of(
             &vec![
                 TokenKind::QueryKeyword,
