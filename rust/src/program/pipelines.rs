@@ -291,6 +291,35 @@ fn apply_pipeline_changes(
                     .push(Diagnostic::expected_argument_field(&call.arguments[0]));
             }
         },
+        ("groupBy", 2) => match (&call.arguments[0], &call.arguments[1]) {
+            (ValueNode::Access(access_node), ValueNode::Query(query)) => match access_node.base {
+                VariableReferenceNode::Current => {
+                    let field_type = call.arguments[0].get_type(ctx);
+                    ctx.branch_in();
+                    ctx.path_enter();
+                    query.get_type(ctx);
+                    ctx.path_exit();
+                    let inner_type = ctx.branch_pop();
+                    let map = ctx
+                        .space
+                        .define_map(field_type, inner_type)
+                        .with_dimension(1);
+                    ctx.set_current(map);
+                }
+                _ => {
+                    ctx.diagnostics
+                        .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+                }
+            },
+            (ValueNode::Access(_), _) => {
+                ctx.diagnostics
+                    .push(Diagnostic::expected_argument_field(&call.arguments[1]));
+            }
+            _ => {
+                ctx.diagnostics
+                    .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+            }
+        },
         ("groupBy", _) => ctx
             .diagnostics
             .push(Diagnostic::no_matching_signature(name_id)),
