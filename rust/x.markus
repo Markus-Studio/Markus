@@ -1,16 +1,31 @@
-type Product {
-    name: string;
-    price: u32;
+type uA: user {
+    x: i32;
+    y: i32;
 }
 
-type Person {}
-type Admin: user, Person {}
-type Seller: user, Person {}
-
-permission admin($num: i32) {
-    is(Admin)
+type uB: user {
+    x: i32;
+    z: i32;
 }
 
-query getSellers() allow admin(54) {
-    is(Seller)
+type Object {
+    prop: i32;
+}
+
+permission A() {
+    is(uA)
+}
+
+permission B() {
+    is(uB)
+}
+
+query X() allow A() {
+    is(Object),
+    eq(.prop, %user.y)
+}
+
+query Y() allow B() {
+    is(Object),
+    eq(.prop, %user.y)
 }

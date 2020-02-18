@@ -132,10 +132,18 @@ impl Program {
         for declaration in &self.declarations {
             match declaration {
                 Declaration::Query(query_declaration) => {
-                    query_declaration.verify(&mut self.diagnostics, &self.type_space);
+                    query_declaration.verify(
+                        &mut self.diagnostics,
+                        &self.type_space,
+                        &self.permission_types,
+                    );
                 }
                 Declaration::Action(action_declaration) => {
-                    action_declaration.verify(&mut self.diagnostics, &self.type_space);
+                    action_declaration.verify(
+                        &mut self.diagnostics,
+                        &self.type_space,
+                        &self.permission_types,
+                    );
                 }
                 _ => {}
             }

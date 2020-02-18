@@ -1,5 +1,5 @@
 use crate::parser::ast::{ActionDeclarationNode, QueryDeclarationNode};
-use crate::parser::ast::{ParameterNode, PermissionDeclarationNode};
+use crate::parser::ast::{GuardNode, ParameterNode, PermissionDeclarationNode};
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
 use std::collections::HashMap;
 
@@ -140,6 +140,7 @@ impl QueryDeclarationNode {
         &self,
         diagnostics: &'a mut Vec<Diagnostic>,
         space: &'a TypeSpace,
+        permissions: &'a HashMap<String, MarkusType>,
     ) -> MarkusType {
         let mut ctx = VerifierContext::new(
             diagnostics,
@@ -148,10 +149,52 @@ impl QueryDeclarationNode {
             false,
             &self.parameters,
         );
+        ctx.symbol_table.insert(
+            String::from("%user"),
+            create_user_type(
+                ctx.diagnostics,
+                space.get_permission_input_type(),
+                permissions,
+                &self.guards,
+            ),
+        );
         self.query.get_type(&mut ctx)
     }
 }
 
 impl ActionDeclarationNode {
-    pub fn verify<'a>(&self, diagnostics: &mut Vec<Diagnostic>, space: &'a TypeSpace) {}
+    pub fn verify<'a>(
+        &self,
+        diagnostics: &mut Vec<Diagnostic>,
+        space: &'a TypeSpace,
+        permissions: &'a HashMap<String, MarkusType>,
+    ) {
+    }
+}
+
+fn create_user_type(
+    diagnostics: &mut Vec<Diagnostic>,
+    default: MarkusType,
+    permission_types: &HashMap<String, MarkusType>,
+    permissions: &Vec<GuardNode>,
+) -> MarkusType {
+    if permission_types.len() == 0 {
+        default
+    } else {
+        let mut result = MarkusType::new_union(Vec::with_capacity(0));
+
+        for permission in permissions {
+            // We don't report any resolving nor binding errors here, they're already
+            // handled in the program verifier.
+            if let Some(call) = &permission.call {
+                if let Some(callee_name) = &call.callee_name {
+                    if let Some(result_type) = permission_types.get(&callee_name.value) {
+                        result = result + result_type;
+                    }
+                }
+            }
+        }
+
+        result
+    }
 }

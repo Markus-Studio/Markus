@@ -458,7 +458,7 @@ impl MarkusType {
         }
 
         MarkusType {
-            dimension: dimension,
+            dimension,
             type_info: MarkusTypeInfo::Union { members: members },
         }
     }
@@ -466,7 +466,7 @@ impl MarkusType {
     /// Returns the current type but with the request dimension.
     pub fn with_dimension(&self, dimension: u32) -> MarkusType {
         MarkusType {
-            dimension: dimension,
+            dimension,
             type_info: self.type_info.clone(),
         }
     }
@@ -706,6 +706,37 @@ impl MarkusType {
             _ => panic!(
                 "object_is_circular is only meant to be used with user defined object types."
             ),
+        }
+    }
+}
+
+impl std::ops::Add<&MarkusType> for MarkusType {
+    type Output = MarkusType;
+
+    fn add(self, rhs: &MarkusType) -> MarkusType {
+        assert_eq!(self.dimension, rhs.dimension);
+
+        let lhs_members: Vec<TypeId> = match &self.type_info {
+            MarkusTypeInfo::OneOf { .. } => unimplemented!(),
+            MarkusTypeInfo::Union { members, .. } => members.iter().map(|s| *s).collect(),
+            _ => vec![self.get_id()],
+        };
+
+        let rhs_members: Vec<TypeId> = match &rhs.type_info {
+            MarkusTypeInfo::OneOf { .. } => unimplemented!(),
+            MarkusTypeInfo::Union { members, .. } => members.iter().map(|s| *s).collect(),
+            _ => vec![rhs.get_id()],
+        };
+
+        let mut members = HashSet::with_capacity(lhs_members.len() + rhs_members.len());
+        members.extend(lhs_members.iter());
+        members.extend(rhs_members.iter());
+
+        members.shrink_to_fit();
+
+        MarkusType {
+            dimension: self.dimension,
+            type_info: MarkusTypeInfo::Union { members },
         }
     }
 }
