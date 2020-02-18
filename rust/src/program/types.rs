@@ -23,7 +23,7 @@ pub enum MarkusTypeInfo {
     BuiltInObject {
         id: TypeId,
         bases: HashSet<TypeId>,
-        fields: HashMap<String, TypeId>,
+        fields: HashMap<String, HashSet<TypeId>>,
     },
     Object {
         id: TypeId,
@@ -74,8 +74,14 @@ impl TypeSpace {
             "geo",
             vec![],
             vec![
-                (String::from("lat"), f32_id),
-                (String::from("long"), f32_id),
+                (
+                    String::from("lat"),
+                    vec![f32_id].iter().map(|s| *s).collect(),
+                ),
+                (
+                    String::from("long"),
+                    vec![f32_id].iter().map(|s| *s).collect(),
+                ),
             ],
         );
         space.define_one_of("%unsigned-int", vec![u32_id, u64_id]);
@@ -113,6 +119,22 @@ impl TypeSpace {
         }
     }
 
+    pub fn define_map(&mut self, key: MarkusType, value: MarkusType) -> MarkusType {
+        let name = format!("Map({}, {})", key.to_string(self), value.to_string(self));
+        if !self.contains(&name) {
+            self.define_builtin_object(
+                &name,
+                Vec::with_capacity(0),
+                vec![
+                    (String::from("key"), key.get_ids_set()),
+                    (String::from("value"), value.get_ids_set()),
+                ],
+            );
+        }
+
+        self.resolve_type(&name).unwrap().clone()
+    }
+
     #[inline]
     pub fn get_type_name(&self, id: TypeId) -> String {
         self.type_names.get_by_right(&id).unwrap().to_string()
@@ -148,13 +170,13 @@ impl TypeSpace {
         &mut self,
         name: &str,
         bases: Vec<&str>,
-        fields: Vec<(String, TypeId)>,
+        fields: Vec<(String, HashSet<TypeId>)>,
     ) -> TypeId {
         let id = self.get_type_id_or_create(name);
         let markus_type = MarkusType {
             dimension: 0,
             type_info: MarkusTypeInfo::BuiltInObject {
-                id: id,
+                id,
                 bases: bases
                     .into_iter()
                     .map(|base_name| self.resolve_type(base_name).unwrap().get_id())
@@ -181,10 +203,16 @@ impl TypeSpace {
         }
     }
 
-    /// Returns true if a typ with the given name exists in this type space.
+    /// Returns true if a type with the given name exists in this type space.
     #[inline]
     pub fn contains(&self, name: &str) -> bool {
-        self.type_names.contains_left(&String::from(name))
+        match self.type_names.get_by_left(&String::from(name)) {
+            Some(id) => match self.types.get(id) {
+                Some(_) => true,
+                _ => false,
+            },
+            _ => false,
+        }
     }
 
     /// Adds the given type to this type space.
@@ -429,6 +457,7 @@ impl MarkusType {
     /// Creates an union from all of the types in the given vector.
     /// # Panics
     /// If the types vector is empty or if the given types are not of the same dimension.
+    /// TODO(qti3e) We can remove this function and depend on `+` op.
     pub fn create_union_from(types: Vec<MarkusType>) -> MarkusType {
         if types.len() == 1 {
             return types[0].clone();
@@ -639,7 +668,10 @@ impl MarkusType {
     pub fn object_query_field(&self, space: &TypeSpace, field_name: &str) -> Option<MarkusType> {
         match self.type_info {
             MarkusTypeInfo::BuiltInObject { ref fields, .. } => match fields.get(field_name) {
-                Some(&type_id) => Some(space.resolve_type_by_id(type_id).unwrap().clone()),
+                Some(type_ids) => {
+                    let ids: Vec<TypeId> = type_ids.iter().map(|s| *s).collect();
+                    Some(MarkusType::new_union(ids))
+                }
                 None => None,
             },
             MarkusTypeInfo::Object { ref ast, .. } => {
@@ -714,6 +746,15 @@ impl MarkusType {
             ),
         }
     }
+
+    fn get_ids_set(&self) -> HashSet<TypeId> {
+        let members: Vec<TypeId> = match &self.type_info {
+            MarkusTypeInfo::OneOf { .. } => unimplemented!(),
+            MarkusTypeInfo::Union { members, .. } => members.iter().map(|s| *s).collect(),
+            _ => vec![self.get_id()],
+        };
+        members.iter().map(|s| *s).collect()
+    }
 }
 
 impl std::ops::Add<&MarkusType> for MarkusType {
@@ -722,17 +763,8 @@ impl std::ops::Add<&MarkusType> for MarkusType {
     fn add(self, rhs: &MarkusType) -> MarkusType {
         assert_eq!(self.dimension, rhs.dimension);
 
-        let lhs_members: Vec<TypeId> = match &self.type_info {
-            MarkusTypeInfo::OneOf { .. } => unimplemented!(),
-            MarkusTypeInfo::Union { members, .. } => members.iter().map(|s| *s).collect(),
-            _ => vec![self.get_id()],
-        };
-
-        let rhs_members: Vec<TypeId> = match &rhs.type_info {
-            MarkusTypeInfo::OneOf { .. } => unimplemented!(),
-            MarkusTypeInfo::Union { members, .. } => members.iter().map(|s| *s).collect(),
-            _ => vec![rhs.get_id()],
-        };
+        let lhs_members: HashSet<TypeId> = self.get_ids_set();
+        let rhs_members: HashSet<TypeId> = rhs.get_ids_set();
 
         let mut members = HashSet::with_capacity(lhs_members.len() + rhs_members.len());
         members.extend(lhs_members.iter());

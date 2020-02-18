@@ -1,32 +1,7 @@
-type uA: user {
-    x: i32;
-    y: i32;
+type Student {
+    age: u32;
 }
 
-type uB: user {
-    x: i32;
-    z: i32;
-}
-
-type Object {
-    prop: i32;
-}
-
-permission A() {
-    is(uA),
-    sum(.x)
-}
-
-permission B() {
-    is(uB)
-}
-
-query X() allow A() {
-    is(Object),
-    eq(.prop, %user.y)
-}
-
-query Y() allow B() {
-    is(Object),
-    eq(.prop, %user.y)
+query X() {
+    groupBy(.age)
 }

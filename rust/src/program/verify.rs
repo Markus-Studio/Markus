@@ -4,7 +4,7 @@ use crate::program::{Diagnostic, MarkusType, TypeSpace};
 use std::collections::HashMap;
 
 pub struct VerifierContext<'a> {
-    pub space: &'a TypeSpace,
+    pub space: &'a mut TypeSpace,
     pub diagnostics: &'a mut Vec<Diagnostic>,
     pub symbol_table: HashMap<String, MarkusType>,
     pub only_filters: bool,
@@ -16,20 +16,12 @@ impl<'a> VerifierContext<'a> {
     #[inline(always)]
     pub fn new(
         diagnostics: &'a mut Vec<Diagnostic>,
-        space: &'a TypeSpace,
+        space: &'a mut TypeSpace,
         input_type: MarkusType,
         only_filters: bool,
         parameters: &Vec<ParameterNode>,
     ) -> VerifierContext<'a> {
-        let mut ctx = VerifierContext {
-            space,
-            diagnostics,
-            only_filters,
-            branches: Vec::new(),
-            current: vec![input_type],
-            symbol_table: HashMap::new(),
-        };
-
+        let mut symbol_table = HashMap::new();
         let null_id = space.resolve_type("null").unwrap().get_id();
         for parameter in parameters {
             if None == parameter.name || None == parameter.type_name {
@@ -38,37 +30,41 @@ impl<'a> VerifierContext<'a> {
 
             match (parameter.name.as_ref(), parameter.type_name.as_ref()) {
                 (Some(parameter_name), None) => {
-                    if ctx.symbol_table.contains_key(&parameter_name.value) {
-                        ctx.diagnostics
-                            .push(Diagnostic::name_already_in_use(&parameter_name));
+                    if symbol_table.contains_key(&parameter_name.value) {
+                        diagnostics.push(Diagnostic::name_already_in_use(&parameter_name));
                     }
                 }
                 (None, _) => {}
                 (Some(parameter_name), Some(type_name)) => {
                     let name = String::from(&parameter_name.value);
 
-                    if ctx.symbol_table.contains_key(&name) {
-                        ctx.diagnostics
-                            .push(Diagnostic::name_already_in_use(&parameter_name));
+                    if symbol_table.contains_key(&name) {
+                        diagnostics.push(Diagnostic::name_already_in_use(&parameter_name));
                     }
 
                     if let Some(parameter_type) = space.resolve_type(&type_name.value) {
                         if parameter.optional {
                             let type_id = parameter_type.get_id();
-                            ctx.symbol_table
+                            symbol_table
                                 .insert(name, MarkusType::new_union(vec![null_id, type_id]));
                         } else {
-                            ctx.symbol_table.insert(name, parameter_type.clone());
+                            symbol_table.insert(name, parameter_type.clone());
                         }
                     } else {
-                        ctx.diagnostics
-                            .push(Diagnostic::unresolved_name(&type_name));
+                        diagnostics.push(Diagnostic::unresolved_name(&type_name));
                     }
                 }
             }
         }
 
-        ctx
+        VerifierContext {
+            space,
+            diagnostics,
+            only_filters,
+            branches: Vec::new(),
+            current: vec![input_type],
+            symbol_table: HashMap::new(),
+        }
     }
 
     #[inline]
@@ -139,9 +135,10 @@ impl QueryDeclarationNode {
     pub fn verify<'a>(
         &self,
         diagnostics: &'a mut Vec<Diagnostic>,
-        space: &'a TypeSpace,
+        space: &'a mut TypeSpace,
         permissions: &'a HashMap<String, MarkusType>,
     ) -> MarkusType {
+        let default_user_type = space.get_permission_input_type();
         let mut ctx = VerifierContext::new(
             diagnostics,
             space,
@@ -153,7 +150,7 @@ impl QueryDeclarationNode {
             String::from("%user"),
             create_user_type(
                 ctx.diagnostics,
-                space.get_permission_input_type(),
+                default_user_type,
                 permissions,
                 &self.guards,
             ),
@@ -184,11 +181,13 @@ fn create_user_type(
         let mut result = MarkusType::new_union(Vec::with_capacity(0));
 
         for permission in permissions {
-            // TODO(qti3e) Report resolving and binding errors.
+            // TODO(qti3e) Report binding errors.
             if let Some(call) = &permission.call {
                 if let Some(callee_name) = &call.callee_name {
                     if let Some(result_type) = permission_types.get(&callee_name.value) {
                         result = result + result_type;
+                    } else {
+                        diagnostics.push(Diagnostic::unresolved_name(callee_name));
                     }
                 }
             }

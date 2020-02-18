@@ -6,6 +6,8 @@ use crate::program::{Diagnostic, MarkusType};
 impl CallNode {
     pub fn apply_pipeline_changes(&self, ctx: &mut VerifierContext) {
         apply_pipeline_changes(self, ctx, ctx.only_filters, false);
+        let current = ctx.get_current();
+        println!("Q {}", current.to_string(ctx.space));
     }
 }
 
@@ -272,7 +274,12 @@ fn apply_pipeline_changes(
             ValueNode::Access(access_node) => match access_node.base {
                 VariableReferenceNode::Current => {
                     let field_type = call.arguments[0].get_type(ctx);
-                    let inner_type = ctx.get_current();
+                    let inner_type = ctx.get_current().clone();
+                    let map = ctx
+                        .space
+                        .define_map(field_type, inner_type)
+                        .with_dimension(1);
+                    ctx.set_current(map);
                 }
                 _ => {
                     ctx.diagnostics

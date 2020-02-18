@@ -135,14 +135,14 @@ impl Program {
                 Declaration::Query(query_declaration) => {
                     query_declaration.verify(
                         &mut self.diagnostics,
-                        &self.type_space,
+                        &mut self.type_space,
                         &self.permission_types,
                     );
                 }
                 Declaration::Action(action_declaration) => {
                     action_declaration.verify(
                         &mut self.diagnostics,
-                        &self.type_space,
+                        &mut self.type_space,
                         &self.permission_types,
                     );
                 }
