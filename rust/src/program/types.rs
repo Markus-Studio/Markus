@@ -198,20 +198,15 @@ impl TypeSpace {
 
     /// Verifies the current type space returns a vector containing all of the
     /// errors found on types.
-    pub fn verify(&self) -> Vec<Diagnostic> {
-        let mut result: Vec<Diagnostic> = Vec::new();
-
+    pub fn verify(&self, diagnostics: &mut Vec<Diagnostic>) {
         for markus_type in self.types.values() {
             match markus_type.type_info {
                 MarkusTypeInfo::Object { .. } => {
-                    let mut errors = markus_type.object_verify(self);
-                    result.append(&mut errors);
+                    markus_type.object_verify(self, diagnostics);
                 }
                 _ => {}
             }
         }
-
-        result
     }
 
     /// Returns a 1D Union that contains every user defined object types.
@@ -705,9 +700,9 @@ impl MarkusType {
     /// 3. Circular Reference (Both on fields and bases)
     /// 4. Common field.
     /// 5. Name already in use.
-    pub fn object_verify(&self, space: &TypeSpace) -> Vec<Diagnostic> {
+    pub fn object_verify(&self, space: &TypeSpace, diagnostics: &mut Vec<Diagnostic>) {
         match self.type_info {
-            MarkusTypeInfo::Object { ref ast, .. } => verify_object_ast(ast, space),
+            MarkusTypeInfo::Object { ref ast, .. } => verify_object_ast(ast, space, diagnostics),
             _ => panic!(
                 "object_is_circular is only meant to be used with user defined object types."
             ),
@@ -716,16 +711,18 @@ impl MarkusType {
 }
 
 #[inline(always)]
-fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Diagnostic> {
-    let mut result: Vec<Diagnostic> = vec![];
-
+fn verify_object_ast(
+    ast: &Rc<TypeDeclarationNode>,
+    space: &TypeSpace,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
     for base_identifier in &ast.bases {
         let base_name = &base_identifier.value;
         // Try to resolve the name, report an error on failure.
         match space.resolve_type(base_name) {
             Some(base) if !base.is_object() => {
                 // Base type must be also of object type.
-                result.push(Diagnostic::base_not_object(base_identifier));
+                diagnostics.push(Diagnostic::base_not_object(base_identifier));
             }
             Some(base) => {
                 // Try to find circular bases.
@@ -735,13 +732,14 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
                     let current_id = space.resolve_type(name).unwrap().get_id();
                     seen.insert(current_id);
                     if is_circular(space, &mut seen, current_id, base) {
-                        result.push(Diagnostic::circular_reference(base_identifier))
+                        diagnostics.push(Diagnostic::circular_reference(base_identifier))
                     } else {
                         // Shared fields. (A name that is already present in the bases)
                         for field in &ast.fields {
                             if let Some(field_identifier) = &field.name {
                                 if base.object_has_field(space, &field_identifier.value) {
-                                    result.push(Diagnostic::name_already_in_use(field_identifier));
+                                    diagnostics
+                                        .push(Diagnostic::name_already_in_use(field_identifier));
                                 }
                             }
                         }
@@ -750,7 +748,7 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
             }
             _ => {
                 // Report the error.
-                result.push(Diagnostic::unresolved_name(base_identifier));
+                diagnostics.push(Diagnostic::unresolved_name(base_identifier));
             }
         }
     }
@@ -760,7 +758,7 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
         if let Some(field_name_identifier) = &field.name {
             let field_name = &field_name_identifier.value;
             if seen_names.contains(field_name) {
-                result.push(Diagnostic::name_already_in_use(&field_name_identifier));
+                diagnostics.push(Diagnostic::name_already_in_use(&field_name_identifier));
             }
 
             seen_names.insert(field_name.clone());
@@ -773,7 +771,7 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
                 if !field.nullable {
                     if let Some(ast_type_name) = &ast.name {
                         if ast_type_name.value == *type_name {
-                            result.push(Diagnostic::circular_reference(&type_name_identifier));
+                            diagnostics.push(Diagnostic::circular_reference(&type_name_identifier));
                         }
                     }
                 }
@@ -781,7 +779,7 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
                 match space.resolve_type(type_name) {
                     None => {
                         // Unresolved name error.
-                        result.push(Diagnostic::unresolved_name(&type_name_identifier));
+                        diagnostics.push(Diagnostic::unresolved_name(&type_name_identifier));
                     }
                     _ => {}
                 }
@@ -790,8 +788,6 @@ fn verify_object_ast(ast: &Rc<TypeDeclarationNode>, space: &TypeSpace) -> Vec<Di
             _ => {}
         }
     }
-
-    result
 }
 
 #[inline]

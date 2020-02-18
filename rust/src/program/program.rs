@@ -1,12 +1,10 @@
 use crate::common::Counter;
-use crate::parser::ast::{ActionDeclarationNode, QueryDeclarationNode};
-use crate::parser::ast::{Declaration, PermissionDeclarationNode, TypeDeclarationNode};
+use crate::parser::ast::Declaration;
 use crate::parser::Parser;
 use crate::parser::Source;
 use crate::program::types::MarkusType;
 use crate::program::{Diagnostic, TypeSpace};
 use std::collections::HashMap;
-use std::rc::Rc;
 
 pub struct Program {
     pub source: Source,
@@ -119,15 +117,25 @@ impl Program {
     }
 
     pub fn verify(&mut self) {
-        let mut type_errors = self.type_space.verify();
-        self.diagnostics.append(&mut type_errors);
+        self.type_space.verify(&mut self.diagnostics);
+
+        for declaration in &self.declarations {
+            if let Declaration::Permission(permission_declaration) = declaration {
+                let result = permission_declaration.verify(&mut self.diagnostics, &self.type_space);
+                if let Some(name) = &permission_declaration.name {
+                    self.permission_types
+                        .insert(String::from(&name.value), result);
+                }
+            }
+        }
+
         for declaration in &self.declarations {
             match declaration {
-                Declaration::Query(query) => {
-                    query.verify(&mut self.diagnostics, &self.type_space);
+                Declaration::Query(query_declaration) => {
+                    query_declaration.verify(&mut self.diagnostics, &self.type_space);
                 }
-                Declaration::Permission(permission) => {
-                    permission.verify(&mut self.diagnostics, &self.type_space);
+                Declaration::Action(action_declaration) => {
+                    action_declaration.verify(&mut self.diagnostics, &self.type_space);
                 }
                 _ => {}
             }
