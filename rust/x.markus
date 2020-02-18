@@ -13,7 +13,8 @@ type Object {
 }
 
 permission A() {
-    is(uA)
+    is(uA),
+    sum(.x)
 }
 
 permission B() {

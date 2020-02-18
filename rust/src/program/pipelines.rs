@@ -5,15 +5,19 @@ use crate::program::{Diagnostic, MarkusType};
 
 impl CallNode {
     pub fn apply_pipeline_changes(&self, ctx: &mut VerifierContext) {
-        apply_pipeline_changes(self, ctx);
+        apply_pipeline_changes(self, ctx, ctx.only_filters, false);
     }
 }
 
 #[inline(always)]
-fn apply_pipeline_changes(call: &CallNode, ctx: &mut VerifierContext) {
+fn apply_pipeline_changes(
+    call: &CallNode,
+    ctx: &mut VerifierContext,
+    only_filters: bool,
+    neg: bool,
+) {
     if None == call.callee_name {
         // An error is already reported about this pipeline not having a name.
-        // TODO(qti3e) Still check type of the non-call/query arguments.
         return;
     }
 
@@ -27,7 +31,7 @@ fn apply_pipeline_changes(call: &CallNode, ctx: &mut VerifierContext) {
                 match argument {
                     ValueNode::Call(call) => {
                         ctx.path_enter();
-                        call.apply_pipeline_changes(ctx);
+                        apply_pipeline_changes(call, ctx, true, neg);
                         if ctx.get_current().is_nil() {
                             ctx.diagnostics.push(Diagnostic::reached_nil(call));
                             break;
@@ -48,6 +52,7 @@ fn apply_pipeline_changes(call: &CallNode, ctx: &mut VerifierContext) {
                 match argument {
                     ValueNode::Call(call) => {
                         call.apply_pipeline_changes(ctx);
+                        apply_pipeline_changes(call, ctx, true, neg);
                         if ctx.get_current().is_nil() {
                             ctx.diagnostics.push(Diagnostic::reached_nil(call));
                             break;
@@ -61,11 +66,18 @@ fn apply_pipeline_changes(call: &CallNode, ctx: &mut VerifierContext) {
             }
         }
 
+        ("neg", 1) => match &call.arguments[0] {
+            ValueNode::Call(call) => apply_pipeline_changes(call, ctx, true, !neg),
+            _ => ctx
+                .diagnostics
+                .push(Diagnostic::expected_argument_pipeline(&call.arguments[0])),
+        },
+
         ("is", 1) => match &call.arguments[0] {
             ValueNode::Type(type_reference) => {
                 match ctx.space.resolve_type(&type_reference.name.value) {
                     Some(arg) => {
-                        let filtered_type = ctx.get_current().filter(ctx.space, arg);
+                        let filtered_type = ctx.get_current().filter(ctx.space, arg, neg);
                         ctx.set_current(filtered_type);
                     }
                     _ => {
@@ -144,7 +156,7 @@ fn apply_pipeline_changes(call: &CallNode, ctx: &mut VerifierContext) {
             .diagnostics
             .push(Diagnostic::no_matching_signature(name_id)),
 
-        ("sum", _) if ctx.only_filters => {}
+        ("sum", _) if only_filters => ctx.diagnostics.push(Diagnostic::unresolved_name(name_id)),
         ("sum", 0) => {
             let value_type = ctx.get_current().clone();
             sum_pipeline(ctx, &value_type, call.arguments[0].get_location());

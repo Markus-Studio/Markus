@@ -473,14 +473,15 @@ impl MarkusType {
 
     /// Filters the current type to contain only those that are extended of
     /// the base, it's actually result of the `is(base)` pipeline.
-    pub fn filter(&self, space: &TypeSpace, base: &MarkusType) -> MarkusType {
+    pub fn filter(&self, space: &TypeSpace, base: &MarkusType, neg: bool) -> MarkusType {
         let mut members: HashSet<TypeId> = HashSet::new();
 
         match &self.type_info {
             MarkusTypeInfo::Atomic { id, .. }
             | MarkusTypeInfo::BuiltInObject { id, .. }
             | MarkusTypeInfo::Object { id, .. } => {
-                if self.is(space, base) {
+                let check = self.is(space, base);
+                if if neg { !check } else { check } {
                     members.insert(*id);
                 }
             }
@@ -489,7 +490,8 @@ impl MarkusType {
                 ..
             } => {
                 for member in union_members {
-                    if space.resolve_type_by_id(*member).unwrap().is(space, base) {
+                    let check = space.resolve_type_by_id(*member).unwrap().is(space, base);
+                    if if neg { !check } else { check } {
                         members.insert(*member);
                     }
                 }
@@ -501,7 +503,7 @@ impl MarkusType {
 
         MarkusType {
             dimension: self.dimension,
-            type_info: MarkusTypeInfo::Union { members: members },
+            type_info: MarkusTypeInfo::Union { members },
         }
     }
 
