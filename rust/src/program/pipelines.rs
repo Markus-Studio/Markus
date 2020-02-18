@@ -181,6 +181,90 @@ fn apply_pipeline_changes(
             .diagnostics
             .push(Diagnostic::no_matching_signature(name_id)),
 
+        ("avg", _) if only_filters => ctx.diagnostics.push(Diagnostic::unresolved_name(name_id)),
+        ("avg", 0) => {
+            let value_type = ctx.get_current().clone();
+            avg_pipeline(ctx, &value_type, call.arguments[0].get_location());
+        }
+        ("avg", 1) => match &call.arguments[0] {
+            ValueNode::Access(access_node) => match access_node.base {
+                VariableReferenceNode::Current => {
+                    let field_type = call.arguments[0].get_type(ctx);
+                    avg_pipeline(ctx, &field_type, call.arguments[0].get_location());
+                }
+                _ => {
+                    ctx.diagnostics
+                        .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+                }
+            },
+            _ => {
+                ctx.diagnostics
+                    .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+            }
+        },
+        ("avg", _) => ctx
+            .diagnostics
+            .push(Diagnostic::no_matching_signature(name_id)),
+
+        ("min", _) if only_filters => ctx.diagnostics.push(Diagnostic::unresolved_name(name_id)),
+        ("min", 0) => {
+            let value_type = ctx.get_current().clone();
+            min_pipeline(ctx, &value_type, call.arguments[0].get_location());
+        }
+        ("min", 1) => match &call.arguments[0] {
+            ValueNode::Access(access_node) => match access_node.base {
+                VariableReferenceNode::Current => {
+                    let field_type = call.arguments[0].get_type(ctx);
+                    min_pipeline(ctx, &field_type, call.arguments[0].get_location());
+                }
+                _ => {
+                    ctx.diagnostics
+                        .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+                }
+            },
+            _ => {
+                ctx.diagnostics
+                    .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+            }
+        },
+        ("min", _) => ctx
+            .diagnostics
+            .push(Diagnostic::no_matching_signature(name_id)),
+
+        ("max", _) if only_filters => ctx.diagnostics.push(Diagnostic::unresolved_name(name_id)),
+        ("max", 0) => {
+            let value_type = ctx.get_current().clone();
+            min_pipeline(ctx, &value_type, call.arguments[0].get_location());
+        }
+        ("max", 1) => match &call.arguments[0] {
+            ValueNode::Access(access_node) => match access_node.base {
+                VariableReferenceNode::Current => {
+                    let field_type = call.arguments[0].get_type(ctx);
+                    min_pipeline(ctx, &field_type, call.arguments[0].get_location());
+                }
+                _ => {
+                    ctx.diagnostics
+                        .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+                }
+            },
+            _ => {
+                ctx.diagnostics
+                    .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+            }
+        },
+        ("max", _) => ctx
+            .diagnostics
+            .push(Diagnostic::no_matching_signature(name_id)),
+
+        ("count", _) if only_filters => ctx.diagnostics.push(Diagnostic::unresolved_name(name_id)),
+        ("count", 0) => {
+            let value_type = ctx.get_current().clone();
+            count_pipeline(ctx, &value_type, call.arguments[0].get_location());
+        }
+        ("count", _) => ctx
+            .diagnostics
+            .push(Diagnostic::no_matching_signature(name_id)),
+
         _ => ctx.diagnostics.push(Diagnostic::unresolved_name(name_id)),
     }
 }
@@ -213,4 +297,54 @@ fn sum_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Sp
         String::from("numeric"),
         location,
     ))
+}
+
+#[inline(always)]
+fn avg_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Span) {
+    let number = ctx.space.resolve_type("%number").unwrap();
+
+    if field_type.is(ctx.space, number) {
+        let f64_type = ctx.space.resolve_type("f64").unwrap();
+        ctx.set_current(f64_type.clone());
+        return;
+    }
+
+    ctx.diagnostics.push(Diagnostic::mismatched_types(
+        field_type.to_string(ctx.space),
+        String::from("numeric"),
+        location,
+    ));
+}
+
+#[inline(always)]
+fn min_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Span) {
+    let number = ctx.space.resolve_type("%number").unwrap();
+
+    if field_type.is(ctx.space, number) {
+        ctx.set_current(field_type.clone());
+        return;
+    }
+
+    ctx.diagnostics.push(Diagnostic::mismatched_types(
+        field_type.to_string(ctx.space),
+        String::from("numeric"),
+        location,
+    ));
+}
+
+#[inline(always)]
+fn count_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Span) {
+    let number = ctx.space.resolve_type("%number").unwrap();
+
+    if field_type.is(ctx.space, number) {
+        let u32_type = ctx.space.resolve_type("u32").unwrap();
+        ctx.set_current(u32_type.clone());
+        return;
+    }
+
+    ctx.diagnostics.push(Diagnostic::mismatched_types(
+        field_type.to_string(ctx.space),
+        String::from("numeric"),
+        location,
+    ));
 }

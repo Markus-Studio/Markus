@@ -82,6 +82,10 @@ impl TypeSpace {
         space.define_one_of("%neg-int", vec![i32_id, i64_id]);
         space.define_one_of("%int", vec![i32_id, i64_id, u32_id, u64_id]);
         space.define_one_of("%float", vec![f32_id, f64_id]);
+        space.define_one_of(
+            "%number",
+            vec![i32_id, i64_id, u32_id, u64_id, f32_id, f64_id],
+        );
         space
     }
 

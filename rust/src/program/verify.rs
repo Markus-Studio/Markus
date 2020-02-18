@@ -184,8 +184,7 @@ fn create_user_type(
         let mut result = MarkusType::new_union(Vec::with_capacity(0));
 
         for permission in permissions {
-            // We don't report any resolving nor binding errors here, they're already
-            // handled in the program verifier.
+            // TODO(qti3e) Report resolving and binding errors.
             if let Some(call) = &permission.call {
                 if let Some(callee_name) = &call.callee_name {
                     if let Some(result_type) = permission_types.get(&callee_name.value) {
