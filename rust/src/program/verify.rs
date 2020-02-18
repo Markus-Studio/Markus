@@ -122,7 +122,7 @@ impl PermissionDeclarationNode {
     pub fn verify<'a>(
         &self,
         diagnostics: &mut Vec<Diagnostic>,
-        space: &'a TypeSpace,
+        space: &'a mut TypeSpace,
     ) -> MarkusType {
         let mut ctx = VerifierContext::new(
             diagnostics,

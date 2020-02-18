@@ -265,6 +265,29 @@ fn apply_pipeline_changes(
             .diagnostics
             .push(Diagnostic::no_matching_signature(name_id)),
 
+        ("groupBy", _) if only_filters => {
+            ctx.diagnostics.push(Diagnostic::unresolved_name(name_id))
+        }
+        ("groupBy", 1) => match &call.arguments[0] {
+            ValueNode::Access(access_node) => match access_node.base {
+                VariableReferenceNode::Current => {
+                    let field_type = call.arguments[0].get_type(ctx);
+                    let inner_type = ctx.get_current();
+                }
+                _ => {
+                    ctx.diagnostics
+                        .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+                }
+            },
+            _ => {
+                ctx.diagnostics
+                    .push(Diagnostic::expected_argument_field(&call.arguments[0]));
+            }
+        },
+        ("groupBy", _) => ctx
+            .diagnostics
+            .push(Diagnostic::no_matching_signature(name_id)),
+
         _ => ctx.diagnostics.push(Diagnostic::unresolved_name(name_id)),
     }
 }

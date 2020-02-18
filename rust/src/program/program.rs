@@ -121,7 +121,8 @@ impl Program {
 
         for declaration in &self.declarations {
             if let Declaration::Permission(permission_declaration) = declaration {
-                let result = permission_declaration.verify(&mut self.diagnostics, &self.type_space);
+                let result =
+                    permission_declaration.verify(&mut self.diagnostics, &mut self.type_space);
                 if let Some(name) = &permission_declaration.name {
                     self.permission_types
                         .insert(String::from(&name.value), result);
