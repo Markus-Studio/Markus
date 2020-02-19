@@ -1,8 +1,6 @@
 #![allow(dead_code)]
-use crate::program::{MarkusType, TypeId};
+use crate::program::{MarkusType, Program, TypeId};
 use std::collections::{HashMap, HashSet};
-
-type FieldId = u32;
 
 pub enum MarkusFunction {
     Add,
@@ -190,9 +188,10 @@ pub enum InternalTypes {
     STRING = 7,
     BOOL = 8,
     TIME = 9,
+    NULL = 10,
 }
 
-pub struct Program {
+pub struct IRProgram {
     type_names: HashMap<TypeId, String>,
     field_names: HashMap<FieldId, String>,
     user_types: HashSet<TypeId>,
@@ -256,4 +255,8 @@ impl Funnel {
             Funnel::Select { .. } => FunnelKind::Map,
         }
     }
+}
+
+impl IRProgram {
+    pub fn new(program: Program) {}
 }

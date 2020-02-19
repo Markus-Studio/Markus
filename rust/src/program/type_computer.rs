@@ -52,6 +52,7 @@ impl ValueNode {
                     }
                 }
             }
+            ValueNode::Call(call) => call.get_type(ctx),
             _ => panic!("Not implemented."),
         }
     }
