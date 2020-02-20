@@ -20,8 +20,12 @@ impl<T> Matrix<T> {
         self.data[self.col * r + c]
     }
 
-    pub fn set(&self, r: usize, c: usize, value: T) {
+    pub fn set(&mut self, r: usize, c: usize, value: T) {
         assert!(r < self.row && c < self.col);
         self.data[self.col * r + c] = value;
+    }
+
+    pub fn get_dimensions(&self) -> (usize, usize) {
+        (self.row, self.col)
     }
 }
