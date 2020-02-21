@@ -42,7 +42,7 @@ pub struct MarkusType {
 
 pub struct TypeSpace {
     type_names: BiMap<String, TypeId>,
-    types: HashMap<TypeId, MarkusType>,
+    pub types: HashMap<TypeId, MarkusType>,
     last_type_id: TypeId,
 }
 
