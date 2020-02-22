@@ -67,19 +67,24 @@ impl IrTypeSpace {
             name_a.partial_cmp(name_b).unwrap()
         });
 
-        for ast in object_types {
+        let objects_map: HashMap<String, Rc<TypeDeclarationNode>> = object_types
+            .iter()
+            .map(|o| (o.name.as_ref().unwrap().value.clone(), o.clone()))
+            .collect();
+
+        for ast in &object_types {
             result.add_type(&ast)
         }
 
-        // let objects_map: HashMap<String, TypeDeclarationNode> = object_types
-        //     .iter()
-        //     .map(|o| (o.name.unwrap().value, o.clone()))
-        //     .collect();
+        for ast in &object_types {
+            let name = &ast.name.as_ref().unwrap().value;
+            let id = result.new_type_id(name);
+            result.visit_bases(&objects_map, id, &ast);
+        }
 
-        // for ast in object_types {
-        //     let id = result.new_type_id(ast.name.unwrap().value);
-        //     result.visit_bases(&objects_map, id, &ast);
-        // }
+        for i in 0..reserved {
+            result.base_graph.set(i, i, true);
+        }
 
         result
     }
@@ -104,6 +109,17 @@ impl IrTypeSpace {
         root: WordId,
         ast: &TypeDeclarationNode,
     ) {
+        for base in &ast.bases {
+            let base_name = &base.value;
+            let base_id = self.new_type_id(base_name);
+            self.base_graph.set(root as usize, base_id as usize, true);
+            match objects_map.get(base_name) {
+                Some(base_ast) => {
+                    self.visit_bases(objects_map, root, base_ast);
+                }
+                None => {} // Internal objects.
+            }
+        }
     }
 
     fn get_type(&mut self, name: &str) -> IrType {
