@@ -1096,13 +1096,7 @@ impl<'a> Parser<'a> {
                     None
                 }
             },
-            Some(TokenKind::Parameter) => Some(ActionBase::Variable(
-                self.parse_identifier_from_parameter(vec![]).unwrap(),
-            )),
-            Some(TokenKind::InternalVariable) => Some(ActionBase::Variable(
-                self.parse_identifier_from_internal_variable(vec![])
-                    .unwrap(),
-            )),
+            Some(_) => Some(ActionBase::Access(self.consume_access())),
             _ => None,
         }
     }
