@@ -2,8 +2,8 @@ use crate::common::Matrix;
 use crate::parser::ast::TypeDeclarationNode;
 use crate::program::{MarkusTypeInfo, TypeSpace};
 use bimap::BiMap;
-use std::collections::HashMap;
 use std::collections::hash_map::RandomState;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 type WordId = u32;
@@ -36,18 +36,19 @@ impl IrTypeSpace {
     pub fn from_type_space(space: &TypeSpace) -> IrTypeSpace {
         let mut object_types: Vec<Rc<TypeDeclarationNode>> = Vec::new();
         for (_, markus_type) in &space.types {
-            match markus_type.type_info {
+            match &markus_type.type_info {
                 MarkusTypeInfo::Object { ast, .. } => {
-                    object_types.push(ast);
+                    object_types.push(ast.clone());
                 }
                 _ => {}
             }
         }
 
+        let reserved = 10;
         let n = object_types.len();
 
         let mut result = IrTypeSpace {
-            base_graph: Matrix::new(n, n, false),
+            base_graph: Matrix::new(n + reserved, n + reserved, false),
             type_names: BiMap::new(),
             field_names: BiMap::new(),
             objects: HashMap::with_capacity_and_hasher(n, RandomState::new()),
@@ -55,29 +56,73 @@ impl IrTypeSpace {
             last_type_id: 0,
         };
 
+        // Internals.
+        result.new_type_id(&String::from("user"));
+        result.new_type_id(&String::from("geo"));
+        result.last_type_id = reserved as u32;
+
+        object_types.sort_by(|a, b| {
+            let name_a = &a.name.as_ref().unwrap().value;
+            let name_b = &b.name.as_ref().unwrap().value;
+            name_a.partial_cmp(name_b).unwrap()
+        });
+
         for ast in object_types {
             result.add_type(&ast)
         }
 
-        for ast in object_types {
-            result.visit_bases(&ast);
-        }
+        // let objects_map: HashMap<String, TypeDeclarationNode> = object_types
+        //     .iter()
+        //     .map(|o| (o.name.unwrap().value, o.clone()))
+        //     .collect();
+
+        // for ast in object_types {
+        //     let id = result.new_type_id(ast.name.unwrap().value);
+        //     result.visit_bases(&objects_map, id, &ast);
+        // }
 
         result
     }
 
     fn add_type(&mut self, ast: &TypeDeclarationNode) {
-        let id = self.new_type_id(ast.name.unwrap().value);
-
+        let name = &ast.name.as_ref().unwrap().value;
+        let id = self.new_type_id(name);
+        let mut fields = HashMap::<WordId, (IrType, bool)>::new();
+        for field in &ast.fields {
+            let field_name = &field.name.as_ref().unwrap().value;
+            let type_name = &field.type_name.as_ref().unwrap().value;
+            let field_id = self.new_field_id(field_name);
+            let field_type = self.get_type(type_name);
+            fields.insert(field_id, (field_type, field.nullable));
+        }
+        self.objects.insert(id, fields);
     }
 
-    fn visit_bases(&mut self, ast: &TypeDeclarationNode) {
-
+    fn visit_bases(
+        &mut self,
+        objects_map: &HashMap<String, Rc<TypeDeclarationNode>>,
+        root: WordId,
+        ast: &TypeDeclarationNode,
+    ) {
     }
 
-    fn new_type_id(&mut self, name: String) -> WordId {
+    fn get_type(&mut self, name: &str) -> IrType {
+        match name {
+            "i32" => IrType::I32,
+            "i64" => IrType::I64,
+            "u32" => IrType::U32,
+            "u64" => IrType::U64,
+            "f32" => IrType::F32,
+            "f64" => IrType::F64,
+            "bool" => IrType::Bool,
+            "string" => IrType::Str,
+            _ => IrType::Object(self.new_type_id(&String::from(name))),
+        }
+    }
+
+    fn new_type_id(&mut self, name: &String) -> WordId {
         match self.type_names.get_by_left(&name) {
-            Some(id) => panic!("Type names are supposed to be unique."),
+            Some(id) => *id,
             None => {
                 let id = self.last_type_id;
                 self.last_type_id += 1;
@@ -87,7 +132,7 @@ impl IrTypeSpace {
         }
     }
 
-    fn new_field_id(&mut self, name: String) -> WordId {
+    fn new_field_id(&mut self, name: &String) -> WordId {
         match self.field_names.get_by_left(&name) {
             Some(id) => *id,
             None => {

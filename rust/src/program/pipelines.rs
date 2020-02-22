@@ -332,22 +332,22 @@ fn apply_pipeline_changes(
 fn sum_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Span) {
     let unsigned_type = ctx.space.resolve_type("%unsigned-int").unwrap();
     if field_type.is(ctx.space, unsigned_type) {
-        let u64_type = ctx.space.resolve_type("u64").unwrap();
-        ctx.set_current(u64_type.clone());
+        let u64_type = ctx.space.resolve_type("u64").unwrap().clone();
+        ctx.set_current(u64_type);
         return;
     }
 
     let int_type = ctx.space.resolve_type("%int").unwrap();
     if field_type.is(ctx.space, int_type) {
-        let i64_type = ctx.space.resolve_type("i64").unwrap();
-        ctx.set_current(i64_type.clone());
+        let i64_type = ctx.space.resolve_type("i64").unwrap().clone();
+        ctx.set_current(i64_type);
         return;
     }
 
     let float_type = ctx.space.resolve_type("%float").unwrap();
     if field_type.is(ctx.space, float_type) {
-        let f64_type = ctx.space.resolve_type("f64").unwrap();
-        ctx.set_current(f64_type.clone());
+        let f64_type = ctx.space.resolve_type("f64").unwrap().clone();
+        ctx.set_current(f64_type);
         return;
     }
 
@@ -363,8 +363,8 @@ fn avg_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Sp
     let number = ctx.space.resolve_type("%number").unwrap();
 
     if field_type.is(ctx.space, number) {
-        let f64_type = ctx.space.resolve_type("f64").unwrap();
-        ctx.set_current(f64_type.clone());
+        let f64_type = ctx.space.resolve_type("f64").unwrap().clone();
+        ctx.set_current(f64_type);
         return;
     }
 
@@ -396,8 +396,8 @@ fn count_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: 
     let number = ctx.space.resolve_type("%number").unwrap();
 
     if field_type.is(ctx.space, number) {
-        let u32_type = ctx.space.resolve_type("u32").unwrap();
-        ctx.set_current(u32_type.clone());
+        let u32_type = ctx.space.resolve_type("u32").unwrap().clone();
+        ctx.set_current(u32_type);
         return;
     }
 

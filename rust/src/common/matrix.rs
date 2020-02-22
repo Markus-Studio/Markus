@@ -4,10 +4,13 @@ pub struct Matrix<T> {
     data: Vec<T>,
 }
 
-impl<T> Matrix<T> {
+impl<T> Matrix<T>
+where
+    T: Copy,
+{
     pub fn new(row: usize, col: usize, default: T) -> Matrix<T> {
         let size = row * col;
-        let data = Vec::with_capacity(size);
+        let mut data = Vec::with_capacity(size);
         for _ in 0..size {
             data.push(default);
         }
