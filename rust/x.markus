@@ -5,6 +5,6 @@ type Student {
 
 query X() {
     groupBy(.age, {
-        avg(.scorXe)
+        avg(.score)
     })
 }

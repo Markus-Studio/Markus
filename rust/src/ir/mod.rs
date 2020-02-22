@@ -1,2 +1,2 @@
-mod selection;
-mod typespace;
+pub mod selection;
+pub mod typespace;

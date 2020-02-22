@@ -7,7 +7,6 @@ impl CallNode {
     pub fn apply_pipeline_changes(&self, ctx: &mut VerifierContext) {
         apply_pipeline_changes(self, ctx, ctx.only_filters, false);
         let current = ctx.get_current();
-        println!("Q {}", current.to_string(ctx.space));
     }
 }
 
