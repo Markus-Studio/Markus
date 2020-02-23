@@ -4,6 +4,6 @@ type Student {
     name: string;
 }
 
-query X() {
-    eq(.age, 3 + 82 * 921)
+query X($p: string) allow p() {
+    eq(.age, floor(3 + 82))
 }

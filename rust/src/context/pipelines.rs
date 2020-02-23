@@ -1,22 +1,17 @@
+use crate::context::Context;
 use crate::parser::ast::{CallNode, ValueNode, VariableReferenceNode};
 use crate::parser::Span;
-use crate::program::verify::VerifierContext;
 use crate::program::{Diagnostic, MarkusType};
 
 impl CallNode {
-    pub fn apply_pipeline_changes(&self, ctx: &mut VerifierContext) {
+    pub fn apply_pipeline_changes(&self, ctx: &mut Context) {
         apply_pipeline_changes(self, ctx, ctx.only_filters, false);
         let current = ctx.get_current();
     }
 }
 
 #[inline(always)]
-fn apply_pipeline_changes(
-    call: &CallNode,
-    ctx: &mut VerifierContext,
-    only_filters: bool,
-    neg: bool,
-) {
+fn apply_pipeline_changes(call: &CallNode, ctx: &mut Context, only_filters: bool, neg: bool) {
     if None == call.callee_name {
         // An error is already reported about this pipeline not having a name.
         return;
@@ -336,7 +331,7 @@ fn apply_pipeline_changes(
 }
 
 #[inline(always)]
-fn sum_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Span) {
+fn sum_pipeline(ctx: &mut Context, field_type: &MarkusType, location: Span) {
     let unsigned_type = ctx.space.resolve_type("%unsigned-int").unwrap();
     if field_type.is(ctx.space, unsigned_type) {
         let u64_type = ctx.space.resolve_type("u64").unwrap().clone();
@@ -366,7 +361,7 @@ fn sum_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Sp
 }
 
 #[inline(always)]
-fn avg_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Span) {
+fn avg_pipeline(ctx: &mut Context, field_type: &MarkusType, location: Span) {
     let number = ctx.space.resolve_type("%number").unwrap();
 
     if field_type.is(ctx.space, number) {
@@ -383,7 +378,7 @@ fn avg_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Sp
 }
 
 #[inline(always)]
-fn min_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Span) {
+fn min_pipeline(ctx: &mut Context, field_type: &MarkusType, location: Span) {
     let number = ctx.space.resolve_type("%number").unwrap();
 
     if field_type.is(ctx.space, number) {
@@ -399,7 +394,7 @@ fn min_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Sp
 }
 
 #[inline(always)]
-fn count_pipeline(ctx: &mut VerifierContext, field_type: &MarkusType, location: Span) {
+fn count_pipeline(ctx: &mut Context, field_type: &MarkusType, location: Span) {
     let number = ctx.space.resolve_type("%number").unwrap();
 
     if field_type.is(ctx.space, number) {

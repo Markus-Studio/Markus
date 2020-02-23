@@ -6,8 +6,3 @@ pub use program::*;
 
 mod types;
 pub use types::*;
-
-mod functions;
-mod pipelines;
-mod type_computer;
-mod verify;

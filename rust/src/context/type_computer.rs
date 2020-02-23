@@ -1,9 +1,9 @@
+use crate::context::Context;
 use crate::parser::ast::{IntLiteralNode, QueryNode, ValueNode, VariableReferenceNode};
-use crate::program::verify::VerifierContext;
 use crate::program::{Diagnostic, MarkusType};
 
 impl VariableReferenceNode {
-    pub fn get_type(&self, ctx: &mut VerifierContext) -> MarkusType {
+    pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
         match self {
             VariableReferenceNode::Current => {
                 let current = ctx.get_current();
@@ -23,7 +23,7 @@ impl VariableReferenceNode {
 
 impl ValueNode {
     /// Computes and returns type of this value.
-    pub fn get_type(&self, ctx: &mut VerifierContext) -> MarkusType {
+    pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
         match self {
             ValueNode::Int(IntLiteralNode { neg, .. }) => {
                 if *neg {
@@ -59,7 +59,7 @@ impl ValueNode {
 }
 
 impl QueryNode {
-    pub fn get_type(&self, ctx: &mut VerifierContext) -> MarkusType {
+    pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
         for pipeline in &self.pipelines {
             pipeline.apply_pipeline_changes(ctx);
             if ctx.get_current().is_nil() {

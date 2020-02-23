@@ -3,7 +3,7 @@ use crate::parser::ast::{GuardNode, ParameterNode, PermissionDeclarationNode};
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
 use std::collections::HashMap;
 
-pub struct VerifierContext<'a> {
+pub struct Context<'a> {
     pub space: &'a mut TypeSpace,
     pub diagnostics: &'a mut Vec<Diagnostic>,
     pub symbol_table: HashMap<String, MarkusType>,
@@ -12,7 +12,7 @@ pub struct VerifierContext<'a> {
     current: Vec<MarkusType>,
 }
 
-impl<'a> VerifierContext<'a> {
+impl<'a> Context<'a> {
     #[inline(always)]
     pub fn new(
         diagnostics: &'a mut Vec<Diagnostic>,
@@ -20,7 +20,7 @@ impl<'a> VerifierContext<'a> {
         input_type: MarkusType,
         only_filters: bool,
         parameters: &Vec<ParameterNode>,
-    ) -> VerifierContext<'a> {
+    ) -> Context<'a> {
         let mut symbol_table = HashMap::new();
         let null_id = space.resolve_type("null").unwrap().get_id();
         for parameter in parameters {
@@ -57,7 +57,7 @@ impl<'a> VerifierContext<'a> {
             }
         }
 
-        VerifierContext {
+        Context {
             space,
             diagnostics,
             only_filters,
@@ -120,7 +120,7 @@ impl PermissionDeclarationNode {
         diagnostics: &mut Vec<Diagnostic>,
         space: &'a mut TypeSpace,
     ) -> MarkusType {
-        let mut ctx = VerifierContext::new(
+        let mut ctx = Context::new(
             diagnostics,
             space,
             space.get_permission_input_type(),
@@ -139,7 +139,7 @@ impl QueryDeclarationNode {
         permissions: &'a HashMap<String, MarkusType>,
     ) -> MarkusType {
         let default_user_type = space.get_permission_input_type();
-        let mut ctx = VerifierContext::new(
+        let mut ctx = Context::new(
             diagnostics,
             space,
             space.get_query_input_type(),

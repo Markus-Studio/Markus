@@ -1,15 +1,15 @@
+use crate::context::Context;
 use crate::parser::ast::{CallNode, ValueNode};
-use crate::program::verify::VerifierContext;
 use crate::program::{Diagnostic, MarkusType, MarkusTypeInfo};
 
 impl CallNode {
-    pub fn get_type(&self, ctx: &mut VerifierContext) -> MarkusType {
+    pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
         get_type(self, ctx)
     }
 }
 
 #[inline(always)]
-fn get_type(call: &CallNode, ctx: &mut VerifierContext) -> MarkusType {
+fn get_type(call: &CallNode, ctx: &mut Context) -> MarkusType {
     if None == call.callee_name {
         // An error is already reported about this pipeline not having a name.
         return MarkusType::new_union(Vec::with_capacity(0));
@@ -81,7 +81,7 @@ fn get_type(call: &CallNode, ctx: &mut VerifierContext) -> MarkusType {
 
 #[inline(always)]
 fn mix_binary_numeric(
-    ctx: &mut VerifierContext,
+    ctx: &mut Context,
     lhs: &ValueNode,
     rhs: &ValueNode,
     div: bool,
@@ -114,7 +114,7 @@ fn mix_binary_numeric(
 
 #[inline(always)]
 fn get_binary_type(
-    ctx: &mut VerifierContext,
+    ctx: &mut Context,
     lhs_type: &MarkusType,
     rhs_type: &MarkusType,
     div: bool,
