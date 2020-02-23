@@ -1,10 +1,8 @@
 type Student {
     age: u32;
-    score: u32;
+    score: u64;
 }
 
 query X() {
-    groupBy(.age, {
-        avg(.score)
-    })
+    eq(.age, add(3, div(5, 8)))
 }

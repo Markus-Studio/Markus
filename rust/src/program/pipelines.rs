@@ -52,7 +52,6 @@ fn apply_pipeline_changes(
             for argument in &call.arguments {
                 match argument {
                     ValueNode::Call(call) => {
-                        call.apply_pipeline_changes(ctx);
                         apply_pipeline_changes(call, ctx, true, neg);
                         if ctx.get_current().is_nil() {
                             ctx.diagnostics.push(Diagnostic::reached_nil(call));
@@ -67,7 +66,7 @@ fn apply_pipeline_changes(
             }
         }
 
-        ("neg", 1) => match &call.arguments[0] {
+        ("not", 1) => match &call.arguments[0] {
             ValueNode::Call(call) => apply_pipeline_changes(call, ctx, true, !neg),
             _ => ctx
                 .diagnostics

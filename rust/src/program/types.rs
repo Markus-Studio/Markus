@@ -8,16 +8,18 @@ use std::rc::Rc;
 /// every type space, it is used to prevent copying tons of strings.
 pub type TypeId = u32;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum MarkusTypeInfo {
     Atomic {
         id: TypeId,
+        name: String,
     },
     Union {
         members: HashSet<TypeId>,
     },
     OneOf {
         id: TypeId,
+        name: String,
         cases: HashSet<TypeId>,
     },
     BuiltInObject {
@@ -145,7 +147,10 @@ impl TypeSpace {
         let id = self.get_type_id_or_create(name);
         let markus_type = MarkusType {
             dimension: 0,
-            type_info: MarkusTypeInfo::Atomic { id: id },
+            type_info: MarkusTypeInfo::Atomic {
+                id,
+                name: String::from(name),
+            },
         };
         self.define_type(id, markus_type);
         id
@@ -158,6 +163,7 @@ impl TypeSpace {
             dimension: 0,
             type_info: MarkusTypeInfo::OneOf {
                 id,
+                name: String::from(name),
                 cases: cases.into_iter().collect(),
             },
         };
@@ -337,14 +343,14 @@ impl MarkusType {
                 false
             }
             (
-                MarkusTypeInfo::Atomic { id: ref lhs_id },
-                MarkusTypeInfo::Atomic { id: ref rhs_id },
+                MarkusTypeInfo::Atomic { id: ref lhs_id, .. },
+                MarkusTypeInfo::Atomic { id: ref rhs_id, .. },
             ) => {
                 // Two atomic types are considered to be same if and only if
                 // they share the same id.
                 lhs_id == rhs_id
             }
-            (MarkusTypeInfo::Atomic { ref id }, MarkusTypeInfo::Union { ref members }) => {
+            (MarkusTypeInfo::Atomic { ref id, .. }, MarkusTypeInfo::Union { ref members }) => {
                 // `x is T: {A, B, ...}` holds true for all x-es that are in the T.
                 for member in members {
                     if member == id {
@@ -367,7 +373,7 @@ impl MarkusType {
                 // An atomic type is only assignable to another atomic.
                 false
             }
-            (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Atomic { ref id }) => {
+            (MarkusTypeInfo::Union { ref members }, MarkusTypeInfo::Atomic { ref id, .. }) => {
                 // `T: {A, B, ...} is x` if and only if T = {x}
                 if members.len() != 1 {
                     return false;
@@ -446,7 +452,7 @@ impl MarkusType {
     /// If the type is an union and has no id.
     pub fn get_id(&self) -> TypeId {
         match self.type_info {
-            MarkusTypeInfo::Atomic { id } => id,
+            MarkusTypeInfo::Atomic { id, .. } => id,
             MarkusTypeInfo::BuiltInObject { id, .. } => id,
             MarkusTypeInfo::Object { id, .. } => id,
             MarkusTypeInfo::OneOf { id, .. } => id,
@@ -479,7 +485,7 @@ impl MarkusType {
                 MarkusTypeInfo::BuiltInObject { id, .. }
                 | MarkusTypeInfo::Object { id, .. }
                 | MarkusTypeInfo::OneOf { id, .. }
-                | MarkusTypeInfo::Atomic { id } => {
+                | MarkusTypeInfo::Atomic { id, .. } => {
                     members.insert(id);
                 }
                 MarkusTypeInfo::Union {
