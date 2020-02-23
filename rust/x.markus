@@ -1,8 +1,9 @@
 type Student {
     age: u32;
     score: u64;
+    name: string;
 }
 
 query X() {
-    eq(.age, add(3, ceil(div(5, 8))))
+    eq(.age, 3 + 82 * 921)
 }

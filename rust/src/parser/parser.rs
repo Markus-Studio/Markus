@@ -31,14 +31,14 @@ impl<'a> Parser<'a> {
     }
 
     /// Consume the current token and move one token forward.
-    #[inline]
+    #[inline(always)]
     fn advance(&mut self, n: usize) {
         self.current_token_index += n;
     }
 
     /// Returns the n-th token from the current position, calling it with n = 0
     /// is equivalent of calling current as it returns the current token.
-    #[inline]
+    #[inline(always)]
     fn lookahead(&mut self, n: usize) -> Option<Token> {
         while self.current_token_index + n >= self.tokens.len() {
             match self.tokenizer.next() {
@@ -57,12 +57,12 @@ impl<'a> Parser<'a> {
     }
 
     /// Returns the current token.
-    #[inline]
+    #[inline(always)]
     fn current(&mut self) -> Option<Token> {
         self.lookahead(0)
     }
 
-    #[inline]
+    #[inline(always)]
     fn current_source_position(&mut self) -> usize {
         match self.current() {
             Some(token) => token.position.offset,
@@ -81,27 +81,27 @@ impl<'a> Parser<'a> {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn last_token_end_source_position(&self) -> usize {
         debug_assert!(self.current_token_index > 0);
         let index = self.current_token_index - 1;
         self.tokens[index].position.offset + self.tokens[index].position.size
     }
 
-    #[inline]
+    #[inline(always)]
     fn get_location(&self, start: usize) -> Span {
         Span::from_positions(start, self.last_token_end_source_position())
     }
 
     /// Pushes the current parser state into the state_stack.
-    #[inline]
+    #[inline(always)]
     fn store(&mut self) {
         self.state_stack
             .push((self.current_token_index, self.diagnostics.len()));
     }
 
     /// Restores the last previously stored state.
-    #[inline]
+    #[inline(always)]
     fn restore(&mut self) {
         let (token_index, diagnostics_len) = self.state_stack.pop().unwrap();
         self.current_token_index = token_index;
@@ -109,14 +109,14 @@ impl<'a> Parser<'a> {
     }
 
     /// Reports a diagnostic.
-    #[inline]
+    #[inline(always)]
     fn report(&mut self, diagnostic: Diagnostic) {
         self.diagnostics.push(diagnostic);
     }
 
     /// Finds the first token of the given kind and returns the kind it does
     /// not consume the current token.
-    #[inline]
+    #[inline(always)]
     fn find_first_of(
         &mut self,
         kind: &Vec<TokenKind>,
@@ -146,7 +146,7 @@ impl<'a> Parser<'a> {
     /// Expects the current token to be of the given kind, if so it consumes
     /// the current token and returns it otherwise reports an error and returns
     /// `None` and also consumes the token if it's not in the `skip` vector.
-    #[inline]
+    #[inline(always)]
     fn expect(&mut self, kind: TokenKind, breaks: Vec<TokenKind>) -> Option<Token> {
         debug_assert!(!breaks.contains(&kind));
         match self.current() {
@@ -173,7 +173,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Like `expect()` but does not report an error.
-    #[inline]
+    #[inline(always)]
     fn expect_optional(&mut self, kind: TokenKind, breaks: Vec<TokenKind>) -> Option<Token> {
         self.store();
         match self.expect(kind, breaks) {
@@ -185,7 +185,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn collect_separated_by<T, F: Fn(&mut Parser) -> Option<T>>(
         &mut self,
         result: &mut Vec<T>,
@@ -649,8 +649,8 @@ impl<'a> Parser<'a> {
         }
     }
 
-    #[inline]
-    fn parse_value(&mut self) -> Option<ValueNode> {
+    #[inline(always)]
+    fn parse_value_primary(&mut self) -> Option<ValueNode> {
         match self.find_first_of(
             &vec![
                 TokenKind::Dot,
@@ -686,7 +686,68 @@ impl<'a> Parser<'a> {
         }
     }
 
+    #[inline(always)]
+    fn parse_value_0(&mut self, lhs_: Option<ValueNode>, min_precedence: i8) -> Option<ValueNode> {
+        let mut lookahead = self.current();
+        let mut lhs = lhs_;
+        println!("LHS {:?}", lhs);
+        println!("LK1 {:?}", lookahead);
+        loop {
+            if let Some(token) = lookahead {
+                let precedence = get_precedence(token.kind);
+                if precedence < min_precedence {
+                    break;
+                }
+
+                let op = token;
+                self.advance(1);
+                let mut rhs = self.parse_value_primary();
+
+                lookahead = self.current();
+                while lookahead.is_some() && get_precedence(lookahead.unwrap().kind) > precedence {
+                    rhs = self.parse_value_0(rhs, precedence);
+                    lookahead = self.current();
+                }
+
+                let mut start = op.position.offset;
+                let mut arguments = Vec::with_capacity(2);
+                if let Some(arg) = lhs {
+                    start = arg.get_location().offset;
+                    arguments.push(arg);
+                }
+
+                if let Some(arg) = rhs {
+                    arguments.push(arg);
+                }
+
+                lhs = Some(ValueNode::Call(CallNode {
+                    location: self.get_location(start),
+                    callee_name: Some(IdentifierNode {
+                        location: op.position,
+                        value: String::from(match op.kind {
+                            TokenKind::Add => "add",
+                            TokenKind::Sub => "sub",
+                            TokenKind::Mul => "mul",
+                            TokenKind::Div => "div",
+                            _ => unimplemented!(),
+                        }),
+                    }),
+                    arguments,
+                }))
+            } else {
+                break;
+            }
+        }
+        lhs
+    }
+
     #[inline]
+    fn parse_value(&mut self) -> Option<ValueNode> {
+        let lhs = self.parse_value_primary();
+        self.parse_value_0(lhs, 0)
+    }
+
+    #[inline(always)]
     fn parse_call(&mut self) -> CallNode {
         let start = self.current_source_position();
         let mut arguments: Vec<ValueNode> = vec![];
@@ -1338,5 +1399,16 @@ impl<'a> Parser<'a> {
             ))),
             _ => None,
         }
+    }
+}
+
+#[inline(always)]
+fn get_precedence(kind: TokenKind) -> i8 {
+    match kind {
+        TokenKind::Add => 1,
+        TokenKind::Sub => 1,
+        TokenKind::Mul => 2,
+        TokenKind::Div => 2,
+        _ => -1,
     }
 }

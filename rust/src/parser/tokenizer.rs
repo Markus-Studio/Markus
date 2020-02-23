@@ -20,6 +20,14 @@ pub enum TokenKind {
     Colon,
     /// `?` Token.
     Question,
+    /// `+` Token.
+    Add,
+    /// `-` Token.
+    Sub,
+    /// `\` Token.
+    Div,
+    /// `*` Token.
+    Mul,
     /// An identifier token.
     Identifier,
     /// $[identifier] Token.
@@ -289,6 +297,22 @@ impl<'a> Tokenizer<'a> {
             '?' => {
                 self.advance(1);
                 Some(Token::new(TokenKind::Question, start, 1))
+            }
+            '+' => {
+                self.advance(1);
+                Some(Token::new(TokenKind::Add, start, 1))
+            }
+            '-' => {
+                self.advance(1);
+                Some(Token::new(TokenKind::Sub, start, 1))
+            }
+            '\\' => {
+                self.advance(1);
+                Some(Token::new(TokenKind::Div, start, 1))
+            }
+            '*' => {
+                self.advance(1);
+                Some(Token::new(TokenKind::Mul, start, 1))
             }
             '.' => {
                 self.advance(1);

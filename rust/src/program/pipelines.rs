@@ -140,14 +140,23 @@ fn apply_pipeline_changes(
                             rhs.get_location(),
                         ))
                     }
-                    let int_type = ctx.space.resolve_type("%int").unwrap();
-                    let float_type = ctx.space.resolve_type("%float").unwrap();
-                    if !(lhs_type.is(ctx.space, int_type) || lhs_type.is(ctx.space, float_type)) {
+
+                    let number_type = ctx.space.resolve_type("%number").unwrap();
+
+                    if !lhs_type.is(ctx.space, number_type) {
                         ctx.diagnostics.push(Diagnostic::mismatched_types(
                             lhs_type.to_string(ctx.space),
-                            String::from("(%int | %float)"),
+                            String::from("%number"),
+                            lhs.get_location(),
+                        ));
+                    }
+
+                    if !rhs_type.is(ctx.space, number_type) {
+                        ctx.diagnostics.push(Diagnostic::mismatched_types(
+                            rhs_type.to_string(ctx.space),
+                            String::from("%number"),
                             rhs.get_location(),
-                        ))
+                        ));
                     }
                 }
             }

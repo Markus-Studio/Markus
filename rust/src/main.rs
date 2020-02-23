@@ -13,6 +13,8 @@ fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     program.parse();
     program.verify();
 
+    println!("{:#?}", program.declarations);
+
     if !program.is_good() {
         eprintln!("{:#?}", program.diagnostics);
         return Ok(());
