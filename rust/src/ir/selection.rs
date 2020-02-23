@@ -1,6 +1,6 @@
-pub type FieldId = u32;
+use crate::ir::typespace::WordId;
 
-pub enum SelectionValue {
+pub enum IrValue {
     Null(),
     I32(i32),
     I64(i64),
@@ -10,17 +10,17 @@ pub enum SelectionValue {
     F64(f64),
     Bool(bool),
     Str(String),
-    Uri(Vec<FieldId>),
+    Uri(Vec<WordId>),
+    Variable(String, Vec<WordId>),
 }
 
 pub enum Selection {
-    AND(Vec<Box<Selection>>),
-    OR(Vec<Box<Selection>>),
-    NOT(Box<Selection>),
-    EQ(SelectionValue, SelectionValue),
-    NEQ(SelectionValue, SelectionValue),
-    LT(SelectionValue, SelectionValue),
-    LTE(SelectionValue, SelectionValue),
-    GT(SelectionValue, SelectionValue),
-    GTE(SelectionValue, SelectionValue),
+    IS(WordId),
+    EQ(IrValue, IrValue),
+    LT(IrValue, IrValue),
+    GT(IrValue, IrValue),
+    NIS(WordId),
+    NEQ(IrValue, IrValue),
+    LTE(IrValue, IrValue),
+    GTE(IrValue, IrValue),
 }

@@ -6,7 +6,7 @@ use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-type WordId = u32;
+pub type WordId = u32;
 
 pub struct IrTypeSpace {
     pub base_graph: Matrix<bool>,
