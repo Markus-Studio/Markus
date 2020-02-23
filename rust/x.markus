@@ -4,5 +4,5 @@ type Student {
 }
 
 query X() {
-    eq(.age, add(3, div(5, 8)))
+    eq(.age, add(3, ceil(div(5, 8))))
 }

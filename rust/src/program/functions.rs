@@ -40,6 +40,33 @@ fn get_type(call: &CallNode, ctx: &mut VerifierContext) -> MarkusType {
             None
         }
 
+        ("floor", 1) | ("ceil", 1) | ("round", 1) => match &call.arguments[0] {
+            ValueNode::Query(_) | ValueNode::Type(_) => {
+                ctx.diagnostics
+                    .push(Diagnostic::unexpected_argument(&call.arguments[0]));
+                None
+            }
+            value => {
+                let value_type = value.get_type(ctx);
+                let number_type = ctx.space.resolve_type("%number").unwrap();
+                if !value_type.is(ctx.space, number_type) {
+                    ctx.diagnostics.push(Diagnostic::mismatched_types(
+                        value_type.to_string(ctx.space),
+                        String::from("%number"),
+                        value.get_location(),
+                    ));
+                    None
+                } else {
+                    Some(ctx.space.resolve_type("%int").unwrap().clone())
+                }
+            }
+        },
+        ("floor", _) | ("ceil", _) | ("round", _) => {
+            ctx.diagnostics
+                .push(Diagnostic::no_matching_signature(name_id));
+            None
+        }
+
         _ => {
             ctx.diagnostics.push(Diagnostic::unresolved_name(name_id));
             None
