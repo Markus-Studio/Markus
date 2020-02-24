@@ -1011,7 +1011,7 @@ impl<'a> Parser<'a> {
             TokenKind::Dot,
             vec![
                 TokenKind::Comma,
-                TokenKind::Colon,
+                TokenKind::Assign,
                 TokenKind::Parameter,
                 TokenKind::InternalVariable,
                 TokenKind::Boolean,
@@ -1029,7 +1029,7 @@ impl<'a> Parser<'a> {
                 parser.parse_identifier(vec![
                     TokenKind::Dot,
                     TokenKind::Comma,
-                    TokenKind::Colon,
+                    TokenKind::Assign,
                     TokenKind::Parameter,
                     TokenKind::InternalVariable,
                     TokenKind::Boolean,
@@ -1043,7 +1043,7 @@ impl<'a> Parser<'a> {
         );
 
         self.expect(
-            TokenKind::Colon,
+            TokenKind::Assign,
             vec![
                 TokenKind::Semicolon,
                 TokenKind::Identifier,

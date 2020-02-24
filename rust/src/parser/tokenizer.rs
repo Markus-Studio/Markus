@@ -28,6 +28,8 @@ pub enum TokenKind {
     Div,
     /// `*` Token.
     Mul,
+    /// `=` Token.
+    Assign,
     /// An identifier token.
     Identifier,
     /// $[identifier] Token.
@@ -322,6 +324,10 @@ impl<'a> Tokenizer<'a> {
             '*' => {
                 self.advance(1);
                 Some(Token::new(TokenKind::Mul, start, 1))
+            }
+            '=' => {
+                self.advance(1);
+                Some(Token::new(TokenKind::Assign, start, 1))
             }
             '.' => {
                 self.advance(1);
