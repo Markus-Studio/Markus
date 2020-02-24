@@ -1,3 +1,2 @@
-pub mod query;
-pub mod selection;
+pub mod ir;
 pub mod typespace;
