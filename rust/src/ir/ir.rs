@@ -4,8 +4,8 @@ use std::collections::HashMap;
 
 pub type TypeId = u32;
 pub type FieldId = u32;
-pub type ValueId = u32;
-pub type ParameterId = u32;
+pub type ValueId = usize;
+pub type ParameterId = usize;
 
 pub enum LiteralValue {
     Null,
@@ -105,7 +105,7 @@ pub struct Action {
 }
 
 pub struct Program {
-    values: HashMap<ValueId, Value>,
+    values: Vec<Value>,
     typespace: IrTypeSpace,
     queries: Vec<Query>,
     actions: Vec<Action>,

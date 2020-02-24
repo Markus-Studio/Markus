@@ -1,5 +1,6 @@
 use crate::context::Context;
-use crate::parser::ast::{IntLiteralNode, QueryNode, ValueNode, VariableReferenceNode};
+use crate::parser::ast::{AccessNode, ActionBase, VariableReferenceNode};
+use crate::parser::ast::{IntLiteralNode, QueryNode, ValueNode};
 use crate::program::{Diagnostic, MarkusType};
 
 impl VariableReferenceNode {
@@ -21,6 +22,22 @@ impl VariableReferenceNode {
     }
 }
 
+impl AccessNode {
+    pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
+        let uri: Vec<&str> = self.parts.iter().map(|p| &*p.value).collect();
+        let base_type = self.base.get_type(ctx);
+        match base_type.query(ctx.space, &uri) {
+            Some(data_type) => data_type,
+            _ => {
+                let type_str = base_type.to_string(ctx.space);
+                ctx.diagnostics
+                    .push(Diagnostic::field_not_found(type_str, uri, self.location));
+                MarkusType::new_union(Vec::with_capacity(0))
+            }
+        }
+    }
+}
+
 impl ValueNode {
     /// Computes and returns type of this value.
     pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
@@ -36,22 +53,7 @@ impl ValueNode {
             ValueNode::Boolean(_) => ctx.space.resolve_type("bool").unwrap().clone(),
             ValueNode::Null(_) => ctx.space.resolve_type("null").unwrap().clone(),
             ValueNode::String(_) => ctx.space.resolve_type("string").unwrap().clone(),
-            ValueNode::Access(access) => {
-                let uri: Vec<&str> = access.parts.iter().map(|p| &*p.value).collect();
-                let base_type = access.base.get_type(ctx);
-                match base_type.query(ctx.space, &uri) {
-                    Some(data_type) => data_type,
-                    _ => {
-                        let type_str = base_type.to_string(ctx.space);
-                        ctx.diagnostics.push(Diagnostic::field_not_found(
-                            type_str,
-                            uri,
-                            access.location,
-                        ));
-                        MarkusType::new_union(Vec::with_capacity(0))
-                    }
-                }
-            }
+            ValueNode::Access(access) => access.get_type(ctx),
             ValueNode::Call(call) => call.get_type(ctx),
             _ => panic!("Not implemented."),
         }
@@ -68,5 +70,14 @@ impl QueryNode {
             }
         }
         ctx.get_current().clone()
+    }
+}
+
+impl ActionBase {
+    pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
+        match self {
+            ActionBase::Access(access) => access.get_type(ctx),
+            ActionBase::Query(query) => query.get_type(ctx),
+        }
     }
 }

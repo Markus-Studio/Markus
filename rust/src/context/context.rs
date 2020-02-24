@@ -1,4 +1,6 @@
 use crate::parser::ast::{ActionDeclarationNode, QueryDeclarationNode};
+use crate::parser::ast::{ActionStatement, CreateStatementNode, ValidateStatementNode};
+use crate::parser::ast::{DeleteStatementNode, UpdateStatementNode};
 use crate::parser::ast::{GuardNode, ParameterNode, PermissionDeclarationNode};
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
 use std::collections::HashMap;
@@ -183,6 +185,49 @@ impl ActionDeclarationNode {
                 &self.guards,
             ),
         );
+
+        for statement in &self.statements {
+            ctx.branch_in();
+            match statement {
+                ActionStatement::Validate(stmt) => {
+                    stmt.verify(&mut ctx);
+                }
+                ActionStatement::Delete(stmt) => {
+                    stmt.verify(&mut ctx);
+                }
+                ActionStatement::Update(stmt) => {
+                    stmt.verify(&mut ctx);
+                }
+                _ => unimplemented!(),
+            }
+            ctx.branch_pop();
+        }
+    }
+}
+
+impl ValidateStatementNode {
+    pub fn verify(&self, ctx: &mut Context) {
+        if let Some(call) = &self.value {
+            // TODO(qti3e) This function must return a boolean.
+            call.get_type(ctx);
+        }
+    }
+}
+
+impl DeleteStatementNode {
+    pub fn verify(&self, ctx: &mut Context) {
+        if let Some(base) = &self.base {
+            // TODO(qti3e) Must not be empty set.
+            base.get_type(ctx);
+        }
+    }
+}
+
+impl UpdateStatementNode {
+    pub fn verify(&self, ctx: &mut Context) {
+        if let (Some(base), Some(updates)) = (&self.base, &self.updates) {
+            let base_type = base.get_type(ctx);
+        }
     }
 }
 
