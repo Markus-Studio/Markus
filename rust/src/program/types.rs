@@ -463,42 +463,17 @@ impl MarkusType {
     /// Creates an union from all of the types in the given vector.
     /// # Panics
     /// If the types vector is empty or if the given types are not of the same dimension.
-    /// TODO(qti3e) We can remove this function and depend on `+` op.
     pub fn create_union_from(types: Vec<MarkusType>) -> MarkusType {
-        if types.len() == 1 {
-            return types[0].clone();
-        }
-
-        if types.len() == 0 {
-            panic!("create_union_from: types vector must have at least one element.");
-        }
-
-        let dimension = types[0].dimension;
-        let mut members: HashSet<TypeId> = HashSet::new();
-
-        for markus_type in types {
-            if markus_type.dimension != dimension {
-                panic!("create_union_from: all of the types must have the same dimension.");
-            }
-
-            match markus_type.type_info {
-                MarkusTypeInfo::BuiltInObject { id, .. }
-                | MarkusTypeInfo::Object { id, .. }
-                | MarkusTypeInfo::OneOf { id, .. }
-                | MarkusTypeInfo::Atomic { id, .. } => {
-                    members.insert(id);
+        match types.len() {
+            0 => panic!("create_union_from: types vector must have at least one element."),
+            1 => types[0].clone(),
+            len => {
+                let mut result: MarkusType = types[0].clone();
+                for i in 1..len {
+                    result = result + &types[i];
                 }
-                MarkusTypeInfo::Union {
-                    members: ref union_members,
-                } => {
-                    members.extend(union_members);
-                }
+                result
             }
-        }
-
-        MarkusType {
-            dimension,
-            type_info: MarkusTypeInfo::Union { members: members },
         }
     }
 
