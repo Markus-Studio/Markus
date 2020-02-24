@@ -104,7 +104,7 @@ querying our database.
 Let's start with the most basic query -an empty query-:
 
 ```markus
-query MyQuery {}
+query myQuery() {}
 ```
 
 <details>
@@ -125,4 +125,82 @@ Person(name: "J", height: 185)
 
 </details>
 
-As you can already guess the empty query will return all of the things in the database!
+As you have already guessed the empty query will return all of the things in the database!
+
+### Filters
+
+We can achieve more complex queries using subsequential filters, the most important one of
+which is the `is` filter, this filter takes a type name as an argument and filters the set
+so that only the objects that are based on the given type will stay in the result set.
+
+Here is an example that returns all of the Quadrilateral shapes in the set:
+
+```markus
+query allOfQuadrilaterals() {
+  is(Quadrilateral)
+}
+```
+
+<details>
+<summary>Click to see the result</summary>
+
+```ruby
+Rectangle(name: "A", color: "green")
+Parallelogram(name: "B", color: "red")
+Parallelogram(name: "C", color: "blue")
+Rectangle(name: "D", color: "red")
+Rectangle(name: "E", color: "green")
+```
+
+</details>
+
+Now let's go one step further and try to return `things that are red`.
+
+```markus
+query redStuff() {
+  is(Colored),
+  eq(.color, "red")
+}
+```
+
+<details>
+<summary>Click to see the result</summary>
+
+```ruby
+Parallelogram(name: "B", color: "red")
+Rectangle(name: "D", color: "red")
+Circle(name: "G", color: "red")
+```
+
+</details>
+
+You can see that we can use `eq` filter to filter the set based on an equality
+expression, you can [learn more about querying data](./querying.md).
+
+### Parameters
+
+One of the features of Markus is its dynamic queries, you can define a query in
+the following way to let the client send some parameters to you and return a result
+accordingly.
+
+The following example will takes a color from the client and returns everything in
+the set that is of the given color:
+
+```markus
+query withColor($color: string) {
+  is(Colored),
+  eq(.color, $color)
+}
+```
+
+<details>
+<summary>Click to see the result</summary>
+
+```ruby
+# withColor("green")
+Rectangle(name: "A", color: "green")
+Rectangle(name: "E", color: "green")
+Circle(name: "F", color: "green")
+```
+
+</details>
