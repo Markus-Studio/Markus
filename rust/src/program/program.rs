@@ -13,8 +13,8 @@ pub struct Program {
     /// The program's type space that includes every builtin type as well as user
     /// defined types.
     pub type_space: TypeSpace,
-    /// Maps a permission name to its return type.
-    pub permission_types: HashMap<String, MarkusType>,
+    /// Maps a permission name to its (parameter types, return type).
+    pub permission_types: HashMap<String, (Vec<Option<MarkusType>>, MarkusType)>,
     /// All of the errors we encountered on this source file.
     pub diagnostics: Vec<Diagnostic>,
     /// To ensure uniqueness of identifiers, we map every name to number of times
@@ -124,8 +124,22 @@ impl Program {
                 let result =
                     permission_declaration.verify(&mut self.diagnostics, &mut self.type_space);
                 if let Some(name) = &permission_declaration.name {
+                    let mut parameter_types: Vec<Option<MarkusType>> =
+                        Vec::with_capacity(permission_declaration.parameters.len());
+                    for parameter in &permission_declaration.parameters {
+                        parameter_types.push(if let Some(parameter_type_id) = &parameter.name {
+                            let type_name = &parameter_type_id.value;
+                            if let Some(parameter_type) = self.type_space.resolve_type(&type_name) {
+                                Some(parameter_type.clone())
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        });
+                    }
                     self.permission_types
-                        .insert(String::from(&name.value), result);
+                        .insert(String::from(&name.value), (parameter_types, result));
                 }
             }
         }

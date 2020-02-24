@@ -130,7 +130,6 @@ pub enum BindingValueNode {
     Boolean(BooleanLiteralNode),
     String(StringLiteralNode),
     Null(NullLiteralNode),
-    // TODO(qti3e) Currently this `call` can contain `query` which is not allowed.
     Call(CallNode),
     Create(CreateStatementNode),
 }

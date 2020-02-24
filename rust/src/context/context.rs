@@ -136,7 +136,7 @@ impl QueryDeclarationNode {
         &self,
         diagnostics: &'a mut Vec<Diagnostic>,
         space: &'a mut TypeSpace,
-        permissions: &'a HashMap<String, MarkusType>,
+        permissions: &'a HashMap<String, (Vec<Option<MarkusType>>, MarkusType)>,
     ) -> MarkusType {
         let default_user_type = space.get_permission_input_type();
         let mut ctx = Context::new(
@@ -163,16 +163,33 @@ impl ActionDeclarationNode {
     pub fn verify<'a>(
         &self,
         diagnostics: &mut Vec<Diagnostic>,
-        space: &'a TypeSpace,
-        permissions: &'a HashMap<String, MarkusType>,
+        space: &'a mut TypeSpace,
+        permissions: &'a HashMap<String, (Vec<Option<MarkusType>>, MarkusType)>,
     ) {
+        let default_user_type = space.get_permission_input_type();
+        let mut ctx = Context::new(
+            diagnostics,
+            space,
+            space.get_query_input_type(),
+            false,
+            &self.parameters,
+        );
+        ctx.symbol_table.insert(
+            String::from("%user"),
+            create_user_type(
+                ctx.diagnostics,
+                default_user_type,
+                permissions,
+                &self.guards,
+            ),
+        );
     }
 }
 
 fn create_user_type(
     diagnostics: &mut Vec<Diagnostic>,
     default: MarkusType,
-    permission_types: &HashMap<String, MarkusType>,
+    permission_types: &HashMap<String, (Vec<Option<MarkusType>>, MarkusType)>,
     permissions: &Vec<GuardNode>,
 ) -> MarkusType {
     if permission_types.len() == 0 {
@@ -184,7 +201,7 @@ fn create_user_type(
             // TODO(qti3e) Report binding errors.
             if let Some(call) = &permission.call {
                 if let Some(callee_name) = &call.callee_name {
-                    if let Some(result_type) = permission_types.get(&callee_name.value) {
+                    if let Some((_, result_type)) = permission_types.get(&callee_name.value) {
                         result = result + result_type;
                     } else {
                         diagnostics.push(Diagnostic::unresolved_name(callee_name));

@@ -100,6 +100,15 @@ impl<'a> Tokenizer<'a> {
     }
 
     #[inline]
+    fn lookahead(&self, n: usize) -> Option<char> {
+        if !self.has_at_least(n) {
+            None
+        } else {
+            std::char::from_u32(self.data[self.position + n] as u32)
+        }
+    }
+
+    #[inline]
     fn char_unchecked(&self) -> char {
         std::char::from_u32(self.data[self.position] as u32).unwrap()
     }
@@ -302,7 +311,7 @@ impl<'a> Tokenizer<'a> {
                 self.advance(1);
                 Some(Token::new(TokenKind::Add, start, 1))
             }
-            '-' => {
+            '-' if self.has_at_least(1) && !is_digit(self.lookahead(1).unwrap()) => {
                 self.advance(1);
                 Some(Token::new(TokenKind::Sub, start, 1))
             }
@@ -332,7 +341,7 @@ impl<'a> Tokenizer<'a> {
                     None => Some(Token::new(TokenKind::Unknown, start, 1)),
                 }
             }
-            '0'..='9' | '+' | '-' => self.eat_numeric_token(),
+            '0'..='9' | '-' => self.eat_numeric_token(),
             c if is_identifier_start(c) => match self.eat_identifier() {
                 Some(size) => {
                     let word = String::from_utf16(&self.data[start..start + size]).unwrap();

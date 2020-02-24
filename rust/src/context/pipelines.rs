@@ -6,7 +6,6 @@ use crate::program::{Diagnostic, MarkusType};
 impl CallNode {
     pub fn apply_pipeline_changes(&self, ctx: &mut Context) {
         apply_pipeline_changes(self, ctx, ctx.only_filters, false);
-        let current = ctx.get_current();
     }
 }
 
