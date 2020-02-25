@@ -465,7 +465,7 @@ impl MarkusType {
     /// If the types vector is empty or if the given types are not of the same dimension.
     pub fn create_union_from(types: Vec<MarkusType>) -> MarkusType {
         match types.len() {
-            0 => panic!("create_union_from: types vector must have at least one element."),
+            0 => MarkusType::new_union(Vec::with_capacity(0)),
             1 => types[0].clone(),
             len => {
                 let mut result: MarkusType = types[0].clone();

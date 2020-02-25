@@ -1,5 +1,5 @@
 use crate::parser::{
-    ast::{CallNode, IdentifierNode, ValueNode},
+    ast::{ActionBase, CallNode, IdentifierNode, ValueNode},
     Span, Token, TokenKind,
 };
 
@@ -21,6 +21,8 @@ pub enum DiagnosticKind {
     NoMatchingSignature,
     FieldNotFound(String, Vec<String>),
     MismatchedTypes(String, String),
+    NilBase,
+    BindingTypeError(String, String),
 }
 
 /// A diagnostic is an error happened in any phase from parsing to
@@ -172,6 +174,26 @@ impl Diagnostic {
         Diagnostic {
             location,
             kind: DiagnosticKind::MismatchedTypes(type_str1, type_str2),
+        }
+    }
+
+    #[inline]
+    pub fn nil_base(base: &ActionBase) -> Diagnostic {
+        Diagnostic {
+            location: base.get_location(),
+            kind: DiagnosticKind::NilBase,
+        }
+    }
+
+    #[inline]
+    pub fn binding_type_error(
+        field_type: String,
+        value_type: String,
+        location: Span,
+    ) -> Diagnostic {
+        Diagnostic {
+            location,
+            kind: DiagnosticKind::MismatchedTypes(field_type, value_type),
         }
     }
 }

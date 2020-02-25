@@ -243,10 +243,7 @@ impl TextEdit {
 
 impl Position {
     pub fn new(line: usize, character: usize) -> Position {
-        Position {
-            line: line,
-            character: character,
-        }
+        Position { line, character }
     }
 
     pub fn min(self, position: Position) -> Position {

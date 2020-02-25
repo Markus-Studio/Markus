@@ -1,9 +1,16 @@
-type Student {
-    age: u32;
-    score: u64;
-    name: string;
+type Point {
+    x: i32;
+    y: i32;
 }
 
-query X($p: string) allow p() {
-    eq(.age, floor(3 + 82))
+type Cat {
+    name?: string;
+}
+
+action x() {
+    update {
+        is(Cat)
+    } {
+        .name = "X"
+    };
 }

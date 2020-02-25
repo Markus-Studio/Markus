@@ -1,6 +1,6 @@
 use crate::context::Context;
 use crate::parser::ast::{AccessNode, ActionBase, VariableReferenceNode};
-use crate::parser::ast::{IntLiteralNode, QueryNode, ValueNode};
+use crate::parser::ast::{BindingValueNode, IntLiteralNode, QueryNode, ValueNode};
 use crate::program::{Diagnostic, MarkusType};
 
 impl VariableReferenceNode {
@@ -55,7 +55,30 @@ impl ValueNode {
             ValueNode::String(_) => ctx.space.resolve_type("string").unwrap().clone(),
             ValueNode::Access(access) => access.get_type(ctx),
             ValueNode::Call(call) => call.get_type(ctx),
-            _ => panic!("Not implemented."),
+            ValueNode::Type(_) => panic!("get_type() does not work on a type reference."),
+            ValueNode::Query(_) => unimplemented!(),
+        }
+    }
+}
+
+impl BindingValueNode {
+    /// Computes and returns type of this value.
+    pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
+        match self {
+            BindingValueNode::Int(IntLiteralNode { neg, .. }) => {
+                if *neg {
+                    ctx.space.resolve_type("%neg-int").unwrap().clone()
+                } else {
+                    ctx.space.resolve_type("%int").unwrap().clone()
+                }
+            }
+            BindingValueNode::Float(_) => ctx.space.resolve_type("%float").unwrap().clone(),
+            BindingValueNode::Boolean(_) => ctx.space.resolve_type("bool").unwrap().clone(),
+            BindingValueNode::Null(_) => ctx.space.resolve_type("null").unwrap().clone(),
+            BindingValueNode::String(_) => ctx.space.resolve_type("string").unwrap().clone(),
+            BindingValueNode::Access(access) => access.get_type(ctx),
+            BindingValueNode::Call(call) => call.get_type(ctx),
+            BindingValueNode::Create(create) => unimplemented!(),
         }
     }
 }

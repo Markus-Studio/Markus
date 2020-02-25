@@ -217,8 +217,11 @@ impl ValidateStatementNode {
 impl DeleteStatementNode {
     pub fn verify(&self, ctx: &mut Context) {
         if let Some(base) = &self.base {
-            // TODO(qti3e) Must not be empty set.
-            base.get_type(ctx);
+            let base_type = base.get_type(ctx);
+            if base_type.is_nil() {
+                ctx.diagnostics.push(Diagnostic::nil_base(base));
+                return;
+            }
         }
     }
 }
@@ -227,6 +230,48 @@ impl UpdateStatementNode {
     pub fn verify(&self, ctx: &mut Context) {
         if let (Some(base), Some(updates)) = (&self.base, &self.updates) {
             let base_type = base.get_type(ctx);
+
+            if base_type.is_nil() {
+                ctx.diagnostics.push(Diagnostic::nil_base(base));
+                return;
+            }
+
+            let mut modified: Vec<Vec<&str>> = Vec::with_capacity(updates.bindings.len());
+            let base_type_str = base_type.to_string(ctx.space);
+
+            for binding in &updates.bindings {
+                let mut uri: Vec<&str> = Vec::with_capacity(binding.uri.len());
+
+                for part in &binding.uri {
+                    uri.push(&part.value);
+                }
+
+                let field_type_option = base_type.query(ctx.space, &uri);
+
+                if field_type_option.is_none() {
+                    ctx.diagnostics.push(Diagnostic::field_not_found(
+                        base_type_str.to_string(),
+                        uri,
+                        binding.location,
+                    ));
+                    continue;
+                }
+
+                modified.push(uri);
+
+                if let Some(value) = &binding.value {
+                    // TODO(qti3e) Verify the Create node.
+                    let value_type = value.get_type(ctx);
+                    let field_type = field_type_option.unwrap();
+                    if !value_type.is(ctx.space, &field_type) {
+                        ctx.diagnostics.push(Diagnostic::binding_type_error(
+                            field_type.to_string(ctx.space),
+                            value_type.to_string(ctx.space),
+                            binding.location,
+                        ));
+                    }
+                }
+            }
         }
     }
 }

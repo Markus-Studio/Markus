@@ -85,6 +85,7 @@ impl<'a> Parser<'a> {
     fn last_token_end_source_position(&self) -> usize {
         debug_assert!(self.current_token_index > 0);
         let index = self.current_token_index - 1;
+        debug_assert!(index < self.tokens.len());
         self.tokens[index].position.offset + self.tokens[index].position.size
     }
 
@@ -163,7 +164,7 @@ impl<'a> Parser<'a> {
                     self.expect(kind, breaks)
                 }
             }
-            _ => {
+            None => {
                 self.report(Diagnostic::early_end_of_file(
                     self.last_token_end_source_position(),
                 ));
@@ -690,8 +691,6 @@ impl<'a> Parser<'a> {
     fn parse_value_0(&mut self, lhs_: Option<ValueNode>, min_precedence: i8) -> Option<ValueNode> {
         let mut lookahead = self.current();
         let mut lhs = lhs_;
-        println!("LHS {:?}", lhs);
-        println!("LK1 {:?}", lookahead);
         loop {
             if let Some(token) = lookahead {
                 let precedence = get_precedence(token.kind);
@@ -1024,7 +1023,22 @@ impl<'a> Parser<'a> {
 
         self.collect_separated_by(
             &mut uri,
-            vec![TokenKind::Colon, TokenKind::Comma],
+            vec![
+                TokenKind::Assign,
+                TokenKind::Comma,
+                TokenKind::Semicolon,
+                TokenKind::RightBrace,
+                TokenKind::Comma,
+                TokenKind::LeftParenthesis,
+                TokenKind::LeftBrace,
+                TokenKind::Parameter,
+                TokenKind::InternalVariable,
+                TokenKind::Boolean,
+                TokenKind::Null,
+                TokenKind::String,
+                TokenKind::Int,
+                TokenKind::Float,
+            ],
             |parser| {
                 parser.parse_identifier(vec![
                     TokenKind::Dot,
@@ -1049,6 +1063,16 @@ impl<'a> Parser<'a> {
                 TokenKind::Identifier,
                 TokenKind::RightBrace,
                 TokenKind::Comma,
+                TokenKind::Dot,
+                TokenKind::LeftParenthesis,
+                TokenKind::LeftBrace,
+                TokenKind::Parameter,
+                TokenKind::InternalVariable,
+                TokenKind::Boolean,
+                TokenKind::Null,
+                TokenKind::String,
+                TokenKind::Int,
+                TokenKind::Float,
             ],
         );
 

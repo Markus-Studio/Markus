@@ -223,3 +223,12 @@ impl ValueNode {
         }
     }
 }
+
+impl ActionBase {
+    pub fn get_location(&self) -> Span {
+        match self {
+            ActionBase::Query(query) => query.location,
+            ActionBase::Access(access) => access.location,
+        }
+    }
+}
