@@ -7,10 +7,15 @@ type Cat {
     name?: string;
 }
 
+type Ta {
+    x: Point;
+}
+
 action x() {
     update {
-        is(Cat)
+        is(Ta)
     } {
-        .name = null
+        .x = 4,
+        .x.y = 43
     };
 }

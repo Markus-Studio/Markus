@@ -23,6 +23,7 @@ pub enum DiagnosticKind {
     MismatchedTypes(String, String),
     NilBase,
     BindingTypeError(String, String),
+    UpdateAlreadyModifiedField,
 }
 
 /// A diagnostic is an error happened in any phase from parsing to
@@ -193,7 +194,15 @@ impl Diagnostic {
     ) -> Diagnostic {
         Diagnostic {
             location,
-            kind: DiagnosticKind::MismatchedTypes(field_type, value_type),
+            kind: DiagnosticKind::BindingTypeError(field_type, value_type),
+        }
+    }
+
+    #[inline]
+    pub fn update_already_modified_field(location: Span) -> Diagnostic {
+        Diagnostic {
+            location,
+            kind: DiagnosticKind::UpdateAlreadyModifiedField,
         }
     }
 }

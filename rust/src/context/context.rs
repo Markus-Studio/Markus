@@ -2,6 +2,7 @@ use crate::parser::ast::{ActionDeclarationNode, QueryDeclarationNode};
 use crate::parser::ast::{ActionStatement, CreateStatementNode, ValidateStatementNode};
 use crate::parser::ast::{DeleteStatementNode, UpdateStatementNode};
 use crate::parser::ast::{GuardNode, ParameterNode, PermissionDeclarationNode};
+use crate::parser::Span;
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
 use std::collections::HashMap;
 
@@ -236,7 +237,7 @@ impl UpdateStatementNode {
                 return;
             }
 
-            let mut modified: Vec<Vec<&str>> = Vec::with_capacity(updates.bindings.len());
+            let mut modified: Vec<(Vec<&str>, Span)> = Vec::with_capacity(updates.bindings.len());
             let base_type_str = base_type.to_string(ctx.space);
 
             for binding in &updates.bindings {
@@ -248,7 +249,7 @@ impl UpdateStatementNode {
 
                 let field_type_option = base_type.query(ctx.space, &uri);
 
-                if field_type_option.is_none() {
+                if field_type_option.is_none() || uri.len() == 0 {
                     ctx.diagnostics.push(Diagnostic::field_not_found(
                         base_type_str.to_string(),
                         uri,
@@ -273,7 +274,35 @@ impl UpdateStatementNode {
                     }
                 }
 
-                modified.push(uri);
+                modified.push((uri, binding.uri[0].location));
+            }
+
+            modified.sort_by(|a, b| a.0.len().partial_cmp(&b.0.len()).unwrap());
+
+            println!("{:?}", modified);
+
+            for i in 0..modified.len() {
+                let current = &modified[i].0;
+                let current_len = current.len();
+                for j in i + 1..modified.len() {
+                    let second = &modified[j].0;
+                    if second.len() == current_len {
+                        continue;
+                    }
+
+                    let mut same = true;
+                    for t in 0..current_len {
+                        if current[t] != second[t] {
+                            same = false;
+                            break;
+                        }
+                    }
+
+                    if same {
+                        ctx.diagnostics
+                            .push(Diagnostic::update_already_modified_field(modified[j].1));
+                    }
+                }
             }
         }
     }
