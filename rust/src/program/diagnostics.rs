@@ -1,3 +1,4 @@
+use crate::parser::Source;
 use crate::parser::{
     ast::{ActionBase, CallNode, IdentifierNode, ValueNode},
     Span, Token, TokenKind,
@@ -204,5 +205,77 @@ impl Diagnostic {
             location,
             kind: DiagnosticKind::UpdateAlreadyModifiedField,
         }
+    }
+}
+
+impl std::string::ToString for Diagnostic {
+    fn to_string(&self) -> String {
+        match &self.kind {
+            DiagnosticKind::EarlyEndOfFile => "Early end of file.".to_string(),
+            DiagnosticKind::UnexpectedToken(Some(kind)) => format!("Expected a {} token.", kind),
+            DiagnosticKind::UnexpectedToken(None) => "Found unexpected token.".to_string(),
+            DiagnosticKind::ExpectedOneOf(tokens) => {
+                format!("Expected one of {:?} tokens.", tokens)
+            }
+            DiagnosticKind::UnresolvedName(name) => format!("Unresolved name `{}`.", name),
+            DiagnosticKind::NameAlreadyInUse(name) => format!("Name `{}` is already used.", name),
+            DiagnosticKind::BaseNotObject(name) => {
+                format!("Can not inherit from non-object type `{}`.", name)
+            }
+            DiagnosticKind::ExpectedActionBase => "Expected an action-base.".to_string(),
+            DiagnosticKind::CircularReference => "Found circular reference.".to_string(),
+            DiagnosticKind::ReachedNIL => {
+                "The selection reaches an empty-set in the current location.".to_string()
+            }
+            DiagnosticKind::ExpectedArgumentPipeline => {
+                "Function expected a pipeline as the argument.".to_string()
+            }
+            DiagnosticKind::ExpectedArgumentType => {
+                "Function expected a type-reference as the argument.".to_string()
+            }
+            DiagnosticKind::ExpectedArgumentField => {
+                "Function expected a field URI as the argument.".to_string()
+            }
+            DiagnosticKind::UnexpectedArgument => {
+                "Function signature did not expected this argument.".to_string()
+            }
+            DiagnosticKind::NoMatchingSignature => {
+                "No implementation was found matching this call signature.".to_string()
+            }
+            DiagnosticKind::FieldNotFound(type_name, uri) => {
+                let mut uri_str = String::with_capacity(100);
+                for part in uri {
+                    uri_str.push('.');
+                    uri_str.push_str(part);
+                }
+                format!(
+                    "Field `{}` does not exists on type `{}`",
+                    uri_str, type_name
+                )
+            }
+            DiagnosticKind::MismatchedTypes(lhs, rhs) => {
+                format!("Type `{}` does not match type `{}`", lhs, rhs)
+            }
+            DiagnosticKind::NilBase => "An action base must not be empty.".to_string(),
+            DiagnosticKind::BindingTypeError(field_type, value_type) => format!(
+                "Value of type `{}` is not assignable to a field of type `{}`.",
+                value_type, field_type
+            ),
+            DiagnosticKind::UpdateAlreadyModifiedField => {
+                "This field is already modified.".to_string()
+            }
+        }
+    }
+}
+
+impl Diagnostic {
+    pub fn get_uri(&self, source: &Source) -> String {
+        let position = source.position_at(self.location.offset);
+        format!(
+            "{}:{}:{}",
+            source.filename,
+            position.line + 1,
+            position.character + 1
+        )
     }
 }

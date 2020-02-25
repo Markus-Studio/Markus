@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TokenKind {
     /// An unknown character.
@@ -436,5 +438,11 @@ impl Span {
             offset: start,
             size: end - start,
         }
+    }
+}
+
+impl fmt::Display for TokenKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
     }
 }

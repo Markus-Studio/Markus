@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use crate::parser::tokenizer::Span;
+use std::cell::RefCell;
 
 #[derive(Copy, Clone)]
 pub struct Position {
@@ -43,7 +44,7 @@ pub struct Source {
     /// it's so much easier/faster to edit the data.
     pub content: Vec<u16>,
     // Line's offsets.
-    line_offsets: Option<Vec<usize>>,
+    line_offsets_cache: RefCell<Option<Vec<usize>>>,
 }
 
 impl Source {
@@ -52,7 +53,7 @@ impl Source {
         Source {
             filename: String::from(filename),
             content: data.encode_utf16().collect(),
-            line_offsets: None,
+            line_offsets_cache: RefCell::new(None),
         }
     }
 
@@ -63,7 +64,7 @@ impl Source {
 
     /// Recompute the line offsets.
     #[inline]
-    fn compute_line_offsets(&mut self) {
+    fn compute_line_offsets(&self) -> Vec<usize> {
         let data = &self.content;
         let mut result = vec![];
         let mut is_line_start = true;
@@ -97,18 +98,15 @@ impl Source {
             result.push(data.len());
         }
 
-        self.line_offsets = Some(result);
+        result
     }
 
     /// Returns the line_offsets of this source.
-    pub fn get_line_offsets(&mut self) -> Vec<usize> {
-        match &self.line_offsets {
-            Some(offsets) => offsets.to_vec(),
-            None => {
-                self.compute_line_offsets();
-                self.get_line_offsets()
-            }
-        }
+    pub fn get_line_offsets(&self) -> Vec<usize> {
+        self.line_offsets_cache
+            .borrow_mut()
+            .get_or_insert_with(|| self.compute_line_offsets())
+            .clone()
     }
 
     /// Returns the offset of the given position.
@@ -132,7 +130,7 @@ impl Source {
     }
 
     /// Returns the position at the given offset.
-    pub fn position_at(&mut self, mut offset: usize) -> Position {
+    pub fn position_at(&self, mut offset: usize) -> Position {
         offset = std::cmp::min(offset, self.content.len());
 
         let line_offsets = self.get_line_offsets();
@@ -154,6 +152,16 @@ impl Source {
 
         let line = low - 1;
         Position::new(line, offset - line_offsets[line])
+    }
+
+    /// Convert a Span to source Range.
+    pub fn span_to_range(&self, span: Span) -> Range {
+        // TODO(qti3e) It's possible to optimize this function, `low` in the second call to
+        // position_at can be set to the `line` returned by first call to position_at
+        Range {
+            start: self.position_at(span.offset),
+            end: self.position_at(span.offset + span.size),
+        }
     }
 
     /// Apply a set of TextEdits to this source file, returns a range indicating
