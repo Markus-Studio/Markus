@@ -257,12 +257,13 @@ impl UpdateStatementNode {
                     continue;
                 }
 
-                modified.push(uri);
-
                 if let Some(value) = &binding.value {
                     // TODO(qti3e) Verify the Create node.
+                    let mut field_type = field_type_option.unwrap();
+                    if base_type.is_nullable(ctx.space, &uri) {
+                        field_type = field_type + ctx.space.resolve_type("null").unwrap();
+                    }
                     let value_type = value.get_type(ctx);
-                    let field_type = field_type_option.unwrap();
                     if !value_type.is(ctx.space, &field_type) {
                         ctx.diagnostics.push(Diagnostic::binding_type_error(
                             field_type.to_string(ctx.space),
@@ -271,6 +272,8 @@ impl UpdateStatementNode {
                         ));
                     }
                 }
+
+                modified.push(uri);
             }
         }
     }

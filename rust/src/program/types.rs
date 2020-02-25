@@ -521,6 +521,29 @@ impl MarkusType {
         }
     }
 
+    /// Return true if the value of the given field might be null.
+    pub fn is_nullable(&self, space: &TypeSpace, uri: &[&str]) -> bool {
+        match &self.type_info {
+            MarkusTypeInfo::BuiltInObject { .. } => false,
+            MarkusTypeInfo::Object { .. } => self.object_is_nullable(space, uri),
+            MarkusTypeInfo::Union { members } => {
+                for &id in members {
+                    match space
+                        .resolve_type_by_id(id)
+                        .unwrap()
+                        .is_nullable(space, uri)
+                    {
+                        true => return true,
+                        false => {}
+                    }
+                }
+
+                return false;
+            }
+            _ => unimplemented!(),
+        }
+    }
+
     /// Queries the given URI on the current type, returns `None` if
     /// the field did not existed on the current object.
     pub fn query(&self, space: &TypeSpace, uri: &[&str]) -> Option<MarkusType> {
@@ -568,7 +591,7 @@ impl MarkusType {
                 }
 
                 Some(MarkusType {
-                    dimension: dimension,
+                    dimension,
                     type_info: MarkusTypeInfo::Union {
                         members: new_members,
                     },
@@ -646,12 +669,16 @@ impl MarkusType {
     /// # Panics
     /// If the current type is not an object.
     #[inline]
-    pub fn object_query_field(&self, space: &TypeSpace, field_name: &str) -> Option<MarkusType> {
+    fn object_query_field(
+        &self,
+        space: &TypeSpace,
+        field_name: &str,
+    ) -> Option<(MarkusType, bool)> {
         match self.type_info {
             MarkusTypeInfo::BuiltInObject { ref fields, .. } => match fields.get(field_name) {
                 Some(type_ids) => {
                     let ids: Vec<TypeId> = type_ids.iter().map(|s| *s).collect();
-                    Some(MarkusType::new_union(ids))
+                    Some((MarkusType::new_union(ids), false))
                 }
                 None => None,
             },
@@ -662,7 +689,9 @@ impl MarkusType {
                             return match &field.type_name {
                                 Some(type_identifier) => {
                                     match space.resolve_type(&type_identifier.value) {
-                                        Some(markus_type) => Some(markus_type.clone()),
+                                        Some(markus_type) => {
+                                            Some((markus_type.clone(), field.nullable))
+                                        }
                                         None => None,
                                     }
                                 }
@@ -686,28 +715,36 @@ impl MarkusType {
         }
     }
 
-    /// Returns true if the given URI exists on this object.
-    pub fn object_has(&self, space: &TypeSpace, uri: &[&str]) -> bool {
+    /// # Panics
+    /// If the current type is not an object.
+    fn object_query(&self, space: &TypeSpace, uri: &[&str]) -> Option<MarkusType> {
         match uri.len() {
-            0 => true,
-            1 => self.object_has_field(space, uri[0]),
+            0 => Some(self.clone()),
+            1 => match self.object_query_field(space, uri[0]) {
+                Some((field_type, _)) => Some(field_type),
+                None => None,
+            },
             _ => match self.object_query_field(space, uri[0]) {
-                Some(field_type) => field_type.object_has(space, &uri[1..]),
-                None => false,
+                Some((field_type, _)) => field_type.object_query(space, &uri[1..]),
+                None => None,
             },
         }
     }
 
-    /// Returns the given field on the current object.
+    /// Returns true if the given field on current type might be null.
     /// # Panics
     /// If the current type is not an object.
-    pub fn object_query(&self, space: &TypeSpace, uri: &[&str]) -> Option<MarkusType> {
+    fn object_is_nullable(&self, space: &TypeSpace, uri: &[&str]) -> bool {
         match uri.len() {
-            0 => Some(self.clone()),
-            1 => self.object_query_field(space, uri[0]),
+            0 => false,
+            1 => match self.object_query_field(space, uri[0]) {
+                Some((_, nullable)) => nullable,
+                None => false,
+            },
             _ => match self.object_query_field(space, uri[0]) {
-                Some(field_type) => field_type.object_query(space, &uri[1..]),
-                None => None,
+                Some((_, true)) => true,
+                Some((field_type, _)) => field_type.object_is_nullable(space, &uri[1..]),
+                None => false,
             },
         }
     }

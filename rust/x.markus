@@ -11,6 +11,6 @@ action x() {
     update {
         is(Cat)
     } {
-        .name = "X"
+        .name = null
     };
 }
