@@ -1,6 +1,6 @@
 use crate::parser::ast::{ActionDeclarationNode, QueryDeclarationNode};
 use crate::parser::ast::{ActionStatement, CreateStatementNode, ValidateStatementNode};
-use crate::parser::ast::{DeleteStatementNode, UpdateStatementNode};
+use crate::parser::ast::{BindingValueNode, DeleteStatementNode, UpdateStatementNode};
 use crate::parser::ast::{GuardNode, ParameterNode, PermissionDeclarationNode};
 use crate::parser::Span;
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
@@ -199,7 +199,9 @@ impl ActionDeclarationNode {
                 ActionStatement::Update(stmt) => {
                     stmt.verify(&mut ctx);
                 }
-                _ => unimplemented!(),
+                ActionStatement::Create(stmt) => {
+                    stmt.verify(&mut ctx);
+                }
             }
             ctx.branch_pop();
         }
@@ -259,7 +261,12 @@ impl UpdateStatementNode {
                 }
 
                 if let Some(value) = &binding.value {
-                    // TODO(qti3e) Verify the Create node.
+                    match value {
+                        BindingValueNode::Create(statement) => {
+                            statement.verify(ctx);
+                        }
+                        _ => {}
+                    }
                     let mut field_type = field_type_option.unwrap();
                     if base_type.is_nullable(ctx.space, &uri) {
                         field_type = field_type + ctx.space.resolve_type("null").unwrap();
@@ -278,8 +285,6 @@ impl UpdateStatementNode {
             }
 
             modified.sort_by(|a, b| a.0.len().partial_cmp(&b.0.len()).unwrap());
-
-            println!("{:?}", modified);
 
             for i in 0..modified.len() {
                 let current = &modified[i].0;
@@ -306,6 +311,10 @@ impl UpdateStatementNode {
             }
         }
     }
+}
+
+impl CreateStatementNode {
+    pub fn verify(&self, ctx: &mut Context) {}
 }
 
 fn create_user_type(
