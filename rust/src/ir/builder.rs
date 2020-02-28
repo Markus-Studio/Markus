@@ -216,14 +216,19 @@ impl<'a> SelectionBuilder<'a> {
             .push(FilterVector::from_filter(Filter::Is(type_id), false));
     }
 
+    pub fn eq(&mut self, lhs: Value, rhs: Value) {
+        self.stack
+            .push(FilterVector::from_filter(Filter::Eq(lhs, rhs), false));
+    }
+
+    pub fn neq(&mut self, lhs: Value, rhs: Value) {
+        self.stack
+            .push(FilterVector::from_filter(Filter::Eq(lhs, rhs), true));
+    }
+
     pub fn gt(&mut self, lhs: Value, rhs: Value) {
         self.stack
             .push(FilterVector::from_filter(Filter::Gt(lhs, rhs), false));
-    }
-
-    pub fn lt(&mut self, lhs: Value, rhs: Value) {
-        self.stack
-            .push(FilterVector::from_filter(Filter::Lt(lhs, rhs), false));
     }
 
     pub fn gte(&mut self, lhs: Value, rhs: Value) {
@@ -231,14 +236,27 @@ impl<'a> SelectionBuilder<'a> {
             .push(FilterVector::from_filter(Filter::Lt(lhs, rhs), true));
     }
 
+    pub fn lt(&mut self, lhs: Value, rhs: Value) {
+        self.stack
+            .push(FilterVector::from_filter(Filter::Lt(lhs, rhs), false));
+    }
+
     pub fn lte(&mut self, lhs: Value, rhs: Value) {
         self.stack
             .push(FilterVector::from_filter(Filter::Gt(lhs, rhs), true));
     }
 
-    pub fn or() {}
+    pub fn or(&mut self) {
+        let rhs = self.stack.pop().unwrap();
+        let lhs = self.stack.pop().unwrap();
+        self.stack.push(lhs + rhs);
+    }
 
-    pub fn and() {}
+    pub fn and(&mut self) {
+        let rhs = self.stack.pop().unwrap();
+        let lhs = self.stack.pop().unwrap();
+        self.stack.push(lhs * rhs);
+    }
 }
 
 impl<'a> PermissionBuilder<'a> {

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 pub type TypeId = u32;
 pub type ParameterId = usize;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum ValueLiteral {
     Null,
     True,
@@ -19,7 +19,7 @@ pub enum ValueLiteral {
     Str(String),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum ValueFunction {
     Add,
     Sub,
@@ -37,14 +37,14 @@ pub enum ValueFunction {
     Lt,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum ValueVariableBase {
     User,
     Current,
     Named(String),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum ValueStackItem {
     Function(ValueFunction),
     Literal(ValueLiteral),
@@ -53,7 +53,7 @@ pub enum ValueStackItem {
 
 pub type Value = Vec<ValueStackItem>;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Filter {
     Is(TypeId),
     Eq(Value, Value),
@@ -61,6 +61,7 @@ pub enum Filter {
     Gt(Value, Value),
 }
 
+#[derive(Debug, Clone)]
 pub enum CompoundFilter {
     True,
     False,
@@ -268,9 +269,9 @@ impl CompoundFilter {
             CompoundFilter::True => CompoundFilter::False,
             CompoundFilter::False => CompoundFilter::True,
             CompoundFilter::Conjunction(parts) => {
-                let mut new_parts = Vec::with_capacity(parts.len());
+                let mut new_parts: Vec<(bool, Filter)> = Vec::with_capacity(parts.len());
                 for (n, f) in parts {
-                    new_parts.push((!n, *f));
+                    new_parts.push((!n, f.clone()));
                 }
                 CompoundFilter::Conjunction(new_parts)
             }
@@ -284,27 +285,46 @@ impl FilterVector {
         items.push(CompoundFilter::from_filter(filter, neg));
         FilterVector::Disjunction(items)
     }
+
+    pub fn from_compound_filter(filter: CompoundFilter) -> FilterVector {
+        match filter {
+            CompoundFilter::True => FilterVector::True,
+            CompoundFilter::False => FilterVector::False,
+            _ => {
+                let mut items = Vec::with_capacity(1);
+                items.push(filter);
+                FilterVector::Disjunction(items)
+            }
+        }
+    }
 }
 
 impl std::ops::Add<CompoundFilter> for CompoundFilter {
     type Output = CompoundFilter;
 
     fn add(self, rhs: CompoundFilter) -> CompoundFilter {
-        match (&mut self, rhs) {
-            (CompoundFilter::True, _) => rhs,
-            (_, CompoundFilter::True) => self,
-            (CompoundFilter::False, _) => self,
-            (_, CompoundFilter::False) => rhs,
+        match (self, rhs) {
+            (CompoundFilter::True, ret) => ret,
+            (ret, CompoundFilter::True) => ret,
+            (CompoundFilter::False, _) => CompoundFilter::False,
+            (_, CompoundFilter::False) => CompoundFilter::False,
             (CompoundFilter::Conjunction(mut parts), CompoundFilter::Conjunction(rhs_parts)) => {
                 for (neg, filter) in rhs_parts {
-                    for (n, f) in parts {
-                        if f == filter {
-                            if neg != n {
+                    let mut found = false;
+
+                    for (n, f) in &parts {
+                        if filter == *f {
+                            if neg != *n {
                                 return CompoundFilter::False;
                             }
-                        } else {
-                            parts.push((neg, filter));
+
+                            found = true;
+                            break;
                         }
+                    }
+
+                    if !found {
+                        parts.push((neg, filter));
                     }
                 }
 
@@ -363,35 +383,31 @@ impl std::cmp::PartialEq for CompoundFilter {
     }
 }
 
-impl std::ops::Add<FilterVector> for FilterVector {
+impl std::ops::Add<CompoundFilter> for FilterVector {
     type Output = FilterVector;
 
-    fn add(self, rhs: FilterVector) -> FilterVector {
-        match (&mut self, rhs) {
-            (FilterVector::True, _) => self,
-            (_, FilterVector::True) => rhs,
-            (FilterVector::False, _) => rhs,
-            (_, FilterVector::False) => self,
-            (FilterVector::Disjunction(mut parts), FilterVector::Disjunction(rhs_parts)) => {
-                for current in rhs_parts {
-                    match current {
-                        CompoundFilter::True => return FilterVector::True,
-                        CompoundFilter::False => continue,
-                        _ => {
-                            let current_neg = current.neg();
-                            for filter in parts {
-                                if current == filter {
-                                    break;
-                                }
+    fn add(self, rhs: CompoundFilter) -> FilterVector {
+        match (self, rhs) {
+            (FilterVector::True, _) => FilterVector::True,
+            (FilterVector::False, ret) => FilterVector::from_compound_filter(ret),
+            (_, CompoundFilter::True) => FilterVector::True,
+            (s, CompoundFilter::False) => s,
+            (FilterVector::Disjunction(mut parts), current) => {
+                let current_neg = current.neg();
 
-                                if current_neg == filter {
-                                    return FilterVector::True;
-                                }
-
-                                parts.push(current);
-                            }
-                        }
+                let mut found = false;
+                for filter in &parts {
+                    if current == *filter {
+                        found = true;
+                        break;
                     }
+
+                    if current_neg == *filter {
+                        return FilterVector::True;
+                    }
+                }
+                if !found {
+                    parts.push(current);
                 }
 
                 FilterVector::Disjunction(parts)
@@ -400,8 +416,58 @@ impl std::ops::Add<FilterVector> for FilterVector {
     }
 }
 
+impl std::ops::Add<FilterVector> for FilterVector {
+    type Output = FilterVector;
+
+    fn add(self, rhs: FilterVector) -> FilterVector {
+        match (self, rhs) {
+            (FilterVector::True, _) => FilterVector::True,
+            (_, FilterVector::True) => FilterVector::True,
+            (FilterVector::False, ret) => ret,
+            (s, FilterVector::False) => s,
+            (s, FilterVector::Disjunction(parts)) => {
+                let mut result = s;
+
+                for current in parts {
+                    result = result + current;
+                    match result {
+                        FilterVector::True => break,
+                        _ => {}
+                    }
+                }
+
+                result
+            }
+        }
+    }
+}
+
 impl std::ops::Mul<FilterVector> for FilterVector {
     type Output = FilterVector;
 
-    fn mul(self, rhs: FilterVector) -> FilterVector {}
+    fn mul(self, rhs: FilterVector) -> FilterVector {
+        match (self, rhs) {
+            /// [F] * [A, B] = [F + A, F + B] = [F, F] = [F]
+            (FilterVector::False, _) => FilterVector::False,
+            (_, FilterVector::False) => FilterVector::False,
+            /// [T] * [A, B] = [T + A, T + B] = [A, B]
+            (FilterVector::True, ret) => ret,
+            (ret, FilterVector::True) => ret,
+            (FilterVector::Disjunction(lhs), FilterVector::Disjunction(rhs)) => {
+                let mut result = FilterVector::False;
+
+                for a in &lhs {
+                    for b in &rhs {
+                        match a.clone() + b.clone() {
+                            CompoundFilter::True => return FilterVector::True,
+                            CompoundFilter::False => {}
+                            x => result = result + x,
+                        }
+                    }
+                }
+
+                result
+            }
+        }
+    }
 }

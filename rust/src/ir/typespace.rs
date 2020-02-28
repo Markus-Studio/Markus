@@ -19,7 +19,7 @@ pub struct IrTypeSpace {
 
 type IrObjectData = HashMap<WordId, (IrType, bool)>;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum IrType {
     Null,
     I32,
