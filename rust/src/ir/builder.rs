@@ -246,16 +246,21 @@ impl<'a> SelectionBuilder<'a> {
             .push(FilterVector::from_filter(Filter::Gt(lhs, rhs), true));
     }
 
+    pub fn and(&mut self) {
+        let rhs = self.stack.pop().unwrap();
+        let lhs = self.stack.pop().unwrap();
+        self.stack.push(lhs * rhs);
+    }
+
     pub fn or(&mut self) {
         let rhs = self.stack.pop().unwrap();
         let lhs = self.stack.pop().unwrap();
         self.stack.push(lhs + rhs);
     }
 
-    pub fn and(&mut self) {
-        let rhs = self.stack.pop().unwrap();
-        let lhs = self.stack.pop().unwrap();
-        self.stack.push(lhs * rhs);
+    pub fn neg(&mut self) {
+        let value = self.stack.pop().unwrap();
+        self.stack.push(-value);
     }
 }
 

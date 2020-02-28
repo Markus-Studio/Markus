@@ -264,17 +264,67 @@ impl CompoundFilter {
         CompoundFilter::Conjunction(parts)
     }
 
-    pub fn neg(&self) -> CompoundFilter {
+    pub fn reverse(self) -> CompoundFilter {
         match self {
             CompoundFilter::True => CompoundFilter::False,
             CompoundFilter::False => CompoundFilter::True,
             CompoundFilter::Conjunction(parts) => {
                 let mut new_parts: Vec<(bool, Filter)> = Vec::with_capacity(parts.len());
                 for (n, f) in parts {
-                    new_parts.push((!n, f.clone()));
+                    new_parts.push((!n, f));
                 }
                 CompoundFilter::Conjunction(new_parts)
             }
+        }
+    }
+
+    pub fn split(self) -> FilterVector {
+        match self {
+            CompoundFilter::True => FilterVector::True,
+            CompoundFilter::False => FilterVector::False,
+            CompoundFilter::Conjunction(parts) => {
+                let mut result = FilterVector::False;
+
+                for (neg, filter) in parts {
+                    let compound = CompoundFilter::from_filter(filter, neg);
+                    result = result + compound;
+                }
+
+                result
+            }
+        }
+    }
+
+    pub fn is_superset_of(&self, other: &CompoundFilter) -> bool {
+        match (self, other) {
+            (
+                CompoundFilter::Conjunction(self_members),
+                CompoundFilter::Conjunction(other_members),
+            ) => {
+                if other_members.len() > self_members.len() {
+                    return false;
+                }
+
+                for (neg, filter) in other_members {
+                    let mut found = false;
+
+                    for (n, f) in self_members {
+                        if n == neg && filter == f {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if !found {
+                        return false;
+                    }
+                }
+
+                true
+            }
+            (CompoundFilter::True, CompoundFilter::True)
+            | (CompoundFilter::False, CompoundFilter::False) => true,
+            _ => false,
         }
     }
 }
@@ -295,6 +345,20 @@ impl FilterVector {
                 items.push(filter);
                 FilterVector::Disjunction(items)
             }
+        }
+    }
+
+    pub fn is_true(&self) -> bool {
+        match self {
+            FilterVector::True => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_false(&self) -> bool {
+        match self {
+            FilterVector::False => true,
+            _ => false,
         }
     }
 }
@@ -393,23 +457,16 @@ impl std::ops::Add<CompoundFilter> for FilterVector {
             (_, CompoundFilter::True) => FilterVector::True,
             (s, CompoundFilter::False) => s,
             (FilterVector::Disjunction(mut parts), current) => {
-                let current_neg = current.neg();
-
                 let mut found = false;
                 for filter in &parts {
-                    if current == *filter {
+                    if filter.is_superset_of(&current) {
                         found = true;
                         break;
-                    }
-
-                    if current_neg == *filter {
-                        return FilterVector::True;
                     }
                 }
                 if !found {
                     parts.push(current);
                 }
-
                 FilterVector::Disjunction(parts)
             }
         }
@@ -430,9 +487,8 @@ impl std::ops::Add<FilterVector> for FilterVector {
 
                 for current in parts {
                     result = result + current;
-                    match result {
-                        FilterVector::True => break,
-                        _ => {}
+                    if result.is_true() {
+                        break;
                     }
                 }
 
@@ -463,6 +519,29 @@ impl std::ops::Mul<FilterVector> for FilterVector {
                             CompoundFilter::False => {}
                             x => result = result + x,
                         }
+                    }
+                }
+
+                result
+            }
+        }
+    }
+}
+
+impl std::ops::Neg for FilterVector {
+    type Output = FilterVector;
+
+    fn neg(self) -> Self::Output {
+        match self {
+            FilterVector::True => FilterVector::False,
+            FilterVector::False => FilterVector::True,
+            FilterVector::Disjunction(parts) => {
+                let mut result = FilterVector::False;
+
+                for filter in parts {
+                    result = result * filter.reverse().split();
+                    if result.is_true() {
+                        break;
                     }
                 }
 
