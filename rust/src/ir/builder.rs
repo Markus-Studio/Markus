@@ -17,6 +17,7 @@ pub struct ValueBuilder<'a> {
 
 pub struct SelectionBuilder<'a> {
     builder: &'a mut IRBuilder,
+    stack: Vec<FilterVector>,
 }
 
 pub struct PermissionBuilder<'a> {
@@ -204,8 +205,40 @@ impl<'a> ValueBuilder<'a> {
 
 impl<'a> SelectionBuilder<'a> {
     pub fn new(builder: &'a mut IRBuilder) -> SelectionBuilder<'a> {
-        SelectionBuilder { builder }
+        SelectionBuilder {
+            builder,
+            stack: Vec::new(),
+        }
     }
+
+    pub fn is(&mut self, type_id: TypeId) {
+        self.stack
+            .push(FilterVector::from_filter(Filter::Is(type_id), false));
+    }
+
+    pub fn gt(&mut self, lhs: Value, rhs: Value) {
+        self.stack
+            .push(FilterVector::from_filter(Filter::Gt(lhs, rhs), false));
+    }
+
+    pub fn lt(&mut self, lhs: Value, rhs: Value) {
+        self.stack
+            .push(FilterVector::from_filter(Filter::Lt(lhs, rhs), false));
+    }
+
+    pub fn gte(&mut self, lhs: Value, rhs: Value) {
+        self.stack
+            .push(FilterVector::from_filter(Filter::Lt(lhs, rhs), true));
+    }
+
+    pub fn lte(&mut self, lhs: Value, rhs: Value) {
+        self.stack
+            .push(FilterVector::from_filter(Filter::Gt(lhs, rhs), true));
+    }
+
+    pub fn or() {}
+
+    pub fn and() {}
 }
 
 impl<'a> PermissionBuilder<'a> {
