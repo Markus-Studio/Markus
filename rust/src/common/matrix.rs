@@ -1,3 +1,4 @@
+#[derive(PartialEq, Debug)]
 pub struct Matrix<T> {
     row: usize,
     col: usize,
@@ -15,6 +16,12 @@ where
             data.push(default);
         }
         data.shrink_to_fit();
+        Matrix { row, col, data }
+    }
+
+    pub fn from_vec(row: usize, col: usize, data: Vec<T>) -> Matrix<T> {
+        let size = row * col;
+        assert_eq!(size, data.len());
         Matrix { row, col, data }
     }
 

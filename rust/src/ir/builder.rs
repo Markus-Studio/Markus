@@ -10,27 +10,19 @@ pub struct TypeBuilder<'a> {
     builder: &'a mut IRBuilder,
 }
 
-pub struct ValueBuilder<'a> {
-    builder: &'a mut IRBuilder,
+pub struct ValueBuilder {
     stack: Vec<ValueStackItem>,
 }
 
-pub struct SelectionBuilder<'a> {
-    builder: &'a mut IRBuilder,
+pub struct SelectionBuilder {
     stack: Vec<FilterVector>,
 }
 
-pub struct PermissionBuilder<'a> {
-    builder: &'a mut IRBuilder,
-}
+pub struct PermissionBuilder {}
 
-pub struct QueryBuilder<'a> {
-    builder: &'a mut IRBuilder,
-}
+pub struct QueryBuilder {}
 
-pub struct ActionBuilder<'a> {
-    builder: &'a mut IRBuilder,
-}
+pub struct ActionBuilder {}
 
 impl IRBuilder {
     pub fn new() -> IRBuilder {
@@ -48,12 +40,9 @@ impl<'a> TypeBuilder<'a> {
     pub fn build(&self) {}
 }
 
-impl<'a> ValueBuilder<'a> {
-    pub fn new(builder: &'a mut IRBuilder) -> ValueBuilder<'a> {
-        ValueBuilder {
-            builder,
-            stack: Vec::new(),
-        }
+impl ValueBuilder {
+    pub fn new() -> ValueBuilder {
+        ValueBuilder { stack: Vec::new() }
     }
 
     pub fn push_i32(&mut self, value: i32) {
@@ -203,47 +192,52 @@ impl<'a> ValueBuilder<'a> {
     }
 }
 
-impl<'a> SelectionBuilder<'a> {
-    pub fn new(builder: &'a mut IRBuilder) -> SelectionBuilder<'a> {
-        SelectionBuilder {
-            builder,
-            stack: Vec::new(),
-        }
+impl SelectionBuilder {
+    pub fn new() -> SelectionBuilder {
+        SelectionBuilder { stack: Vec::new() }
     }
 
     pub fn is(&mut self, type_id: TypeId) {
         self.stack
-            .push(FilterVector::from_filter(Filter::Is(type_id), false));
+            .push(FilterVector::from_filter(AtomicFilter::Is(type_id), false));
     }
 
     pub fn eq(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(Filter::Eq(lhs, rhs), false));
+            .push(FilterVector::from_filter(AtomicFilter::Eq(lhs, rhs), false));
     }
 
     pub fn neq(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(Filter::Eq(lhs, rhs), true));
+            .push(FilterVector::from_filter(AtomicFilter::Eq(lhs, rhs), true));
     }
 
     pub fn gt(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(Filter::Gt(lhs, rhs), false));
+            .push(FilterVector::from_filter(AtomicFilter::Gt(lhs, rhs), false));
     }
 
     pub fn gte(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(Filter::Lt(lhs, rhs), true));
+            .push(FilterVector::from_filter(AtomicFilter::Lt(lhs, rhs), true));
     }
 
     pub fn lt(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(Filter::Lt(lhs, rhs), false));
+            .push(FilterVector::from_filter(AtomicFilter::Lt(lhs, rhs), false));
     }
 
     pub fn lte(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(Filter::Gt(lhs, rhs), true));
+            .push(FilterVector::from_filter(AtomicFilter::Gt(lhs, rhs), true));
+    }
+
+    #[cfg(test)]
+    pub fn test_variable(&mut self, id: usize) {
+        self.stack.push(FilterVector::from_filter(
+            AtomicFilter::TestVariable(id),
+            false,
+        ));
     }
 
     pub fn and(&mut self) {
@@ -262,22 +256,27 @@ impl<'a> SelectionBuilder<'a> {
         let value = self.stack.pop().unwrap();
         self.stack.push(-value);
     }
-}
 
-impl<'a> PermissionBuilder<'a> {
-    pub fn new(builder: &'a mut IRBuilder) -> PermissionBuilder<'a> {
-        PermissionBuilder { builder }
+    pub fn build(mut self) -> Selection {
+        assert_eq!(self.stack.len(), 1);
+        self.stack.pop().unwrap()
     }
 }
 
-impl<'a> QueryBuilder<'a> {
-    pub fn new(builder: &'a mut IRBuilder) -> QueryBuilder<'a> {
-        QueryBuilder { builder }
+impl PermissionBuilder {
+    pub fn new() -> PermissionBuilder {
+        PermissionBuilder {}
     }
 }
 
-impl<'a> ActionBuilder<'a> {
-    pub fn new(builder: &'a mut IRBuilder) -> ActionBuilder<'a> {
-        ActionBuilder { builder }
+impl QueryBuilder {
+    pub fn new() -> QueryBuilder {
+        QueryBuilder {}
+    }
+}
+
+impl ActionBuilder {
+    pub fn new() -> ActionBuilder {
+        ActionBuilder {}
     }
 }

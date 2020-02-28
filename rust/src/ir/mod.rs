@@ -1,3 +1,7 @@
+mod ir;
+pub use ir::*;
+
 pub mod builder;
-pub mod ir;
 pub mod typespace;
+
+mod selection_test;
