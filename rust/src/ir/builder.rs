@@ -160,6 +160,46 @@ impl<'a> ValueBuilder<'a> {
                 .push(ValueStackItem::Function(ValueFunction::Add));
         }
     }
+
+    pub fn sub(&mut self) {
+        if self.is_literal2() {
+            let rhs = self.stack.pop().unwrap().as_literal();
+            let lhs = self.stack.pop().unwrap().as_literal();
+            let result = lhs - &rhs;
+            self.stack.push(ValueStackItem::Literal(result));
+        } else {
+            self.stack
+                .push(ValueStackItem::Function(ValueFunction::Sub));
+        }
+    }
+
+    pub fn mul(&mut self) {
+        if self.is_literal2() {
+            let rhs = self.stack.pop().unwrap().as_literal();
+            let lhs = self.stack.pop().unwrap().as_literal();
+            let result = lhs * &rhs;
+            self.stack.push(ValueStackItem::Literal(result));
+        } else {
+            self.stack
+                .push(ValueStackItem::Function(ValueFunction::Mul));
+        }
+    }
+
+    pub fn div(&mut self) {
+        if self.is_literal2() {
+            let rhs = self.stack.pop().unwrap().as_literal();
+            let lhs = self.stack.pop().unwrap().as_literal();
+            let result = lhs / &rhs;
+            self.stack.push(ValueStackItem::Literal(result));
+        } else {
+            self.stack
+                .push(ValueStackItem::Function(ValueFunction::Div));
+        }
+    }
+
+    pub fn build(self) -> Value {
+        self.stack
+    }
 }
 
 impl<'a> SelectionBuilder<'a> {
