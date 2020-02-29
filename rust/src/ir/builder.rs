@@ -1,13 +1,20 @@
 #![allow(unused)]
+use crate::common::Matrix;
 use crate::ir::ir::*;
-use crate::ir::typespace::IrType;
+use bimap::BiMap;
+use std::collections::HashMap;
 
 pub struct IRBuilder {
     types: Vec<i32>,
 }
 
-pub struct TypeBuilder<'a> {
-    builder: &'a mut IRBuilder,
+pub struct TypeSpaceBuilder {
+    type_ids: HashMap<String, TypeId>,
+    next_id: TypeId,
+    objects: HashMap<String, (Vec<(String, String, bool)>, Vec<String>)>,
+    current_type_name: Option<String>,
+    current_bases: Option<Vec<String>>,
+    current_fields: Option<Vec<(String, String, bool)>>,
 }
 
 pub struct ValueBuilder {
@@ -32,12 +39,73 @@ impl IRBuilder {
     }
 }
 
-impl<'a> TypeBuilder<'a> {
-    pub fn new(builder: &'a mut IRBuilder) -> TypeBuilder<'a> {
-        TypeBuilder { builder }
+impl TypeSpaceBuilder {
+    pub fn new() -> TypeSpaceBuilder {
+        let mut space = TypeSpaceBuilder {
+            type_ids: HashMap::new(),
+            next_id: 0,
+            objects: HashMap::new(),
+            current_bases: None,
+            current_type_name: None,
+            current_fields: None,
+        };
+        space.reserve(String::from("user"));
+        space
     }
 
-    pub fn build(&self) {}
+    fn reserve(&mut self, name: String) {
+        let id = self.next_id;
+        self.type_ids.insert(name, id);
+        self.next_id += 1;
+    }
+
+    pub fn begin(&mut self, name: String) {
+        self.current_type_name = Some(name);
+        self.current_fields = Some(Vec::new());
+    }
+
+    pub fn end(&mut self) {
+        let type_name = std::mem::replace(&mut self.current_type_name, None).unwrap();
+        let fields = std::mem::replace(&mut self.current_fields, None).unwrap();
+        let bases = std::mem::replace(&mut self.current_bases, None).unwrap();
+        self.objects.insert(type_name, (fields, bases));
+    }
+
+    pub fn base(&mut self, name: String) {
+        self.current_bases.as_mut().unwrap().push(name);
+    }
+
+    pub fn field(&mut self, name: String, field_type: String, nullable: bool) {
+        self.current_fields
+            .as_mut()
+            .unwrap()
+            .push((name, field_type, nullable));
+    }
+
+    fn stage(&mut self) {
+        let mut type_names: Vec<&String> = self.objects.keys().collect();
+        type_names.sort_unstable();
+        for type_name in &type_names {
+            let id = self.next_id;
+            self.type_ids.insert((*type_name).clone(), id);
+            self.next_id += 1;
+        }
+    }
+
+    pub fn build(mut self) -> TypeSpace {
+        self.stage();
+
+        let size = self.next_id as usize;
+        let mut base_graph = Matrix::new(size, size, false);
+        let mut type_names = BiMap::new();
+        let mut types = HashMap::new();
+
+        TypeSpace {
+            base_graph,
+            type_names,
+            types,
+        }
+    }
 }
 
 impl ValueBuilder {

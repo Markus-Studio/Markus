@@ -1,10 +1,24 @@
 #![allow(unused)]
 use crate::common::Matrix;
-use crate::ir::typespace::{IrType, IrTypeSpace};
+use bimap::BiMap;
 use std::collections::HashMap;
 
 pub type TypeId = u32;
 pub type ParameterId = usize;
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum IrType {
+    Null,
+    I32,
+    I64,
+    U32,
+    U64,
+    F32,
+    F64,
+    Str,
+    Bool,
+    Object(TypeId),
+}
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum ValueLiteral {
@@ -142,8 +156,16 @@ pub struct Action {
     actions: Vec<SingleAction>,
 }
 
+pub struct TypeSpace {
+    pub base_graph: Matrix<bool>,
+    pub type_names: BiMap<String, TypeId>,
+    pub types: HashMap<TypeId, ObjectTypeData>,
+}
+
+pub type ObjectTypeData = HashMap<String, (IrType, bool)>;
+
 pub struct Program {
-    typespace: IrTypeSpace,
+    typespace: TypeSpace,
     queries: Vec<Query>,
     actions: Vec<Action>,
 }

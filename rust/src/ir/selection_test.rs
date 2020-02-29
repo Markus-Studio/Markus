@@ -18,7 +18,9 @@ fn create_truth_table(n: usize) -> Matrix<u8> {
 
         while r < row {
             for _ in 0..interval {
-                matrix.set(r, c, if value { 1 } else { 0 });
+                if value {
+                    matrix.set(r, c, 1);
+                }
                 r += 1;
             }
             value = !value;
@@ -358,4 +360,38 @@ fn test_selection_17() {
     builder.and();
     let selection = builder.build();
     assert!(selection.is_false());
+}
+
+#[test]
+fn test_selection_18() {
+    // Expr: `!((A & B) | (C & D))`
+    let mut builder = builder::SelectionBuilder::new();
+    builder.test_variable(0);
+    builder.test_variable(1);
+    builder.and();
+    builder.test_variable(2);
+    builder.test_variable(3);
+    builder.and();
+    builder.or();
+    builder.neg();
+    #[rustfmt::skip]
+    let expected = Matrix::from_vec(16, 5, vec![
+        1, 1, 1, 1, 0,
+        1, 1, 1, 0, 0,
+        1, 1, 0, 1, 0,
+        1, 1, 0, 0, 0,
+        1, 0, 1, 1, 0,
+        1, 0, 1, 0, 1,
+        1, 0, 0, 1, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0,
+        0, 1, 1, 0, 1,
+        0, 1, 0, 1, 1,
+        0, 1, 0, 0, 1,
+        0, 0, 1, 1, 0,
+        0, 0, 1, 0, 1,
+        0, 0, 0, 1, 1,
+        0, 0, 0, 0, 1
+    ]);
+    assert_eq!(compute(builder.build(), 4), expected)
 }
