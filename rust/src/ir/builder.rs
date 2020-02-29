@@ -2,7 +2,7 @@
 use crate::common::Matrix;
 use crate::ir::ir::*;
 use bimap::BiMap;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub struct IRBuilder {
     types: Vec<i32>,
@@ -92,13 +92,60 @@ impl TypeSpaceBuilder {
         }
     }
 
+    fn get_type(&self, name: &String) -> IrType {
+        match name as &str {
+            "i32" => IrType::I32,
+            _ => {
+                let id = *self.type_ids.get(name).unwrap();
+                IrType::Object(id)
+            }
+        }
+    }
+
     pub fn build(mut self) -> TypeSpace {
         self.stage();
 
-        let size = self.next_id as usize;
-        let mut base_graph = Matrix::new(size, size, false);
+        let size = self.next_id;
+        let mut base_graph = Matrix::<bool, TypeId>::new(size, size, false);
         let mut type_names = BiMap::new();
         let mut types = HashMap::new();
+
+        for (name, _) in &self.objects {
+            let type_id = *self.type_ids.get(name).unwrap();
+            let mut object_fields: ObjectTypeData = Vec::new();
+            let mut recursive_bases: Vec<&String> = Vec::new();
+            let mut cursor = 0;
+            let mut seen: HashSet<TypeId> = HashSet::new();
+            recursive_bases.push(&name);
+
+            while cursor < recursive_bases.len() {
+                let current = recursive_bases[cursor];
+                let base_id = *self.type_ids.get(current).unwrap();
+                if seen.insert(base_id) == false {
+                    continue;
+                }
+
+                match self.objects.get(current) {
+                    Some((fields, bases)) => {
+                        for base in bases {
+                            recursive_bases.push(base);
+                        }
+
+                        for (name, type_name, optional) in fields {
+                            let field_type = self.get_type(type_name);
+                            object_fields.push((name.clone(), field_type, *optional))
+                        }
+                    }
+                    _ => {} // An internal type like `user`.
+                }
+
+                base_graph.set(type_id, base_id, true);
+
+                cursor += 1;
+            }
+
+            type_names.insert(name.clone(), type_id);
+        }
 
         TypeSpace {
             base_graph,

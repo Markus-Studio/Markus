@@ -157,12 +157,12 @@ pub struct Action {
 }
 
 pub struct TypeSpace {
-    pub base_graph: Matrix<bool>,
+    pub base_graph: Matrix<bool, TypeId>,
     pub type_names: BiMap<String, TypeId>,
     pub types: HashMap<TypeId, ObjectTypeData>,
 }
 
-pub type ObjectTypeData = HashMap<String, (IrType, bool)>;
+pub type ObjectTypeData = Vec<(String, IrType, bool)>;
 
 pub struct Program {
     typespace: TypeSpace,

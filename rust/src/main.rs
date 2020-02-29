@@ -25,7 +25,5 @@ fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         return Ok(());
     }
 
-    ir::typespace::IrTypeSpace::from_type_space(&program.type_space);
-
     Ok(())
 }
