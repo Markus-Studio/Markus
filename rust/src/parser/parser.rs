@@ -197,6 +197,7 @@ impl<'a> Parser<'a> {
         stops: Vec<TokenKind>,
         cb: F,
         separator: TokenKind,
+        allow_trailing_separator: bool,
     ) {
         debug_assert!(stops.len() > 0);
         debug_assert!(!stops.contains(&separator));
@@ -239,7 +240,7 @@ impl<'a> Parser<'a> {
             }
         }
 
-        if expect_data {
+        if expect_data && !allow_trailing_separator {
             match last_comma {
                 Some(token) => {
                     self.report(Diagnostic::unexpected_token(token));
@@ -255,8 +256,15 @@ impl<'a> Parser<'a> {
         result: &mut Vec<T>,
         stops: Vec<TokenKind>,
         cb: F,
+        allow_trailing_separator: bool,
     ) {
-        self.collect_separated_by(result, stops, cb, TokenKind::Comma)
+        self.collect_separated_by(
+            result,
+            stops,
+            cb,
+            TokenKind::Comma,
+            allow_trailing_separator,
+        )
     }
 
     #[inline]
@@ -390,9 +398,12 @@ impl<'a> Parser<'a> {
             vec![TokenKind::LeftBrace, TokenKind::RightBrace],
         ) {
             Some(_) => {
-                self.collect_comma_separated(&mut bases, vec![TokenKind::LeftBrace], |parser| {
-                    parser.parse_identifier(vec![TokenKind::Comma])
-                });
+                self.collect_comma_separated(
+                    &mut bases,
+                    vec![TokenKind::LeftBrace],
+                    |parser| parser.parse_identifier(vec![TokenKind::Comma]),
+                    false,
+                );
             }
             None => {}
         }
@@ -606,6 +617,7 @@ impl<'a> Parser<'a> {
                     ])
                 },
                 TokenKind::Dot,
+                false,
             );
         }
 
@@ -796,6 +808,7 @@ impl<'a> Parser<'a> {
             &mut arguments,
             vec![TokenKind::RightBrace, TokenKind::RightParenthesis],
             |parser| parser.parse_value(),
+            false,
         );
 
         self.expect(
@@ -839,6 +852,7 @@ impl<'a> Parser<'a> {
                 TokenKind::QueryKeyword,
             ],
             |parser| Some(parser.parse_call()),
+            true,
         );
 
         self.expect(
@@ -892,6 +906,7 @@ impl<'a> Parser<'a> {
                 TokenKind::AllowKeyword,
             ],
             |parser| Some(parser.parse_parameter()),
+            true,
         );
 
         self.expect(
@@ -1019,6 +1034,7 @@ impl<'a> Parser<'a> {
                 ])
             },
             TokenKind::Dot,
+            false,
         );
 
         self.expect(
@@ -1081,6 +1097,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Semicolon,
             ],
             |parser| Some(parser.parse_binding()),
+            true,
         );
 
         self.expect(

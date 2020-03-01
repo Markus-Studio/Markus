@@ -34,5 +34,5 @@ action x() {
 
 query x() {
     is(Point),
-    eq(.x, add(5, 3))
+    eq(.x, add(5, 3)),
 }
