@@ -72,20 +72,20 @@ impl TypeSpace {
         space.define_atomic("time");
         space.define_atomic("null");
         space.define_builtin_object("user", vec![], vec![]);
-        space.define_builtin_object(
-            "geo",
-            vec![],
-            vec![
-                (
-                    String::from("lat"),
-                    vec![f32_id].iter().map(|s| *s).collect(),
-                ),
-                (
-                    String::from("long"),
-                    vec![f32_id].iter().map(|s| *s).collect(),
-                ),
-            ],
-        );
+        // space.define_builtin_object(
+        //     "geo",
+        //     vec![],
+        //     vec![
+        //         (
+        //             String::from("lat"),
+        //             vec![f32_id].iter().map(|s| *s).collect(),
+        //         ),
+        //         (
+        //             String::from("long"),
+        //             vec![f32_id].iter().map(|s| *s).collect(),
+        //         ),
+        //     ],
+        // );
         space.define_one_of("%unsigned-int", vec![u32_id, u64_id]);
         space.define_one_of("%neg-int", vec![i32_id, i64_id]);
         space.define_one_of("%int", vec![i32_id, i64_id, u32_id, u64_id]);

@@ -15,6 +15,7 @@ pub enum IrType {
     U64,
     F32,
     F64,
+    Time,
     Str,
     Bool,
     Object(TypeId),
@@ -87,9 +88,9 @@ pub enum CompoundFilter {
 
 #[derive(Debug, Clone)]
 pub enum FilterVector {
-    /// Shorthand for Compound(CompoundFilter::True)
+    /// Shorthand for Disjunction(CompoundFilter::True)
     True,
-    /// Shorthand for Compound(CompoundFilter::False)
+    /// Shorthand for Disjunction(CompoundFilter::False)
     False,
     /// A filter value that consists of multiple compound filters.
     /// The result is true if and only if one or more of the items is

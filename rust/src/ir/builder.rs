@@ -25,8 +25,6 @@ pub struct SelectionBuilder {
     stack: Vec<FilterVector>,
 }
 
-pub struct PermissionBuilder {}
-
 pub struct QueryBuilder {}
 
 pub struct ActionBuilder {}
@@ -94,7 +92,16 @@ impl TypeSpaceBuilder {
 
     fn get_type(&self, name: &String) -> IrType {
         match name as &str {
+            "null" => IrType::Null,
             "i32" => IrType::I32,
+            "i64" => IrType::I64,
+            "u32" => IrType::U32,
+            "u64" => IrType::U64,
+            "f32" => IrType::F32,
+            "f64" => IrType::F64,
+            "time" => IrType::Time,
+            "string" => IrType::Str,
+            "bool" => IrType::Bool,
             _ => {
                 let id = *self.type_ids.get(name).unwrap();
                 IrType::Object(id)
@@ -244,7 +251,12 @@ impl ValueBuilder {
         }
     }
 
-    fn is_literal2(&self) -> bool {
+    fn has_two_literals(&self) -> bool {
+        let len = self.stack.len();
+        if len < 2 {
+            return false;
+        }
+
         match (
             &self.stack[self.stack.len() - 1],
             &self.stack[self.stack.len() - 2],
@@ -255,7 +267,7 @@ impl ValueBuilder {
     }
 
     pub fn add(&mut self) {
-        if self.is_literal2() {
+        if self.has_two_literals() {
             let rhs = self.stack.pop().unwrap().as_literal();
             let lhs = self.stack.pop().unwrap().as_literal();
             let result = lhs + &rhs;
@@ -267,7 +279,7 @@ impl ValueBuilder {
     }
 
     pub fn sub(&mut self) {
-        if self.is_literal2() {
+        if self.has_two_literals() {
             let rhs = self.stack.pop().unwrap().as_literal();
             let lhs = self.stack.pop().unwrap().as_literal();
             let result = lhs - &rhs;
@@ -279,7 +291,7 @@ impl ValueBuilder {
     }
 
     pub fn mul(&mut self) {
-        if self.is_literal2() {
+        if self.has_two_literals() {
             let rhs = self.stack.pop().unwrap().as_literal();
             let lhs = self.stack.pop().unwrap().as_literal();
             let result = lhs * &rhs;
@@ -291,7 +303,7 @@ impl ValueBuilder {
     }
 
     pub fn div(&mut self) {
-        if self.is_literal2() {
+        if self.has_two_literals() {
             let rhs = self.stack.pop().unwrap().as_literal();
             let lhs = self.stack.pop().unwrap().as_literal();
             let result = lhs / &rhs;
@@ -378,16 +390,12 @@ impl SelectionBuilder {
     }
 }
 
-impl PermissionBuilder {
-    pub fn new() -> PermissionBuilder {
-        PermissionBuilder {}
-    }
-}
-
 impl QueryBuilder {
     pub fn new() -> QueryBuilder {
         QueryBuilder {}
     }
+
+    pub fn is(&mut self, type_id: TypeId) {}
 }
 
 impl ActionBuilder {

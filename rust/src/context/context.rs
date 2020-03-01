@@ -189,6 +189,7 @@ impl ActionDeclarationNode {
 
         for statement in &self.statements {
             ctx.branch_in();
+            ctx.path_enter();
             match statement {
                 ActionStatement::Validate(stmt) => {
                     stmt.verify(&mut ctx);
@@ -203,6 +204,7 @@ impl ActionDeclarationNode {
                     stmt.verify(&mut ctx);
                 }
             }
+            ctx.path_exit();
             ctx.branch_pop();
         }
     }
