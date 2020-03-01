@@ -268,6 +268,10 @@ impl UpdateStatementNode {
                         ValueNode::Create(statement) => {
                             statement.verify(ctx);
                         }
+                        ValueNode::Query(_) => {
+                            ctx.diagnostics.push(Diagnostic::unexpected_argument(value));
+                            continue;
+                        }
                         _ => {}
                     }
                     let mut field_type = field_type_option.unwrap();
@@ -323,6 +327,8 @@ impl CreateStatementNode {
             return;
         }
 
+        ctx.set_current(MarkusType::new_nil().with_dimension(1));
+
         let object_binding = self.binding.as_ref().unwrap();
         let base_identifier = self.base.as_ref().unwrap();
         let base_type = {
@@ -344,6 +350,7 @@ impl CreateStatementNode {
         }
 
         let fields = base_type.object_fields_recursive(ctx.space);
+        let null = ctx.space.resolve_type("null").unwrap().clone();
         let mut inserted: HashSet<&String> = HashSet::new();
         let base_type_str = base_type.to_string(ctx.space);
 
@@ -393,11 +400,15 @@ impl CreateStatementNode {
                 ValueNode::Create(statement) => {
                     statement.verify(ctx);
                 }
+                ValueNode::Query(_) => {
+                    ctx.diagnostics.push(Diagnostic::unexpected_argument(value));
+                    continue;
+                }
                 _ => {}
             }
 
             let value_type = value.get_type(ctx);
-            if value_type.is_nil() && *optional {
+            if *optional && value_type.is(ctx.space, &null) {
                 continue; // it's ok.
             }
 
