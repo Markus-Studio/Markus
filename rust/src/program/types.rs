@@ -300,6 +300,16 @@ impl MarkusType {
         }
     }
 
+    /// Creates a new nil type.
+    pub fn new_nil() -> MarkusType {
+        MarkusType {
+            dimension: 0,
+            type_info: MarkusTypeInfo::Union {
+                members: HashSet::new(),
+            },
+        }
+    }
+
     /// Returns true if the current type is nil.
     pub fn is_nil(&self) -> bool {
         match self.type_info {
@@ -313,6 +323,14 @@ impl MarkusType {
         match self.type_info {
             MarkusTypeInfo::Object { .. } => true,
             MarkusTypeInfo::BuiltInObject { .. } => true,
+            _ => false,
+        }
+    }
+
+    /// Returns true if the current type is a user defined object type.
+    pub fn is_user_defined_object(&self) -> bool {
+        match self.type_info {
+            MarkusTypeInfo::Object { .. } => true,
             _ => false,
         }
     }
@@ -747,6 +765,59 @@ impl MarkusType {
                 None => false,
             },
         }
+    }
+
+    pub fn object_fields_owned(&self, space: &TypeSpace) -> HashMap<String, (MarkusType, bool)> {
+        let mut result = HashMap::new();
+
+        match &self.type_info {
+            MarkusTypeInfo::BuiltInObject { fields, .. } => {
+                for (key, types) in fields {
+                    let members: Vec<TypeId> = types.iter().map(|x| *x).collect();
+                    result.insert(key.to_owned(), (MarkusType::new_union(members), false));
+                }
+            }
+            MarkusTypeInfo::Object { ast, .. } => {
+                for field in &ast.fields {
+                    if let (Some(field_name), Some(type_name)) = (&field.name, &field.type_name) {
+                        let optional = field.nullable.to_owned();
+                        let field_type = space.resolve_type(&type_name.value);
+                        let name = &field_name.value;
+                        if field_type.is_none() || result.contains_key(name) {
+                            result.insert(name.to_owned(), (MarkusType::new_nil(), optional));
+                        } else {
+                            let tmp = field_type.as_ref().unwrap().clone().to_owned();
+                            result.insert(name.to_owned(), (tmp, optional));
+                        }
+                    }
+                }
+            }
+            _ => panic!("object_fields_owned is only for object types."),
+        }
+
+        result
+    }
+
+    pub fn object_fields_recursive(
+        &self,
+        space: &TypeSpace,
+    ) -> HashMap<String, (MarkusType, bool)> {
+        let mut result = self.object_fields_owned(space);
+        let bases = self.object_bases_recursive(space);
+
+        for base_id in bases {
+            let base = space.resolve_type_by_id(base_id).unwrap();
+            let tmp = base.object_fields_owned(space);
+            for (field_name, v) in tmp {
+                if result.contains_key(&field_name) {
+                    result.insert(field_name, (MarkusType::new_nil(), v.1));
+                } else {
+                    result.insert(field_name, v);
+                }
+            }
+        }
+
+        result
     }
 
     /// Verifies a user defined object type returns a vector containing all of

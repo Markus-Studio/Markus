@@ -1,7 +1,7 @@
-use crate::verifier::Context;
 use crate::parser::ast::{AccessNode, ActionBase, VariableReferenceNode};
 use crate::parser::ast::{BindingValueNode, IntLiteralNode, QueryNode, ValueNode};
 use crate::program::{Diagnostic, MarkusType};
+use crate::verifier::Context;
 
 impl VariableReferenceNode {
     pub fn get_type(&self, ctx: &mut Context) -> MarkusType {
@@ -78,7 +78,16 @@ impl BindingValueNode {
             BindingValueNode::String(_) => ctx.space.resolve_type("string").unwrap().clone(),
             BindingValueNode::Access(access) => access.get_type(ctx),
             BindingValueNode::Call(call) => call.get_type(ctx),
-            BindingValueNode::Create(create) => unimplemented!(),
+            BindingValueNode::Create(create) => {
+                if let Some(name) = &create.base {
+                    match ctx.space.resolve_type(&name.value) {
+                        Some(field_type) => field_type.to_owned(),
+                        None => MarkusType::new_nil(),
+                    }
+                } else {
+                    MarkusType::new_nil()
+                }
+            }
         }
     }
 }

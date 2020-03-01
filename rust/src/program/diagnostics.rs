@@ -1,6 +1,6 @@
 use crate::parser::Source;
 use crate::parser::{
-    ast::{ActionBase, CallNode, IdentifierNode, ValueNode},
+    ast::{ActionBase, CallNode, FieldBindingNode, IdentifierNode, ValueNode},
     Span, Token, TokenKind,
 };
 
@@ -25,6 +25,9 @@ pub enum DiagnosticKind {
     NilBase,
     BindingTypeError(String, String),
     UpdateAlreadyModifiedField,
+    CreateNestedBinding,
+    CreateBaseNotObject(String),
+    CreateValueNotProvided(String),
 }
 
 /// A diagnostic is an error happened in any phase from parsing to
@@ -206,6 +209,31 @@ impl Diagnostic {
             kind: DiagnosticKind::UpdateAlreadyModifiedField,
         }
     }
+
+    #[inline]
+    pub fn create_nested_binding(binding: &FieldBindingNode) -> Diagnostic {
+        Diagnostic {
+            location: binding.location.to_owned(),
+            kind: DiagnosticKind::CreateNestedBinding,
+        }
+    }
+
+    #[inline]
+    pub fn create_base_not_object(identifier: &IdentifierNode) -> Diagnostic {
+        let name = identifier.value.to_owned();
+        Diagnostic {
+            location: identifier.location.to_owned(),
+            kind: DiagnosticKind::CreateBaseNotObject(name),
+        }
+    }
+
+    #[inline]
+    pub fn create_value_not_provided(name: String, location: Span) -> Diagnostic {
+        Diagnostic {
+            location,
+            kind: DiagnosticKind::CreateValueNotProvided(name),
+        }
+    }
 }
 
 impl std::string::ToString for Diagnostic {
@@ -263,6 +291,15 @@ impl std::string::ToString for Diagnostic {
             ),
             DiagnosticKind::UpdateAlreadyModifiedField => {
                 "This field is already modified.".to_string()
+            }
+            DiagnosticKind::CreateNestedBinding => {
+                "Nested binding is not allowed in a create statement.".to_string()
+            }
+            DiagnosticKind::CreateBaseNotObject(name) => {
+                format!("Type `{}` is not a user defined object type.", name)
+            }
+            DiagnosticKind::CreateValueNotProvided(name) => {
+                format!("Value of required field `.{}` is not provided.", name)
             }
         }
     }

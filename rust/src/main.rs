@@ -1,8 +1,8 @@
 mod common;
-mod verifier;
 mod ir;
 mod parser;
 mod program;
+mod verifier;
 use std::fs;
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {

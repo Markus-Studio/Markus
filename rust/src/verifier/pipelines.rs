@@ -1,7 +1,7 @@
-use crate::verifier::Context;
 use crate::parser::ast::{CallNode, ValueNode, VariableReferenceNode};
 use crate::parser::Span;
 use crate::program::{Diagnostic, MarkusType};
+use crate::verifier::Context;
 
 impl CallNode {
     pub fn apply_pipeline_changes(&self, ctx: &mut Context) {

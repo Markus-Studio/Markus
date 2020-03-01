@@ -1,6 +1,6 @@
-use crate::verifier::Context;
 use crate::parser::ast::{CallNode, ValueNode};
 use crate::program::{Diagnostic, MarkusType, MarkusTypeInfo};
+use crate::verifier::Context;
 
 impl CallNode {
     pub fn get_type(&self, ctx: &mut Context) -> MarkusType {

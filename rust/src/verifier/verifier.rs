@@ -1,10 +1,10 @@
 use crate::parser::ast::{ActionDeclarationNode, QueryDeclarationNode};
 use crate::parser::ast::{ActionStatement, CreateStatementNode, ValidateStatementNode};
 use crate::parser::ast::{BindingValueNode, DeleteStatementNode, UpdateStatementNode};
-use crate::parser::ast::{GuardNode, ParameterNode, PermissionDeclarationNode};
+use crate::parser::ast::{GuardNode, IdentifierNode, ParameterNode, PermissionDeclarationNode};
 use crate::parser::Span;
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub struct Context<'a> {
     pub space: &'a mut TypeSpace,
@@ -316,7 +316,108 @@ impl UpdateStatementNode {
 }
 
 impl CreateStatementNode {
-    pub fn verify(&self, ctx: &mut Context) {}
+    pub fn verify(&self, ctx: &mut Context) {
+        if self.base.is_none() || self.binding.is_none() {
+            // An error is already reported in the parser.
+            return;
+        }
+
+        let object_binding = self.binding.as_ref().unwrap();
+        let base_identifier = self.base.as_ref().unwrap();
+        let base_type = {
+            let type_option = ctx.space.resolve_type(&base_identifier.value);
+
+            if type_option.is_none() {
+                ctx.diagnostics
+                    .push(Diagnostic::unresolved_name(base_identifier));
+                return;
+            }
+
+            type_option.unwrap().clone()
+        };
+
+        if !base_type.is_user_defined_object() {
+            ctx.diagnostics
+                .push(Diagnostic::create_base_not_object(&base_identifier));
+            return;
+        }
+
+        let fields = base_type.object_fields_recursive(ctx.space);
+        let mut inserted: HashSet<&String> = HashSet::new();
+        let base_type_str = base_type.to_string(ctx.space);
+
+        for binding in &object_binding.bindings {
+            if binding.uri.len() > 1 {
+                ctx.diagnostics
+                    .push(Diagnostic::create_nested_binding(&binding));
+                continue;
+            }
+
+            let field_info = {
+                if binding.uri.len() == 0 {
+                    None
+                } else {
+                    let field_identifier: &IdentifierNode = &binding.uri[0];
+                    let field_name: &String = &field_identifier.value;
+
+                    if !inserted.insert(field_name) {
+                        let location = field_identifier.location.to_owned();
+                        ctx.diagnostics
+                            .push(Diagnostic::update_already_modified_field(location));
+                        continue;
+                    }
+
+                    fields.get(field_name)
+                }
+            };
+
+            if field_info.is_none() {
+                let uri = binding.uri.iter().map(|x| (&x.value as &str)).collect();
+                ctx.diagnostics.push(Diagnostic::field_not_found(
+                    base_type_str.to_owned(),
+                    uri,
+                    binding.location,
+                ));
+                continue;
+            }
+
+            if binding.value.is_none() {
+                continue;
+            }
+
+            let (field_type, optional) = field_info.unwrap();
+
+            let value = binding.value.as_ref().unwrap();
+            match value {
+                BindingValueNode::Create(statement) => {
+                    statement.verify(ctx);
+                }
+                _ => {}
+            }
+
+            let value_type = value.get_type(ctx);
+            if value_type.is_nil() && *optional {
+                continue; // it's ok.
+            }
+
+            if !value_type.is(ctx.space, field_type) {
+                ctx.diagnostics.push(Diagnostic::binding_type_error(
+                    field_type.to_string(ctx.space),
+                    value_type.to_string(ctx.space),
+                    binding.location,
+                ));
+            }
+        }
+
+        for (name, (_, optional)) in &fields {
+            if !optional && !inserted.contains(name) {
+                ctx.diagnostics.push(Diagnostic::create_value_not_provided(
+                    name.to_owned(),
+                    object_binding.location,
+                ));
+            }
+        }
+    }
 }
 
 fn create_user_type(

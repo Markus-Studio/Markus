@@ -3,20 +3,20 @@ type Point {
     y: i32;
 }
 
-type Cat {
-    name?: string;
-}
-
-type Ta {
-    x: Point;
+type Rect {
+    center: Point;
 }
 
 action x() {
-    update {
-        is(Ta)
-    } {
-        .x = 4,
-        .x.y = 43,
-        .y = 9
+    create Point {
+        .x = 98,
+        .y = 20
+    };
+
+    create Rect {
+        .center = create Point {
+            .x = 9,
+            .y = 12
+        }
     };
 }
