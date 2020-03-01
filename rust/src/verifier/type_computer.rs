@@ -1,4 +1,4 @@
-use crate::context::Context;
+use crate::verifier::Context;
 use crate::parser::ast::{AccessNode, ActionBase, VariableReferenceNode};
 use crate::parser::ast::{BindingValueNode, IntLiteralNode, QueryNode, ValueNode};
 use crate::program::{Diagnostic, MarkusType};

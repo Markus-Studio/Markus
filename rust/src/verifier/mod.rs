@@ -1,5 +1,5 @@
-mod context;
+mod verifier;
 mod functions;
 mod pipelines;
 mod type_computer;
-pub use context::*;
+pub use verifier::*;

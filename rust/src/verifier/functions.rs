@@ -1,4 +1,4 @@
-use crate::context::Context;
+use crate::verifier::Context;
 use crate::parser::ast::{CallNode, ValueNode};
 use crate::program::{Diagnostic, MarkusType, MarkusTypeInfo};
 

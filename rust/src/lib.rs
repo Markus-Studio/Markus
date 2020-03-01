@@ -1,5 +1,5 @@
 pub mod common;
-pub mod context;
+pub mod verifier;
 pub mod ir;
 pub mod parser;
 pub mod program;

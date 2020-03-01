@@ -1,5 +1,5 @@
 mod common;
-mod context;
+mod verifier;
 mod ir;
 mod parser;
 mod program;
