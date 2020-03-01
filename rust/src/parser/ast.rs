@@ -119,19 +119,7 @@ pub struct ObjectBindingNode {
 pub struct FieldBindingNode {
     pub location: Span,
     pub uri: Vec<IdentifierNode>,
-    pub value: Option<BindingValueNode>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum BindingValueNode {
-    Access(AccessNode),
-    Int(IntLiteralNode),
-    Float(FloatLiteralNode),
-    Boolean(BooleanLiteralNode),
-    String(StringLiteralNode),
-    Null(NullLiteralNode),
-    Call(CallNode),
-    Create(CreateStatementNode),
+    pub value: Option<ValueNode>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -199,6 +187,7 @@ pub enum ValueNode {
     Call(CallNode),
     Type(TypeReferenceNode),
     Query(QueryNode),
+    Create(CreateStatementNode),
 }
 
 #[derive(Debug, PartialEq)]
@@ -220,6 +209,7 @@ impl ValueNode {
             ValueNode::Int(value) => value.location,
             ValueNode::Query(value) => value.location,
             ValueNode::Type(value) => value.location,
+            ValueNode::Create(value) => value.location,
         }
     }
 }

@@ -85,8 +85,12 @@ impl<'a> Parser<'a> {
     fn last_token_end_source_position(&self) -> usize {
         debug_assert!(self.current_token_index > 0);
         let index = self.current_token_index - 1;
-        debug_assert!(index < self.tokens.len());
-        self.tokens[index].position.offset + self.tokens[index].position.size
+        if index < self.tokens.len() {
+            self.tokens[index].position.offset + self.tokens[index].position.size
+        } else {
+            let index = self.tokens.len() - 1;
+            self.tokens[index].position.offset + self.tokens[index].position.size
+        }
     }
 
     #[inline(always)]
@@ -577,6 +581,7 @@ impl<'a> Parser<'a> {
                 vec![
                     TokenKind::Comma,
                     TokenKind::RightParenthesis,
+                    TokenKind::RightBrace,
                     TokenKind::Parameter,
                     TokenKind::InternalVariable,
                     TokenKind::Boolean,
@@ -590,6 +595,7 @@ impl<'a> Parser<'a> {
                         TokenKind::Dot,
                         TokenKind::Comma,
                         TokenKind::RightParenthesis,
+                        TokenKind::RightBrace,
                         TokenKind::Parameter,
                         TokenKind::InternalVariable,
                         TokenKind::Boolean,
@@ -665,6 +671,7 @@ impl<'a> Parser<'a> {
                 TokenKind::String,
                 TokenKind::Int,
                 TokenKind::Float,
+                TokenKind::CreateKeyword,
             ],
             vec![
                 TokenKind::Comma,
@@ -683,6 +690,9 @@ impl<'a> Parser<'a> {
             | Some(TokenKind::InternalVariable) => Some(ValueNode::Access(self.consume_access())),
             Some(TokenKind::LeftParenthesis) => Some(ValueNode::Call(self.parse_call())),
             Some(TokenKind::Identifier) => Some(self.consume_type_reference_or_call()),
+            Some(TokenKind::CreateKeyword) => {
+                Some(ValueNode::Create(self.parse_create_statement()))
+            }
             _ => None,
         }
     }
@@ -957,51 +967,6 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    fn parse_binding_value(&mut self) -> Option<BindingValueNode> {
-        match self.find_first_of(
-            &vec![
-                TokenKind::Dot,
-                TokenKind::Identifier,
-                TokenKind::LeftParenthesis,
-                TokenKind::Parameter,
-                TokenKind::InternalVariable,
-                TokenKind::Boolean,
-                TokenKind::Null,
-                TokenKind::String,
-                TokenKind::Int,
-                TokenKind::Float,
-                TokenKind::CreateKeyword,
-                TokenKind::Identifier,
-            ],
-            vec![
-                TokenKind::Comma,
-                TokenKind::RightBrace,
-                TokenKind::RightParenthesis,
-            ],
-        ) {
-            Some(TokenKind::Int) => Some(BindingValueNode::Int(self.consume_int_literal())),
-            Some(TokenKind::Float) => Some(BindingValueNode::Float(self.consume_float_literal())),
-            Some(TokenKind::Null) => Some(BindingValueNode::Null(self.consume_null_literal())),
-            Some(TokenKind::Boolean) => {
-                Some(BindingValueNode::Boolean(self.consume_boolean_literal()))
-            }
-            Some(TokenKind::String) => {
-                Some(BindingValueNode::String(self.consume_string_literal()))
-            }
-            Some(TokenKind::Dot)
-            | Some(TokenKind::Parameter)
-            | Some(TokenKind::InternalVariable) => {
-                Some(BindingValueNode::Access(self.consume_access()))
-            }
-            Some(TokenKind::LeftParenthesis) => Some(BindingValueNode::Call(self.parse_call())),
-            Some(TokenKind::CreateKeyword) | Some(TokenKind::Identifier) => {
-                Some(BindingValueNode::Create(self.parse_create_statement()))
-            }
-            _ => None,
-        }
-    }
-
-    #[inline]
     fn parse_binding(&mut self) -> FieldBindingNode {
         let start = self.current_source_position();
         let mut uri: Vec<IdentifierNode> = Vec::new();
@@ -1076,7 +1041,7 @@ impl<'a> Parser<'a> {
             ],
         );
 
-        let value = self.parse_binding_value();
+        let value = self.parse_value();
 
         FieldBindingNode {
             location: self.get_location(start),

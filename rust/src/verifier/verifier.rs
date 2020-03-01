@@ -1,6 +1,6 @@
 use crate::parser::ast::{ActionDeclarationNode, QueryDeclarationNode};
 use crate::parser::ast::{ActionStatement, CreateStatementNode, ValidateStatementNode};
-use crate::parser::ast::{BindingValueNode, DeleteStatementNode, UpdateStatementNode};
+use crate::parser::ast::{DeleteStatementNode, UpdateStatementNode, ValueNode};
 use crate::parser::ast::{GuardNode, IdentifierNode, ParameterNode, PermissionDeclarationNode};
 use crate::parser::Span;
 use crate::program::{Diagnostic, MarkusType, TypeSpace};
@@ -235,6 +235,7 @@ impl UpdateStatementNode {
     pub fn verify(&self, ctx: &mut Context) {
         if let (Some(base), Some(updates)) = (&self.base, &self.updates) {
             let base_type = base.get_type(ctx);
+            ctx.set_current(base_type.clone());
 
             if base_type.is_nil() {
                 ctx.diagnostics.push(Diagnostic::nil_base(base));
@@ -264,7 +265,7 @@ impl UpdateStatementNode {
 
                 if let Some(value) = &binding.value {
                     match value {
-                        BindingValueNode::Create(statement) => {
+                        ValueNode::Create(statement) => {
                             statement.verify(ctx);
                         }
                         _ => {}
@@ -389,7 +390,7 @@ impl CreateStatementNode {
 
             let value = binding.value.as_ref().unwrap();
             match value {
-                BindingValueNode::Create(statement) => {
+                ValueNode::Create(statement) => {
                     statement.verify(ctx);
                 }
                 _ => {}

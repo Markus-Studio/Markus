@@ -19,4 +19,16 @@ action x() {
             .y = 12
         }
     };
+
+    update {
+        is(Point)
+    } {
+        .x = 43 + 32
+    };
+
+}
+
+query x() {
+    is(Point),
+    eq(.x, add(5, 3))
 }
