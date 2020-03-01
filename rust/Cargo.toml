@@ -8,5 +8,4 @@ edition = "2018"
 
 [dependencies]
 bimap = "0.4"
-multimap = "0.8.0"
 num-traits = "0.2"
