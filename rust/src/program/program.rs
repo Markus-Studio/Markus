@@ -5,6 +5,7 @@ use crate::parser::Source;
 use crate::program::types::MarkusType;
 use crate::program::{Diagnostic, TypeSpace};
 use std::collections::HashMap;
+use std::rc::Rc;
 
 pub struct Program {
     pub source: Source,
@@ -66,8 +67,8 @@ impl Program {
             match parser.parse_declaration() {
                 Some(declaration) => match declaration {
                     Declaration::Type(type_declaration) => {
-                        self.declarations
-                            .push(Declaration::Type(type_declaration.clone()));
+                        let cloned = Rc::clone(&type_declaration);
+                        self.declarations.push(Declaration::Type(cloned));
                         if let Some(name) = &type_declaration.name {
                             if self.type_space.contains(&name.value) {
                                 self.diagnostics.push(Diagnostic::name_already_in_use(name));
@@ -77,8 +78,8 @@ impl Program {
                         }
                     }
                     Declaration::Permission(permission_declaration) => {
-                        self.declarations
-                            .push(Declaration::Permission(permission_declaration.clone()));
+                        let cloned = Rc::clone(&permission_declaration);
+                        self.declarations.push(Declaration::Permission(cloned));
                         if let Some(name) = &permission_declaration.name {
                             if self.permission_names.get_count(&name.value) > 0 {
                                 self.diagnostics.push(Diagnostic::name_already_in_use(name));
@@ -87,8 +88,8 @@ impl Program {
                         }
                     }
                     Declaration::Query(query_declaration) => {
-                        self.declarations
-                            .push(Declaration::Query(query_declaration.clone()));
+                        let cloned = Rc::clone(&query_declaration);
+                        self.declarations.push(Declaration::Query(cloned));
                         if let Some(name) = &query_declaration.name {
                             if self.query_names.get_count(&name.value) > 0 {
                                 self.diagnostics.push(Diagnostic::name_already_in_use(name));
@@ -97,8 +98,8 @@ impl Program {
                         }
                     }
                     Declaration::Action(action_declaration) => {
-                        self.declarations
-                            .push(Declaration::Action(action_declaration.clone()));
+                        let cloned = Rc::clone(&action_declaration);
+                        self.declarations.push(Declaration::Action(cloned));
                         if let Some(name) = &action_declaration.name {
                             if self.action_names.get_count(&name.value) > 0 {
                                 self.diagnostics.push(Diagnostic::name_already_in_use(name));
