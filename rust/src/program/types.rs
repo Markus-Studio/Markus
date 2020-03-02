@@ -874,6 +874,16 @@ fn verify_object_ast(
     space: &TypeSpace,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
+    let mut seen_field_names: HashSet<String> = HashSet::with_capacity(ast.fields.len());
+
+    for field in &ast.fields {
+        if let Some(name_identifier) = &field.name {
+            if !seen_field_names.insert(name_identifier.value.to_owned()) {
+                diagnostics.push(Diagnostic::name_already_in_use(&name_identifier));
+            }
+        }
+    }
+
     for base_identifier in &ast.bases {
         let base_name = &base_identifier.value;
         // Try to resolve the name, report an error on failure.
@@ -892,13 +902,12 @@ fn verify_object_ast(
                     if is_circular(space, &mut seen, current_id, base) {
                         diagnostics.push(Diagnostic::circular_reference(base_identifier))
                     } else {
-                        // Shared fields. (A name that is already present in the bases)
-                        for field in &ast.fields {
-                            if let Some(field_identifier) = &field.name {
-                                if base.object_has_field(space, &field_identifier.value) {
-                                    diagnostics
-                                        .push(Diagnostic::name_already_in_use(field_identifier));
-                                }
+                        for (name, _) in &base.object_fields_recursive(space) {
+                            if !seen_field_names.insert(name.to_owned()) {
+                                diagnostics.push(Diagnostic::base_conflicting_field(
+                                    base_identifier,
+                                    name,
+                                ));
                             }
                         }
                     }
@@ -911,17 +920,7 @@ fn verify_object_ast(
         }
     }
 
-    let mut seen_names: HashSet<String> = HashSet::with_capacity(ast.fields.len());
     for field in &ast.fields {
-        if let Some(field_name_identifier) = &field.name {
-            let field_name = &field_name_identifier.value;
-            if seen_names.contains(field_name) {
-                diagnostics.push(Diagnostic::name_already_in_use(&field_name_identifier));
-            }
-
-            seen_names.insert(field_name.clone());
-        }
-
         match &field.type_name {
             Some(type_name_identifier) => {
                 let type_name = &type_name_identifier.value;

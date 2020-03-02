@@ -1,38 +1,11 @@
-type Point {
+type A {
     x: i32;
+}
+
+type B {
     y: i32;
 }
 
-type Rect {
-    center: Point;
-}
-
-action x() {
-    create Point {
-        .x = 98,
-        .y = 1
-    };
-
-    create Rect {
-        .center = create Point {
-            .x = 9,
-            .y = 12 + 10
-        }
-    };
-
-    update {
-        is(Point)
-    } {
-        .x = 10 + .x
-    };
-
-    create Point {
-        .x = 9,
-        .y = 12 + .x
-    };
-}
-
-query x() {
-    is(Point),
-    eq(.x, add(5, 3)),
+type C: A, B {
+    x: string;
 }

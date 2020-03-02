@@ -11,6 +11,7 @@ pub enum DiagnosticKind {
     ExpectedOneOf(Vec<TokenKind>),
     UnresolvedName(String),
     NameAlreadyInUse(String),
+    BaseConflictingField(String),
     BaseNotObject(String),
     ExpectedActionBase,
     CircularReference,
@@ -102,6 +103,14 @@ impl Diagnostic {
         Diagnostic {
             location: identifier.location,
             kind: DiagnosticKind::NameAlreadyInUse(String::from(&identifier.value)),
+        }
+    }
+
+    #[inline]
+    pub fn base_conflicting_field(identifier: &IdentifierNode, field_name: &String) -> Diagnostic {
+        Diagnostic {
+            location: identifier.location,
+            kind: DiagnosticKind::BaseConflictingField(field_name.to_owned()),
         }
     }
 
@@ -247,6 +256,10 @@ impl std::string::ToString for Diagnostic {
             }
             DiagnosticKind::UnresolvedName(name) => format!("Unresolved name `{}`.", name),
             DiagnosticKind::NameAlreadyInUse(name) => format!("Name `{}` is already used.", name),
+            DiagnosticKind::BaseConflictingField(name) => format!(
+                "Base has field `.{}` which is already used in the current type.",
+                name
+            ),
             DiagnosticKind::BaseNotObject(name) => {
                 format!("Can not inherit from non-object type `{}`.", name)
             }
