@@ -78,6 +78,41 @@ pub struct ValueBuilder {
     stack: Vec<ValueStackItem>,
 }
 
+/// Helper to build Selections.
+///
+/// A selection is a function that returns a boolean and a value is filtered based
+/// on the returned value, in Markus there are some Atomic filters and as the name
+/// suggests those are the filters that can not be made by combining two or more
+/// functions, such as `is`, `eq`, `lt` and `gt`, but not `lte` as it can be created
+/// using `not(gt)`.
+///
+/// In Markus-IR we try to store selections in a normalized format which is a set of
+/// Conjunctions (and) that we perform the OR operator between each of them , and
+/// every conjunction is just made up Atomic filter + a flag indicating if that atomic
+/// filter is negated or not.
+///
+/// So `A & B` can be written as `[AB]` and `A | (B & C)` can be written as `[A, BC]`.
+///
+/// Theoretically speaking this is not an efficient way and somewhat is considered to
+/// be expensive and should be avoided, but most of the Markus queries will not be that
+/// complex to cause problems and it works very well for things such as redundancy-
+/// elimination, index selection, action-on-query impact computation, etc.
+///
+/// The current implementation can be viewed as a partial SAT-solver as it evaluates
+/// expressions such as `A & !A` to `False` and `A | !A` to `True`.
+///
+/// # Example
+/// ```
+/// // { is(A), or(eq(.x, 5), not(gt(.y, 1))) }
+/// let builder = SelectionBuilder::new();
+/// builder.is(...);
+/// builder.eq(...);
+/// builder.gt(...);
+/// builder.not();
+/// builder.or();
+/// builder.and();
+/// builder.build()
+/// ```
 pub struct SelectionBuilder {
     stack: Vec<FilterVector>,
 }
@@ -93,7 +128,7 @@ impl IRBuilder {
 }
 
 impl TypeSpaceBuilder {
-    //// Constructs a new empty TypeSpaceBuilder.
+    /// Constructs a new empty TypeSpaceBuilder.
     pub fn new() -> TypeSpaceBuilder {
         let mut space = TypeSpaceBuilder {
             type_ids: HashMap::new(),
@@ -244,6 +279,7 @@ impl TypeSpaceBuilder {
 }
 
 impl ValueBuilder {
+    /// Constructs a new ValueBuilder.
     pub fn new() -> ValueBuilder {
         ValueBuilder { stack: Vec::new() }
     }
@@ -438,45 +474,55 @@ impl ValueBuilder {
 }
 
 impl SelectionBuilder {
+    /// Constructs a new SelectionBuilder.
     pub fn new() -> SelectionBuilder {
         SelectionBuilder { stack: Vec::new() }
     }
 
+    /// Adds the `is` filter.
     pub fn is(&mut self, type_id: TypeId) {
         self.stack
             .push(FilterVector::from_filter(AtomicFilter::Is(type_id), false));
     }
 
+    /// Adds an `eq` filter with the given values.
     pub fn eq(&mut self, lhs: Value, rhs: Value) {
         self.stack
             .push(FilterVector::from_filter(AtomicFilter::Eq(lhs, rhs), false));
     }
 
+    /// Adds a `not(eq)` filter with the given values.
     pub fn neq(&mut self, lhs: Value, rhs: Value) {
         self.stack
             .push(FilterVector::from_filter(AtomicFilter::Eq(lhs, rhs), true));
     }
 
+    /// Adds a `gt` filter with the given values.
     pub fn gt(&mut self, lhs: Value, rhs: Value) {
         self.stack
             .push(FilterVector::from_filter(AtomicFilter::Gt(lhs, rhs), false));
     }
 
+    /// Adds a `not(lt)` filter with the given values.
     pub fn gte(&mut self, lhs: Value, rhs: Value) {
         self.stack
             .push(FilterVector::from_filter(AtomicFilter::Lt(lhs, rhs), true));
     }
 
+    /// Adds a `lt` filter with the given values.
     pub fn lt(&mut self, lhs: Value, rhs: Value) {
         self.stack
             .push(FilterVector::from_filter(AtomicFilter::Lt(lhs, rhs), false));
     }
 
+    /// Adds a `not(gt)` filter with the given values.
     pub fn lte(&mut self, lhs: Value, rhs: Value) {
         self.stack
             .push(FilterVector::from_filter(AtomicFilter::Gt(lhs, rhs), true));
     }
 
+    /// The test variable is an Atomic constant filter used for testing
+    /// purpose.
     #[cfg(test)]
     pub fn test_variable(&mut self, id: usize) {
         self.stack.push(FilterVector::from_filter(
@@ -485,23 +531,27 @@ impl SelectionBuilder {
         ));
     }
 
+    /// Runs the `and` operation.
     pub fn and(&mut self) {
         let rhs = self.stack.pop().unwrap();
         let lhs = self.stack.pop().unwrap();
         self.stack.push(lhs * rhs);
     }
 
+    /// Runs the `or` operation.
     pub fn or(&mut self) {
         let rhs = self.stack.pop().unwrap();
         let lhs = self.stack.pop().unwrap();
         self.stack.push(lhs + rhs);
     }
 
+    /// Negates what's in the builder stack.
     pub fn neg(&mut self) {
         let value = self.stack.pop().unwrap();
         self.stack.push(-value);
     }
 
+    /// Build the selection and returns it.
     pub fn build(mut self) -> Selection {
         assert_eq!(self.stack.len(), 1);
         self.stack.pop().unwrap()

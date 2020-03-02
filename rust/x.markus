@@ -7,4 +7,5 @@ type B {
 }
 
 type C: A, B {
+    x: i2;
 }
