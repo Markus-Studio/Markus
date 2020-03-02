@@ -3,27 +3,73 @@ mod ir;
 mod parser;
 mod program;
 mod verifier;
+
+extern crate clap;
+use clap::{App, Arg, ArgMatches, SubCommand};
 use std::fs;
 
-fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
-    let filename = "./x.markus";
-    let raw = fs::read_to_string("x.markus")?;
+fn command_check(matches: &ArgMatches) -> Result<bool, Box<dyn std::error::Error + 'static>> {
+    let silent = matches.is_present("silent");
+    let filename = matches.value_of("INPUT").unwrap();
+    let raw = fs::read_to_string(filename)?;
     let source = parser::Source::new(filename, &raw);
 
     let mut program = program::Program::new(source);
     program.parse();
     program.verify();
 
-    println!("{:#?}", program.declarations);
-
     if !program.is_good() {
-        for diagnostic in &program.diagnostics {
-            let uri = diagnostic.get_uri(&program.source);
-            let msg = diagnostic.to_string();
-            eprintln!("{} - {}", uri, msg);
+        if !silent {
+            for diagnostic in &program.diagnostics {
+                let uri = diagnostic.get_uri(&program.source);
+                let msg = diagnostic.to_string();
+                eprintln!("{} - {}", uri, msg);
+            }
         }
-        return Ok(());
+
+        return Ok(false);
     }
 
-    Ok(())
+    Ok(true)
+}
+
+fn run_app(matches: &ArgMatches) -> Result<bool, Box<dyn std::error::Error + 'static>> {
+    match matches.subcommand() {
+        ("check", Some(sub)) => command_check(sub),
+        _ => {
+            eprintln!("{}", matches.usage());
+            Ok(false)
+        }
+    }
+}
+
+fn main() {
+    let matches = App::new("Markus")
+        .version("0.0.1")
+        .author("Parsa G. <qti3eqti3e@gmail.com>")
+        .about("Markus Language Toolchain & Compiler")
+        .subcommand(
+            SubCommand::with_name("check")
+                .about("Validates the program.")
+                .arg(
+                    Arg::with_name("silent")
+                        .short("s")
+                        .help("Fails silently without printing diagnostic messages."),
+                )
+                .arg(
+                    Arg::with_name("INPUT")
+                        .help("Sets the input file to use")
+                        .required(true),
+                ),
+        )
+        .get_matches();
+
+    std::process::exit(match run_app(&matches) {
+        Ok(true) => 0,
+        Ok(false) => -1,
+        Err(err) => {
+            eprintln!("error: {}", err);
+            -1
+        }
+    });
 }

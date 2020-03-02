@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 bimap = "0.4"
 num-traits = "0.2"
+clap = "2.23.0"

@@ -649,40 +649,6 @@ impl MarkusType {
         result
     }
 
-    /// Returns true if the current object owns a field with the given name.
-    pub fn object_owns(&self, field_name: &str) -> bool {
-        match self.type_info {
-            MarkusTypeInfo::BuiltInObject { ref fields, .. } => fields.get(field_name) != None,
-            MarkusTypeInfo::Object { ref ast, .. } => {
-                for field in &ast.fields {
-                    match &field.name {
-                        Some(identifier) if identifier.value == field_name => return true,
-                        _ => {}
-                    }
-                }
-                false
-            }
-            _ => panic!("object_owns is only for object types."),
-        }
-    }
-
-    /// Returns true if a field with the given name exists in the current object.
-    pub fn object_has_field(&self, space: &TypeSpace, field_name: &str) -> bool {
-        // TODO(qti3e) Optimize this function (maybe use a HashMap?)
-        if self.object_owns(field_name) {
-            return true;
-        }
-
-        for &base_id in self.object_bases_recursive(space).iter() {
-            let base = space.resolve_type_by_id(base_id).unwrap();
-            if base.object_owns(field_name) {
-                return true;
-            }
-        }
-
-        false
-    }
-
     /// Queries the type of given filed on this object recursively.
     /// # Panics
     /// If the current type is not an object.
