@@ -159,6 +159,7 @@ impl TypeSpaceBuilder {
         assert!(self.current_type_name.is_none());
         self.current_type_name = Some(name);
         self.current_fields = Some(Vec::new());
+        self.current_bases = Some(Vec::new());
     }
 
     /// Ends implementation of the current type, must be called at the end of each call
