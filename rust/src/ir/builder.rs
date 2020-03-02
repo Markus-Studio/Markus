@@ -1,19 +1,60 @@
 #![allow(unused)]
+//! The builder module provides an API to build valid Markus IRs.
+//!
+//! In order to build a IR-Program one must first create the type space, and to do that they
+//! can use [`TypeSpaceBuilder`] after creating the TypeSpace we construct an [`IRBuilder`]
+//! providing the generated TypeSpace, the next step is adding Queries and then Actions using
+//! [`QueryBuilder`] and [`ActionBuilder`] accordingly.
+//!
+//! [`TypeSpaceBuilder`]: struct.TypeSpaceBuilder.html
+//! [`IRBuilder`]: struct.IRBuilder.html
+//! [`QueryBuilder`]: struct.QueryBuilder.html
+//! [`ActionBuilder`]: struct.ActionBuilder.html
+
 use crate::common::Matrix;
 use crate::ir::ir::*;
 use bimap::BiMap;
 use std::collections::{HashMap, HashSet};
 
+/// The builder used to build an IR-Programs.
 pub struct IRBuilder {
-    types: Vec<i32>,
+    /// The type space used in this program.
+    typespace: TypeSpace,
 }
 
+/// The builder used to build a TypeSpace.
+///
+/// Every program has one and only one TypeSpace, that contains all of the information
+/// for each user-defined-object-type including the BaseGraph and fields and their types.
+///
+/// This Builder can be used to generate the TypeSpace in a non-recursive manner.
+///
+/// # Example
+/// ```
+/// // type A { x: u32; y?: u32; } type B: A {}
+/// let mut builder = TypeSpaceBuilder::new();
+/// builder.begin("A");
+/// builder.field("x", "u32", false);
+/// builder.field("y", "u32", true);
+/// builder.end();
+/// builder.begin("B");
+/// builder.base("A");
+/// builder.end();
+/// let typespace = builder.build();
+/// ```
 pub struct TypeSpaceBuilder {
+    /// Maps every type name to its id.
     type_ids: HashMap<String, TypeId>,
+    /// TypeId counter.
     next_id: TypeId,
+    /// Maps every type name to its fields and bases.
+    /// Field: (FieldName, TypeName, Optional)
     objects: HashMap<String, (Vec<(String, String, bool)>, Vec<String>)>,
+    /// Name of the current type (last call to begin()).
     current_type_name: Option<String>,
+    /// Stores bases for the current type.
     current_bases: Option<Vec<String>>,
+    /// Stores fields for the current type.
     current_fields: Option<Vec<(String, String, bool)>>,
 }
 
@@ -30,14 +71,13 @@ pub struct QueryBuilder {}
 pub struct ActionBuilder {}
 
 impl IRBuilder {
-    pub fn new() -> IRBuilder {
-        IRBuilder {
-            types: Vec::with_capacity(0),
-        }
+    pub fn new(typespace: TypeSpace) -> IRBuilder {
+        IRBuilder { typespace }
     }
 }
 
 impl TypeSpaceBuilder {
+    //// Constructs a new empty TypeSpaceBuilder.
     pub fn new() -> TypeSpaceBuilder {
         let mut space = TypeSpaceBuilder {
             type_ids: HashMap::new(),
@@ -51,17 +91,29 @@ impl TypeSpaceBuilder {
         space
     }
 
+    /// Reserves a type id for the given name, used to reserve id for internal types such as
+    /// `user`.
     fn reserve(&mut self, name: String) {
         let id = self.next_id;
         self.type_ids.insert(name, id);
         self.next_id += 1;
     }
 
+    /// Start building a new type in the current typespace with the given name, one must
+    /// call `end()` at the end of implementation.
+    /// # Panics
+    /// Two consecutive calls to `begin()` without an `end()` call in between causes
+    /// a panic.
     pub fn begin(&mut self, name: String) {
+        assert!(self.current_type_name.is_none());
         self.current_type_name = Some(name);
         self.current_fields = Some(Vec::new());
     }
 
+    /// Ends implementation of the current type, must be called at the end of each call
+    /// to `begin()`.
+    /// # Panics
+    /// If there isn't a open implementation (no call to `begin()` before this call.)
     pub fn end(&mut self) {
         let type_name = std::mem::replace(&mut self.current_type_name, None).unwrap();
         let fields = std::mem::replace(&mut self.current_fields, None).unwrap();
@@ -69,10 +121,16 @@ impl TypeSpaceBuilder {
         self.objects.insert(type_name, (fields, bases));
     }
 
+    /// Adds a base with the given name to the current type.
+    /// # Panics
+    /// If there is no open implementation.
     pub fn base(&mut self, name: String) {
         self.current_bases.as_mut().unwrap().push(name);
     }
 
+    /// Adds a field with the given information to this type.
+    /// # Panics
+    /// If there is no open implementation.
     pub fn field(&mut self, name: String, field_type: String, nullable: bool) {
         self.current_fields
             .as_mut()
@@ -80,6 +138,7 @@ impl TypeSpaceBuilder {
             .push((name, field_type, nullable));
     }
 
+    /// Assigns an ID to all of the types that do not have an ID yet.
     fn stage(&mut self) {
         let mut type_names: Vec<&String> = self.objects.keys().collect();
         type_names.sort_unstable();
@@ -90,6 +149,7 @@ impl TypeSpaceBuilder {
         }
     }
 
+    /// Returns an `IrType` for the type with the given name.
     fn get_type(&self, name: &String) -> IrType {
         match name as &str {
             "null" => IrType::Null,
@@ -109,7 +169,12 @@ impl TypeSpaceBuilder {
         }
     }
 
+    /// Build the final `TypeSpace` and returns it.
+    /// # Panics
+    /// If there is an open implementation (a call to `begin()` without `end()`) or
+    /// when a field type can not be resolved.
     pub fn build(mut self) -> TypeSpace {
+        assert!(self.current_type_name.is_none());
         self.stage();
 
         let size = self.next_id;
