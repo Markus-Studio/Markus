@@ -58,7 +58,23 @@ pub struct TypeSpaceBuilder {
     current_fields: Option<Vec<(String, String, bool)>>,
 }
 
+/// Helper to build IR-Values.
+///
+/// The `ValueBuilder` provides an stack-machine like API to build IR-Values.
+///
+/// # Example
+/// ```
+/// // 5 + 3 * 2
+/// let builder = ValueBuilder::new();
+/// builder.push_i32(5);
+/// builder.push_i32(3);
+/// builder.push_i32(2);
+/// builder.mul();
+/// builder.add();
+/// let value = builder.build();
+/// ```
 pub struct ValueBuilder {
+    /// The items in the stack.
     stack: Vec<ValueStackItem>,
 }
 
@@ -232,54 +248,65 @@ impl ValueBuilder {
         ValueBuilder { stack: Vec::new() }
     }
 
+    /// Pushes an `i32` number to the stack.
     pub fn push_i32(&mut self, value: i32) {
         self.stack
             .push(ValueStackItem::Literal(ValueLiteral::I32(value)));
     }
 
+    /// Pushes an `i64` number to the stack.
     pub fn push_i64(&mut self, value: i64) {
         self.stack
             .push(ValueStackItem::Literal(ValueLiteral::I64(value)));
     }
 
+    /// Pushes a `u32` number to the stack.
     pub fn push_u32(&mut self, value: u32) {
         self.stack
             .push(ValueStackItem::Literal(ValueLiteral::U32(value)));
     }
 
+    /// Pushes a `u64` number to the stack.
     pub fn push_u64(&mut self, value: u64) {
         self.stack
             .push(ValueStackItem::Literal(ValueLiteral::U64(value)));
     }
 
+    /// Pushes a `f32` number to the stack.
     pub fn push_f32(&mut self, value: f32) {
         self.stack
             .push(ValueStackItem::Literal(ValueLiteral::F32(value)));
     }
 
+    /// Pushes a `f64` number to the stack.
     pub fn push_f64(&mut self, value: f64) {
         self.stack
             .push(ValueStackItem::Literal(ValueLiteral::F64(value)));
     }
 
+    /// Pushes the `null` in to the stack.
     pub fn push_null(&mut self) {
         self.stack.push(ValueStackItem::Literal(ValueLiteral::Null));
     }
 
+    /// Pushes `true` in to the stack.
     pub fn push_true(&mut self) {
         self.stack.push(ValueStackItem::Literal(ValueLiteral::True));
     }
 
+    /// Pushes `false` in to the stack.
     pub fn push_false(&mut self) {
         self.stack
             .push(ValueStackItem::Literal(ValueLiteral::False));
     }
 
+    /// Pushes the given string in to the stack.
     pub fn push_string(&mut self, value: String) {
         self.stack
             .push(ValueStackItem::Literal(ValueLiteral::Str(value)));
     }
 
+    /// Pushes the `%current` value to the stack.
     pub fn push_current(&mut self, current_type: Vec<IrType>) {
         self.stack.push(ValueStackItem::Variable(
             ValueVariableBase::Current,
@@ -288,6 +315,7 @@ impl ValueBuilder {
         ));
     }
 
+    /// Pushes the `%user` value to the stack.
     pub fn push_user(&mut self, user_type: Vec<IrType>) {
         self.stack.push(ValueStackItem::Variable(
             ValueVariableBase::User,
@@ -296,6 +324,7 @@ impl ValueBuilder {
         ));
     }
 
+    /// Pushes the given variable to the stack.
     pub fn push_variable(&mut self, name: String, variable_type: Vec<IrType>) {
         self.stack.push(ValueStackItem::Variable(
             ValueVariableBase::Named(name),
@@ -304,6 +333,20 @@ impl ValueBuilder {
         ));
     }
 
+    /// Gets the given field from the last value in the stack.
+    /// # Panics
+    /// If the last value in the stack is not a variable.
+    /// # Example
+    /// ```
+    /// // .point.y + 5
+    /// let builder = ValueBuilder::new();
+    /// builder.push_current(current_type);
+    /// builder.get_field("point", point_type);
+    /// builder.get_field("y", y_type);
+    /// builder.push_i32(5);
+    /// builder.add();
+    /// builder.build()
+    /// ```
     pub fn get_field(&mut self, name: String, field_type: Vec<IrType>) {
         let mut item = self.stack.pop().unwrap();
         match item {
@@ -316,6 +359,7 @@ impl ValueBuilder {
         }
     }
 
+    /// Returns true if there are two literals in the stack.
     fn has_two_literals(&self) -> bool {
         let len = self.stack.len();
         if len < 2 {
@@ -331,6 +375,8 @@ impl ValueBuilder {
         }
     }
 
+    /// Pushes the `add` function to the stack, if there are two literals in the
+    /// stack pops them and pushes the result of performing the operation.
     pub fn add(&mut self) {
         if self.has_two_literals() {
             let rhs = self.stack.pop().unwrap().as_literal();
@@ -343,6 +389,8 @@ impl ValueBuilder {
         }
     }
 
+    /// Pushes the `sub` function to the stack, if there are two literals in the
+    /// stack pops them and pushes the result of performing the operation.
     pub fn sub(&mut self) {
         if self.has_two_literals() {
             let rhs = self.stack.pop().unwrap().as_literal();
@@ -355,6 +403,8 @@ impl ValueBuilder {
         }
     }
 
+    /// Pushes the `mul` function to the stack, if there are two literals in the
+    /// stack pops them and pushes the result of performing the operation.
     pub fn mul(&mut self) {
         if self.has_two_literals() {
             let rhs = self.stack.pop().unwrap().as_literal();
@@ -367,6 +417,8 @@ impl ValueBuilder {
         }
     }
 
+    /// Pushes the `div` function to the stack, if there are two literals in the
+    /// stack pops them and pushes the result of performing the operation.
     pub fn div(&mut self) {
         if self.has_two_literals() {
             let rhs = self.stack.pop().unwrap().as_literal();
@@ -379,6 +431,7 @@ impl ValueBuilder {
         }
     }
 
+    /// Builds the value and returns it.
     pub fn build(self) -> Value {
         self.stack
     }
