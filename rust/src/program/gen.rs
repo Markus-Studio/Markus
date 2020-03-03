@@ -1,11 +1,11 @@
 use crate::ir::builder::*;
 use crate::parser::ast::Declaration;
 
-pub fn gen(declarations: Vec<Declaration>) {
+pub fn gen_ir(declarations: &Vec<Declaration>) {
     let type_space = {
         let mut type_builder = TypeSpaceBuilder::new();
 
-        for declaration in &declarations {
+        for declaration in declarations {
             if let Declaration::Type(type_declaration) = declaration {
                 let name_id = type_declaration.name.as_ref().unwrap();
                 type_builder.begin(name_id.value.to_owned());
