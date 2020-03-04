@@ -19,7 +19,7 @@ use std::collections::{HashMap, HashSet};
 /// The builder used to build an IR-Programs.
 pub struct IRBuilder {
     /// The type space used in this program.
-    typespace: TypeSpace,
+    pub typespace: TypeSpace,
 }
 
 /// The builder used to build a TypeSpace.
@@ -117,13 +117,43 @@ pub struct SelectionBuilder {
     stack: Vec<FilterVector>,
 }
 
-pub struct QueryBuilder {}
+pub struct QueryBuilder<'a> {
+    builder: &'a IRBuilder,
+    parameters: Vec<(String, IrType, bool)>,
+    current_selection: SelectionBuilder,
+}
 
 pub struct ActionBuilder {}
 
 impl IRBuilder {
+    /// Constructs a new IRBuilder.
     pub fn new(typespace: TypeSpace) -> IRBuilder {
         IRBuilder { typespace }
+    }
+
+    /// Returns the TypeId for the given object type.
+    pub fn resolve_type_id(&self, name: &String) -> TypeId {
+        *self.typespace.type_names.get_by_left(name).unwrap()
+    }
+
+    /// Returns the IrType for the given name.
+    pub fn get_type(&self, name: &String) -> IrType {
+        match name as &str {
+            "null" => IrType::Null,
+            "i32" => IrType::I32,
+            "i64" => IrType::I64,
+            "u32" => IrType::U32,
+            "u64" => IrType::U64,
+            "f32" => IrType::F32,
+            "f64" => IrType::F64,
+            "time" => IrType::Time,
+            "string" => IrType::Str,
+            "bool" => IrType::Bool,
+            _ => {
+                let id = self.resolve_type_id(name);
+                IrType::Object(id)
+            }
+        }
     }
 }
 
@@ -559,12 +589,26 @@ impl SelectionBuilder {
     }
 }
 
-impl QueryBuilder {
-    pub fn new() -> QueryBuilder {
-        QueryBuilder {}
+impl<'a> QueryBuilder<'a> {
+    /// Constructs a new query builder that belongs to the given IRBuilder.
+    pub fn new(ir_builder: &'a IRBuilder) -> QueryBuilder<'a> {
+        QueryBuilder {
+            builder: ir_builder,
+            parameters: Vec::new(),
+            current_selection: SelectionBuilder::new(),
+        }
     }
 
-    pub fn is(&mut self, type_id: TypeId) {}
+    /// Adds a parameter to this query.
+    pub fn parameter(&mut self, name: String, type_name: &String, nullable: bool) {
+        let ir_type = self.builder.get_type(type_name);
+        self.parameters.push((name, ir_type, nullable));
+    }
+
+    pub fn is(&mut self, type_name: &String) {
+        let type_id = self.builder.resolve_type_id(type_name);
+        self.current_selection.is(type_id);
+    }
 }
 
 impl ActionBuilder {
