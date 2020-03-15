@@ -1,20 +1,10 @@
-image: gcc
+image: "scorpil/rust:stable"
 
-build:
-  stage: build
-  script:
-    - apt update && apt -y install ninja-build cmake
-    - cmake . -G Ninja
-    - ninja
-  artifacts:
-    paths:
-      - ./bin/markus-test
-      - ./bin/markus-dump
+before_script:
+  - apt-get update -yqq
+  - apt-get install -yqq --no-install-recommends build-essential
 
-test:
-  stage: test
+test:cargo:
   script:
-    - ./bin/markus-test
-    - apt-get update -qy
-    - apt-get install -y python-dev
-    - python suite/test.py
+  - rustc --version && cargo --version      # Print version info for debugging
+  - cargo test --all

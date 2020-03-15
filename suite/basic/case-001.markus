@@ -1,8 +1,0 @@
-type Point2D { # A comment.
-  float x;
-  float y;
-}
-
-type Point3D: Point2D {
-  float z;
-}
