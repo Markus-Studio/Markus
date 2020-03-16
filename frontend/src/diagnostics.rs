@@ -1,8 +1,6 @@
-use crate::parser::Source;
-use crate::parser::{
-    ast::{ActionBase, CallNode, FieldBindingNode, IdentifierNode, ValueNode},
-    Span, Token, TokenKind,
-};
+use crate::ast::{ActionBase, CallNode, FieldBindingNode, IdentifierNode, ValueNode};
+use crate::source::Source;
+use crate::tokenizer::{Span, Token, TokenKind};
 
 #[derive(PartialEq, Debug)]
 pub enum DiagnosticKind {

@@ -1,7 +1,5 @@
-#[cfg(test)]
-use crate::*;
-#[cfg(test)]
 use common::matrix::Matrix;
+use ir::*;
 
 /// Creates a Truth Table for n variables.
 #[cfg(test)]

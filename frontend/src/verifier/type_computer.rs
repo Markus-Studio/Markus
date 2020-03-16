@@ -1,6 +1,7 @@
-use crate::parser::ast::{AccessNode, ActionBase, VariableReferenceNode};
-use crate::parser::ast::{IntLiteralNode, QueryNode, ValueNode};
-use crate::program::{Diagnostic, MarkusType};
+use crate::ast::{AccessNode, ActionBase, VariableReferenceNode};
+use crate::ast::{IntLiteralNode, QueryNode, ValueNode};
+use crate::diagnostics::Diagnostic;
+use crate::types::MarkusType;
 use crate::verifier::Context;
 
 impl VariableReferenceNode {

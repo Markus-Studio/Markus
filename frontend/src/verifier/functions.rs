@@ -1,5 +1,6 @@
-use crate::parser::ast::{CallNode, ValueNode};
-use crate::program::{Diagnostic, MarkusType, MarkusTypeInfo};
+use crate::ast::{CallNode, ValueNode};
+use crate::diagnostics::Diagnostic;
+use crate::types::{MarkusType, MarkusTypeInfo};
 use crate::verifier::Context;
 
 impl CallNode {

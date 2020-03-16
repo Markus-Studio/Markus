@@ -1,9 +1,10 @@
-use crate::parser::ast::{ActionDeclarationNode, QueryDeclarationNode};
-use crate::parser::ast::{ActionStatement, CreateStatementNode, ValidateStatementNode};
-use crate::parser::ast::{DeleteStatementNode, UpdateStatementNode, ValueNode};
-use crate::parser::ast::{GuardNode, IdentifierNode, ParameterNode, PermissionDeclarationNode};
-use crate::parser::Span;
-use crate::program::{Diagnostic, MarkusType, TypeSpace};
+use crate::ast::{ActionDeclarationNode, QueryDeclarationNode};
+use crate::ast::{ActionStatement, CreateStatementNode, ValidateStatementNode};
+use crate::ast::{DeleteStatementNode, UpdateStatementNode, ValueNode};
+use crate::ast::{GuardNode, IdentifierNode, ParameterNode, PermissionDeclarationNode};
+use crate::diagnostics::Diagnostic;
+use crate::tokenizer::Span;
+use crate::types::{MarkusType, TypeSpace};
 use std::collections::{HashMap, HashSet};
 
 pub struct Context<'a> {

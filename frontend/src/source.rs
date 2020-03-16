@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::parser::tokenizer::Span;
+use crate::tokenizer::Span;
 use std::cell::RefCell;
 
 #[derive(Copy, Clone)]

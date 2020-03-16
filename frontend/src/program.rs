@@ -1,8 +1,9 @@
-use crate::parser::ast::Declaration;
+use crate::ast::Declaration;
+use crate::diagnostics::Diagnostic;
 use crate::parser::Parser;
-use crate::parser::Source;
-use crate::program::types::MarkusType;
-use crate::program::{Diagnostic, TypeSpace};
+use crate::source::Source;
+use crate::types::MarkusType;
+use crate::types::TypeSpace;
 use common::counter::Counter;
 use std::collections::HashMap;
 use std::rc::Rc;

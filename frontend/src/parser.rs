@@ -1,6 +1,6 @@
-use crate::parser::ast::*;
-use crate::parser::tokenizer::*;
-use crate::program::Diagnostic;
+use crate::ast::*;
+use crate::diagnostics::Diagnostic;
+use crate::tokenizer::*;
 use std::rc::Rc;
 
 pub struct Parser<'a> {

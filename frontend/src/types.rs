@@ -1,5 +1,5 @@
-use crate::parser::ast::TypeDeclarationNode;
-use crate::program::Diagnostic;
+use crate::ast::TypeDeclarationNode;
+use crate::diagnostics::Diagnostic;
 use common::bimap::BiMap;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;

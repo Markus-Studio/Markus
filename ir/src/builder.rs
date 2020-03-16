@@ -554,7 +554,6 @@ impl SelectionBuilder {
 
     /// The test variable is an Atomic constant filter used for testing
     /// purpose.
-    #[cfg(test)]
     pub fn test_variable(&mut self, id: usize) {
         self.stack.push(FilterVector::from_filter(
             AtomicFilter::TestVariable(id),

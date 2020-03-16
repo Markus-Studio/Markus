@@ -1,8 +1,8 @@
-use crate::parser::ast::{Declaration, ValueNode};
+use crate::ast::{Declaration, ValueNode};
 use ir::builder::*;
 use std::collections::HashMap;
 
-pub fn gen_ir(declarations: &Vec<Declaration>) {
+pub fn generate_ir(declarations: &Vec<Declaration>) {
     let mut permissions = HashMap::new();
     let mut queries = Vec::new();
 

@@ -75,7 +75,6 @@ pub enum AtomicFilter {
     Eq(Value, Value),
     Lt(Value, Value),
     Gt(Value, Value),
-    #[cfg(test)]
     TestVariable(usize),
 }
 

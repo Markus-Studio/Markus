@@ -1,7 +1,8 @@
 extern crate clap;
 use clap::{App, Arg, ArgMatches, SubCommand};
-use frontend::parser::Source;
-use frontend::program::{gen_ir, Program};
+use frontend::gen::generate_ir;
+use frontend::program::Program;
+use frontend::source::Source;
 use std::fs;
 
 pub struct Cli {
@@ -125,7 +126,7 @@ impl Cli {
 
     fn gen(&mut self, _matches: &ArgMatches) -> bool {
         let program = self.program.as_mut().unwrap();
-        gen_ir(&program.declarations);
+        generate_ir(&program.declarations);
         true
     }
 

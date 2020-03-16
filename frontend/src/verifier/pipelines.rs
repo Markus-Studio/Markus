@@ -1,6 +1,7 @@
-use crate::parser::ast::{CallNode, ValueNode, VariableReferenceNode};
-use crate::parser::Span;
-use crate::program::{Diagnostic, MarkusType};
+use crate::ast::{CallNode, ValueNode, VariableReferenceNode};
+use crate::diagnostics::Diagnostic;
+use crate::tokenizer::Span;
+use crate::types::MarkusType;
 use crate::verifier::Context;
 
 impl CallNode {

@@ -1,10 +1,8 @@
-#[cfg(test)]
-use crate::parser::ast::*;
-#[cfg(test)]
-use crate::parser::*;
-#[cfg(test)]
-use crate::program::Program;
-#[cfg(test)]
+use frontend::ast::*;
+use frontend::program::Program;
+use frontend::source::*;
+use frontend::tokenizer::Span;
+use frontend::tokenizer::*;
 use std::rc::Rc;
 
 // Editor tests taken from microsoft/vscode-languageserver-node

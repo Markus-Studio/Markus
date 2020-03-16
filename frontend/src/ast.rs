@@ -1,4 +1,4 @@
-use crate::parser::tokenizer::Span;
+use crate::tokenizer::Span;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
