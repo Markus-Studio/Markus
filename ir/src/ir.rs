@@ -1,6 +1,6 @@
 #![allow(unused)]
-use crate::common::Matrix;
-use bimap::BiMap;
+use common::bimap::BiMap;
+use common::matrix::Matrix;
 use std::collections::HashMap;
 
 pub type TypeId = u32;

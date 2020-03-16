@@ -1,12 +1,8 @@
-[package]
-name = "markus"
-version = "0.1.0"
-authors = ["Parsa Ghadimi <qti3eqti3e@gmail.com>"]
-edition = "2018"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-bimap = "0.4"
-num-traits = "0.2"
-clap = "2.23.0"
+members = [
+    "cli",
+    "common",
+    "frontend",
+    "ir",
+]

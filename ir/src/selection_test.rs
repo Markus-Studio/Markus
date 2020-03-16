@@ -1,7 +1,7 @@
 #[cfg(test)]
-use crate::common::Matrix;
+use crate::*;
 #[cfg(test)]
-use crate::ir::*;
+use common::matrix::Matrix;
 
 /// Creates a Truth Table for n variables.
 #[cfg(test)]
@@ -89,7 +89,7 @@ fn compute(selection: Selection, n: usize) -> Matrix<u8> {
 }
 
 #[test]
-fn test_selection_01() {
+fn selection_01() {
     // Expr: `A`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -102,7 +102,7 @@ fn test_selection_01() {
 }
 
 #[test]
-fn test_selection_02() {
+fn selection_02() {
     // Expr: `!A`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -116,7 +116,7 @@ fn test_selection_02() {
 }
 
 #[test]
-fn test_selection_03() {
+fn selection_03() {
     // Expr: `A | B`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -133,7 +133,7 @@ fn test_selection_03() {
 }
 
 #[test]
-fn test_selection_04() {
+fn selection_04() {
     // Expr: `!(A | B)`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -151,7 +151,7 @@ fn test_selection_04() {
 }
 
 #[test]
-fn test_selection_05() {
+fn selection_05() {
     // Expr: `A & B`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -168,7 +168,7 @@ fn test_selection_05() {
 }
 
 #[test]
-fn test_selection_06() {
+fn selection_06() {
     // Expr: `!(A & B)`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -186,7 +186,7 @@ fn test_selection_06() {
 }
 
 #[test]
-fn test_selection_07() {
+fn selection_07() {
     // Expr: `A | !B`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -204,7 +204,7 @@ fn test_selection_07() {
 }
 
 #[test]
-fn test_selection_08() {
+fn selection_08() {
     // Expr: `A & !B`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -222,7 +222,7 @@ fn test_selection_08() {
 }
 
 #[test]
-fn test_selection_09() {
+fn selection_09() {
     // Expr: `(A & B) | (!A & !B)`
     let mut builder = builder::SelectionBuilder::new();
     // lhs
@@ -248,7 +248,7 @@ fn test_selection_09() {
 }
 
 #[test]
-fn test_selection_10() {
+fn selection_10() {
     // Expr: `A | !A`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -260,7 +260,7 @@ fn test_selection_10() {
 }
 
 #[test]
-fn test_selection_11() {
+fn selection_11() {
     // Expr: `A & !A`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -272,7 +272,7 @@ fn test_selection_11() {
 }
 
 #[test]
-fn test_selection_12() {
+fn selection_12() {
     // Expr: `(A | B) & !(A | B)`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -288,7 +288,7 @@ fn test_selection_12() {
 }
 
 #[test]
-fn test_selection_13() {
+fn selection_13() {
     // Expr: `(A | B) | !(A | B)`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -304,7 +304,7 @@ fn test_selection_13() {
 }
 
 #[test]
-fn test_selection_14() {
+fn selection_14() {
     // Expr: `(A | B | C) | !(A | B)`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -322,7 +322,7 @@ fn test_selection_14() {
 }
 
 #[test]
-fn test_selection_15() {
+fn selection_15() {
     // Expr: `(A | B) | !A`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -336,7 +336,7 @@ fn test_selection_15() {
 }
 
 #[test]
-fn test_selection_16() {
+fn selection_16() {
     // Expr: `(A & B) & !A`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -350,7 +350,7 @@ fn test_selection_16() {
 }
 
 #[test]
-fn test_selection_17() {
+fn selection_17() {
     // Expr: `A & (B & !A)`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);
@@ -364,7 +364,7 @@ fn test_selection_17() {
 }
 
 #[test]
-fn test_selection_18() {
+fn selection_18() {
     // Expr: `!((A & B) | (C & D))`
     let mut builder = builder::SelectionBuilder::new();
     builder.test_variable(0);

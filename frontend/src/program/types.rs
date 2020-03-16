@@ -1,6 +1,6 @@
 use crate::parser::ast::TypeDeclarationNode;
 use crate::program::Diagnostic;
-use bimap::BiMap;
+use common::bimap::BiMap;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;
 

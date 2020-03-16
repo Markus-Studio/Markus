@@ -1,5 +1,5 @@
-use crate::ir::builder::*;
 use crate::parser::ast::{Declaration, ValueNode};
+use ir::builder::*;
 use std::collections::HashMap;
 
 pub fn gen_ir(declarations: &Vec<Declaration>) {

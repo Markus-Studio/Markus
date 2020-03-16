@@ -11,9 +11,9 @@
 //! [`QueryBuilder`]: struct.QueryBuilder.html
 //! [`ActionBuilder`]: struct.ActionBuilder.html
 
-use crate::common::Matrix;
-use crate::ir::ir::*;
-use bimap::BiMap;
+use crate::ir::*;
+use common::bimap::BiMap;
+use common::matrix::Matrix;
 use std::collections::{HashMap, HashSet};
 
 /// The builder used to build an IR-Programs.

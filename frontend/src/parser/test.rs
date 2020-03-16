@@ -1,7 +1,10 @@
-extern crate markus;
-use ast::*;
-use markus::parser::*;
-use markus::program::*;
+#[cfg(test)]
+use crate::parser::ast::*;
+#[cfg(test)]
+use crate::parser::*;
+#[cfg(test)]
+use crate::program::Program;
+#[cfg(test)]
 use std::rc::Rc;
 
 // Editor tests taken from microsoft/vscode-languageserver-node
@@ -562,6 +565,7 @@ fn ast_query_declaration_03() {
     )
 }
 
+#[cfg(test)]
 fn get_value_ast<'a>(program: &'a Program) -> &'a ValueNode {
     assert_eq!(program.declarations.len(), 1);
     match &program.declarations[0] {

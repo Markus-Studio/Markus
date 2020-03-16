@@ -1,7 +1,7 @@
 extern crate clap;
-use crate::parser::Source;
-use crate::program::{gen_ir, Program};
 use clap::{App, Arg, ArgMatches, SubCommand};
+use frontend::parser::Source;
+use frontend::program::{gen_ir, Program};
 use std::fs;
 
 pub struct Cli {

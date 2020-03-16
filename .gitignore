@@ -19,5 +19,5 @@ coverage-report.html
 libmar.a
 rules.ninja
 build.ninja
-/target
+target
 **/*.rs.bk
