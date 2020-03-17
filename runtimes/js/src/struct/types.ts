@@ -1,77 +1,77 @@
 export interface StructType<T = any> {
-  name: string;
-  size: number;
+  readonly name: string;
+  readonly size: number;
   read(view: DataView, offset: number, littleEndian: boolean): T;
-  write(view: DataView, offset: number, value: T, littleEndian: boolean): void;
+  write(view: DataView, offset: number, littleEndian: boolean, value: T): void;
 }
 
-export const Int8: StructType<number> = {
+export const Int8: StructType<number> = Object.freeze({
   name: "int8",
   size: 1,
   read(view: DataView, offset: number, _: boolean): number {
     return view.getInt8(offset);
   },
-  write(view: DataView, offset: number, value: number, _: boolean): void {
+  write(view: DataView, offset: number, _: boolean, value: number): void {
     view.setInt8(offset, value);
   }
-};
+});
 
-export const Uint8: StructType<number> = {
+export const UInt8: StructType<number> = Object.freeze({
   name: "uint8",
   size: 1,
   read(view: DataView, offset: number, _: boolean): number {
     return view.getUint8(offset);
   },
-  write(view: DataView, offset: number, value: number, _: boolean): void {
+  write(view: DataView, offset: number, _: boolean, value: number): void {
     view.setUint8(offset, value);
   }
-};
+});
 
-export const Int16: StructType<number> = {
+export const Int16: StructType<number> = Object.freeze({
   name: "int16",
   size: 2,
   read(view: DataView, offset: number, littleEndian: boolean): number {
     return view.getInt16(offset, littleEndian);
   },
-  write(view: DataView, offset: number, value: number, littleEndian: boolean): void {
+  write(view: DataView, offset: number, littleEndian: boolean, value: number): void {
     view.setInt16(offset, value, littleEndian);
   }
-};
+});
 
-export const UInt16: StructType<number> = {
+export const UInt16: StructType<number> = Object.freeze({
   name: "uint16",
   size: 2,
   read(view: DataView, offset: number, littleEndian: boolean): number {
     return view.getUint16(offset, littleEndian);
   },
-  write(view: DataView, offset: number, value: number, littleEndian: boolean): void {
+  write(view: DataView, offset: number, littleEndian: boolean, value: number): void {
     view.setUint16(offset, value, littleEndian);
   }
-};
+});
 
-export const Int32: StructType<number> = {
+export const Int32: StructType<number> = Object.freeze({
   name: "int32",
   size: 4,
   read(view: DataView, offset: number, littleEndian: boolean): number {
     return view.getInt32(offset, littleEndian);
   },
-  write(view: DataView, offset: number, value: number, littleEndian: boolean): void {
+  write(view: DataView, offset: number, littleEndian: boolean, value: number): void {
     view.setInt32(offset, value, littleEndian);
   }
-};
+});
 
-export const UInt32: StructType<number> = {
+export const UInt32: StructType<number> = Object.freeze({
   name: "uint32",
   size: 4,
   read(view: DataView, offset: number, littleEndian: boolean): number {
     return view.getUint32(offset, littleEndian);
   },
-  write(view: DataView, offset: number, value: number, littleEndian: boolean): void {
+  write(view: DataView, offset: number, littleEndian: boolean, value: number): void {
     view.setUint32(offset, value, littleEndian);
   }
-};
+});
 
-export const Int64: StructType<bigint | number> = {
+export const Int64: StructType<bigint | number> = Object.freeze({
   name: "int64",
   size: 8,
   read(view: DataView, offset: number, littleEndian: boolean): bigint | number {
@@ -103,7 +103,7 @@ export const Int64: StructType<bigint | number> = {
     }
     return n <= Number.MAX_SAFE_INTEGER ? Number(n) : n;
   },
-  write(view: DataView, offset: number, value: number | bigint, littleEndian: boolean): void {
+  write(view: DataView, offset: number, littleEndian: boolean, value: bigint | number): void {
     const big = typeof value == "bigint" ? value : BigInt(value);
     if ("setBigInt64" in DataView.prototype) {
       view.setBigInt64(offset, big, littleEndian);
@@ -112,9 +112,9 @@ export const Int64: StructType<bigint | number> = {
       throw new Error("Not implemented.");
     }
   }
-};
+});
 
-export const UInt64: StructType<bigint | number> = {
+export const UInt64: StructType<bigint | number> = Object.freeze({
   name: "uint64",
   size: 8,
   read(view: DataView, offset: number, littleEndian: boolean): bigint | number {
@@ -128,7 +128,7 @@ export const UInt64: StructType<bigint | number> = {
     }
     return n <= Number.MAX_SAFE_INTEGER ? Number(n) : n;
   },
-  write(view: DataView, offset: number, value: bigint | number, littleEndian: boolean): void {
+  write(view: DataView, offset: number, littleEndian: boolean, value: bigint | number): void {
     const big = typeof value == "bigint" ? value : BigInt(value);
     if ("setBigInt64" in DataView.prototype) {
       view.setBigInt64(offset, big, littleEndian);
@@ -137,4 +137,4 @@ export const UInt64: StructType<bigint | number> = {
       throw new Error("Not implemented.");
     }
   }
-};
+});

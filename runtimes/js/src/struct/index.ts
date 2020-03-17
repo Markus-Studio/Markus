@@ -1,20 +1,12 @@
 import { StructBuilder } from "./builder";
 
-export function struct() {
-  return new StructBuilder();
+export function struct(name: string = "anonymous") {
+  return new StructBuilder(name);
 }
 
-// const p = struct()
-//   .int('x')
-//   .char('u')
-//   .build();
+const p = struct("X")
+  .array(11, _ => _.i8("a"))
+  .i64("b")
+  .build();
 
-// p.size();
-// p.offsetOf('x');
-
-// p.write[|BE|LE](buf, {
-//   x: 4,
-//   u: 9
-// });
-
-// p.read(buf).x;
+console.log(p);
