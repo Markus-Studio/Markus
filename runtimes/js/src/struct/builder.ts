@@ -40,17 +40,16 @@ export class StructBuilder<T extends object> {
     return this;
   }
 
-  array(count: number, cb: (o: this) => void): this {
-    if (count <= 0) throw new Error("Illegal array size.");
+  array<O extends StructBuilder<T>>(count: number, cb: (o: this) => O): O {
+    if (count <= 1) throw new Error("Illegal array size.");
     this.count.push(count);
     try {
-      cb(this);
+      return cb(this);
     } catch (e) {
       throw e;
     } finally {
       this.count.pop();
     }
-    return this;
   }
 
   build(): Struct<T> {
