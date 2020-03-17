@@ -26,7 +26,7 @@ export class StructBuilder<T extends object> {
     return this.count[this.count.length - 1];
   }
 
-  private atomic(name: string, type: StructType): this {
+  private atomic(name: string, type: StructType<any>): this {
     const offset = this.getNextOffset(type.size);
     if (type.size > this.maxElementSize) {
       this.maxElementSize = type.size;
@@ -74,35 +74,35 @@ export class StructBuilder<T extends object> {
   }
 
   i8(name: string): this {
-    return this.atomic(name, types.Int8);
+    return this.atomic(name, types.I8);
   }
 
   u8(name: string): this {
-    return this.atomic(name, types.UInt8);
+    return this.atomic(name, types.U8);
   }
 
   i16(name: string): this {
-    return this.atomic(name, types.Int16);
+    return this.atomic(name, types.I16);
   }
 
   u16(name: string): this {
-    return this.atomic(name, types.UInt16);
+    return this.atomic(name, types.U16);
   }
 
   i32(name: string): this {
-    return this.atomic(name, types.Int32);
+    return this.atomic(name, types.I32);
   }
 
   u32(name: string): this {
-    return this.atomic(name, types.UInt32);
+    return this.atomic(name, types.U32);
   }
 
   i64(name: string): this {
-    return this.atomic(name, types.Int64);
+    return this.atomic(name, types.I64);
   }
 
   u64(name: string): this {
-    return this.atomic(name, types.UInt64);
+    return this.atomic(name, types.U64);
   }
 }
 
