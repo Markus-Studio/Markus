@@ -1,21 +1,10 @@
 #![allow(dead_code)]
-use crate::tokenizer::Span;
+use super::shared::*;
 use std::cell::RefCell;
+use tree_sitter::{InputEdit, Language, Parser, Point, Tree};
 
-#[derive(Copy, Clone)]
-pub struct Position {
-    /// Line position in the source, zero-based.
-    pub line: usize,
-    /// The character offset on a line in source, zero-based.
-    pub character: usize,
-}
-
-#[derive(Copy, Clone)]
-pub struct Range {
-    /// The range's start position.
-    pub start: Position,
-    /// The range's end position.
-    pub end: Position,
+extern "C" {
+    fn tree_sitter_markus() -> Language;
 }
 
 pub struct TextEdit {
@@ -29,8 +18,12 @@ pub struct TextEdit {
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct TextEditResult {
-    range: Span,
-    delta: i32,
+    start_byte: usize,
+    old_end_byte: usize,
+    new_end_byte: usize,
+    start_position: Position,
+    old_end_position: Position,
+    new_end_position: Position,
 }
 
 /// The Source is used to store each source file and all of the diagnostics
@@ -45,15 +38,26 @@ pub struct Source {
     pub content: Vec<u16>,
     // Line's offsets.
     line_offsets_cache: RefCell<Option<Vec<usize>>>,
+    // The root node of the source code, lazily computed.
+    tree: RefCell<Option<Tree>>,
+    // The tree-sitter parser instance.
+    parser: RefCell<Parser>,
 }
 
 impl Source {
     /// Constructs a new Source struct with the given filename and data.
     pub fn new(filename: &str, data: &str) -> Source {
+        let language = unsafe { tree_sitter_markus() };
+        let mut parser = Parser::new();
+        parser
+            .set_language(language)
+            .expect("Tree-sitter error: cannot set the language on parser.");
         Source {
             filename: String::from(filename),
             content: data.encode_utf16().collect(),
             line_offsets_cache: RefCell::new(None),
+            tree: RefCell::new(None),
+            parser: RefCell::new(parser),
         }
     }
 
@@ -99,6 +103,34 @@ impl Source {
         }
 
         result
+    }
+
+    /// Parse the source document, stores the result in the `tree` field.
+    #[inline]
+    fn parse_source(&self) -> Tree {
+        let mut parser = self.parser.borrow_mut();
+        // Reset the parser as we're doing a fresh parse.
+        parser.reset();
+        // Parse the content as UTF-16
+        parser.parse_utf16(&self.content, None).unwrap()
+    }
+
+    #[inline]
+    fn patch_tree(&mut self, edit: &InputEdit) -> Result<(), ()> {
+        let old_tree = self.tree.get_mut().as_mut().ok_or(())?;
+        old_tree.edit(edit);
+        let mut parser = self.parser.borrow_mut();
+        let tree = parser.parse_utf16(&self.content, Some(&old_tree)).unwrap();
+        self.tree.replace(Some(tree));
+        Ok(())
+    }
+
+    /// Returns the parse tree of this source document.
+    pub fn get_tree(&self) -> Tree {
+        self.tree
+            .borrow_mut()
+            .get_or_insert_with(|| self.parse_source())
+            .clone()
     }
 
     /// Returns the line_offsets of this source.
@@ -168,7 +200,7 @@ impl Source {
     /// the region that was effect (offsets are based on the current content)
     pub fn apply_edits(&mut self, edits: &mut Vec<TextEdit>) -> TextEditResult {
         if edits.len() == 0 {
-            return TextEditResult::new(0, 0, 0);
+            return TextEditResult::zero();
         }
 
         edits.sort_by(|a, b| {
@@ -207,17 +239,53 @@ impl Source {
                     delta += 1;
                 }
             } else {
+                // Currently we panic because we cannot rollback in case of an error.
+                // Maybe an iteration just to validate the overlaps?
                 panic!("Overlaps");
             }
             last_modified_offset = start_offset;
         }
+
+        let old_range = self.span_to_range(Span::from_positions(
+            min_effected_offset,
+            max_effected_offset,
+        ));
 
         // TODO(qti3e) Make it incremental, we can use the return value of
         // the current function which is effected bytes to implement
         // compute_line_offsets_incremental().
         self.compute_line_offsets();
 
-        TextEditResult::new(min_effected_offset, max_effected_offset, delta)
+        let new_end_byte = ((max_effected_offset as i32) + delta) as usize;
+        let new_end_position = self.position_at(new_end_byte);
+
+        let result = TextEditResult::new(
+            min_effected_offset,
+            max_effected_offset,
+            new_end_byte,
+            old_range.start,
+            old_range.end,
+            new_end_position,
+        );
+
+        // TODO(qti3e) This sucks, reexport the tree-sitter InputEdit as TextEdit?.
+        self.patch_tree(&InputEdit {
+            start_byte: result.start_byte,
+            old_end_byte: result.old_end_byte,
+            new_end_byte: result.new_end_byte,
+            start_position: Point::new(result.start_position.line, result.start_position.character),
+            old_end_position: Point::new(
+                result.old_end_position.line,
+                result.old_end_position.character,
+            ),
+            new_end_position: Point::new(
+                result.new_end_position.line,
+                result.new_end_position.character,
+            ),
+        })
+        .ok();
+
+        result
     }
 }
 
@@ -249,63 +317,33 @@ impl TextEdit {
     }
 }
 
-impl Position {
-    pub fn new(line: usize, character: usize) -> Position {
-        Position { line, character }
-    }
-
-    pub fn min(self, position: Position) -> Position {
-        if self.line == position.line {
-            if self.character < position.character {
-                self
-            } else {
-                position
-            }
-        } else if self.line < position.line {
-            self
-        } else {
-            position
-        }
-    }
-
-    pub fn max(self, position: Position) -> Position {
-        if self.line == position.line {
-            if self.character < position.character {
-                position
-            } else {
-                self
-            }
-        } else if self.line < position.line {
-            position
-        } else {
-            self
-        }
-    }
-}
-
-impl Range {
-    pub fn new(start: Position, end: Position) -> Range {
-        Range {
-            start: start.min(end),
-            end: end.max(start),
-        }
-    }
-
-    /// Returns true if the given position is inside the current range.
-    #[inline]
-    pub fn contains(&self, position: Position) -> bool {
-        self.start.line >= position.line
-            && self.start.character <= position.character
-            && self.end.line <= position.line
-            && self.end.character > position.character
-    }
-}
-
 impl TextEditResult {
-    pub fn new(start: usize, end: usize, delta: i32) -> TextEditResult {
+    pub fn new(
+        start: usize,
+        old_end: usize,
+        new_end_byte: usize,
+        start_position: Position,
+        old_end_position: Position,
+        new_end_position: Position,
+    ) -> TextEditResult {
         TextEditResult {
-            range: Span::from_positions(start, end),
-            delta,
+            start_byte: start,
+            old_end_byte: old_end,
+            new_end_byte,
+            start_position,
+            old_end_position,
+            new_end_position,
+        }
+    }
+
+    pub fn zero() -> TextEditResult {
+        TextEditResult {
+            start_byte: 0,
+            old_end_byte: 0,
+            new_end_byte: 0,
+            start_position: Position::zero(),
+            old_end_position: Position::zero(),
+            new_end_position: Position::zero(),
         }
     }
 }

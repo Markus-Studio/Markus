@@ -1,0 +1,22 @@
+==================
+Type declaration
+==================
+
+type Point {
+  x: number,
+  y: number,
+}
+
+---
+
+(source_file
+  (type_declaration
+    name: (identifier)
+    body: (type_fields
+      (type_field
+        name: (identifier)
+        field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (identifier)))))
+

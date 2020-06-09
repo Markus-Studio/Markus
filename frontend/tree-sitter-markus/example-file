@@ -1,0 +1,5 @@
+
+query Items() {
+  is(Box),
+  eq(.size.height, 120)
+}

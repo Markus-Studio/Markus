@@ -1,0 +1,9 @@
+{
+  "name": "tree-sitter-markus",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "tree-sitter-cli": "^0.16.8"
+  }
+}

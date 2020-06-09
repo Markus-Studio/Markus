@@ -1,0 +1,105 @@
+==================
+Basic usage
+==================
+
+query Items() {
+  is(Box)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list)
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier))))))))
+
+==================
+With numbers
+==================
+
+query Items() {
+  gt(120)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list)
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (number))))))
+
+==================
+Uri
+==================
+
+query Items() {
+  is(Box),
+  eq(.size.height, 120)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list)
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier)))))
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (uri
+            (identifier)
+            (identifier))
+          (number))))))
+
+==================
+Parameters
+==================
+
+query Items($size: number) {
+  is(Box),
+  eq(.size.height, $size)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list
+      (parameter
+        (parameter_name)
+        (identifier)))
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier)))))
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (uri
+            (identifier)
+            (identifier))
+          (variable base: (parameter_reference (parameter_name))))))))
+

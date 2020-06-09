@@ -1,12 +1,11 @@
-use crate::tokenizer::Span;
-use std::rc::Rc;
+use super::shared::Span;
 
 #[derive(Debug, PartialEq)]
 pub enum Declaration {
-    Type(Rc<TypeDeclarationNode>),
-    Permission(Rc<PermissionDeclarationNode>),
-    Query(Rc<QueryDeclarationNode>),
-    Action(Rc<ActionDeclarationNode>),
+    Type(TypeDeclarationNode),
+    Permission(PermissionDeclarationNode),
+    Query(QueryDeclarationNode),
+    Action(ActionDeclarationNode),
 }
 
 #[derive(Debug, PartialEq)]
@@ -193,7 +192,7 @@ pub enum ValueNode {
 #[derive(Debug, PartialEq)]
 pub enum VariableReferenceNode {
     Current,
-    Internal(IdentifierNode),
+    User,
     Variable(IdentifierNode),
 }
 
