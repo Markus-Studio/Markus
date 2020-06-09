@@ -4,7 +4,7 @@ pub struct Span {
     pub size: usize,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Hash)]
 pub struct Position {
     /// Line position in the source, zero-based.
     pub line: usize,
@@ -12,7 +12,7 @@ pub struct Position {
     pub character: usize,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug, Hash)]
 pub struct Range {
     /// The range's start position.
     pub start: Position,

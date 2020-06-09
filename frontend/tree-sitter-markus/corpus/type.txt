@@ -20,7 +20,6 @@ type Point {
         name: (identifier)
         field_type: (identifier)))))
 
-
 ==================
 Optional fields
 ==================
@@ -48,7 +47,6 @@ type Point {
         optional: (optional_flag)
         field_type: (identifier)))))
 
-
 ==================
 With bases
 ==================
@@ -73,7 +71,6 @@ type Point: A, B {
       (type_field
         name: (identifier)
         field_type: (identifier)))))
-
 
 ==================
 With bases extra comma
@@ -122,7 +119,6 @@ type Point: {
       (type_field
         name: (identifier)
         field_type: (identifier)))))
-
 
 ==================
 Missing field type

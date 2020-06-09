@@ -5,7 +5,9 @@ authors = ["Parsa Ghadimi <qti3eqti3e@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+common = {path = "../common"}
 tree-sitter = "0.16.1"
+bitflags = "1.2.1"
 
 [build-dependencies]
 cc="*"

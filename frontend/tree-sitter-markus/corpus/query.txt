@@ -128,7 +128,6 @@ query Items($size: number) {
             (identifier))
           (variable base: (parameter_reference (parameter_name))))))))
 
-
 ==================
 Variable field
 ==================
@@ -164,7 +163,6 @@ query Items($size: Size) {
             base: (parameter_reference (parameter_name))
             field: (uri (identifier))))))))
 
-
 ==================
 Variable nested field
 ==================
@@ -199,7 +197,6 @@ query Items($box: Box) {
           (variable
             base: (parameter_reference (parameter_name))
             field: (uri (identifier) (identifier))))))))
-
 
 ==================
 Nested query
