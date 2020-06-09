@@ -107,8 +107,8 @@ query Items($size: number) {
     name: (identifier)
     parameters: (parameters_list
       (parameter
-        (parameter_name)
-        (identifier)))
+        name: (parameter_name)
+        type: (identifier)))
     body: (query
       (call
         callee: (identifier)
@@ -141,8 +141,8 @@ query Items($size: Size) {
     name: (identifier)
     parameters: (parameters_list
       (parameter
-        (parameter_name)
-        (identifier)))
+        name: (parameter_name)
+        type: (identifier)))
     body: (query
       (call
         callee: (identifier)
@@ -177,8 +177,8 @@ query Items($box: Box) {
     name: (identifier)
     parameters: (parameters_list
       (parameter
-        (parameter_name)
-        (identifier)))
+        name: (parameter_name)
+        type: (identifier)))
     body: (query
       (call
         callee: (identifier)
@@ -222,3 +222,74 @@ query Items() {
             (call
               callee: (identifier)
               arguments: (arguments))))))))
+
+==================
+Optional parameters
+==================
+
+query Items($size?: number) {
+  is(Box),
+  eq(.size.height, $size)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list
+      (parameter
+        name: (parameter_name)
+        optional: (optional_flag)
+        type: (identifier)))
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier)))))
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (uri
+            (identifier)
+            (identifier))
+          (variable base: (parameter_reference (parameter_name))))))))
+
+==================
+Multiple parameters
+==================
+
+query Items($x: string, $size?: number,) {
+  is(Box),
+  eq(.size.height, $size)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list
+      (parameter
+        name: (parameter_name)
+        type: (identifier))
+      (parameter
+        name: (parameter_name)
+        optional: (optional_flag)
+        type: (identifier)))
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier)))))
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (uri
+            (identifier)
+            (identifier))
+          (variable base: (parameter_reference (parameter_name))))))))

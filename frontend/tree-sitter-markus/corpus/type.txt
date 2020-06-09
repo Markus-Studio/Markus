@@ -45,6 +45,7 @@ type Point {
         field_type: (identifier))
       (type_field
         name: (identifier)
+        optional: (optional_flag)
         field_type: (identifier)))))
 
 

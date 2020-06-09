@@ -25,7 +25,7 @@ module.exports = grammar({
     type_field: $ =>
       seq(
         field("name", $.identifier),
-        optional("?"),
+        field("optional", optional($.optional_flag)),
         ":",
         field("field_type", $.identifier)
       ),
@@ -92,7 +92,9 @@ module.exports = grammar({
     identifier: $ => /[a-zA-Z][a-zA-Z0-9_]*/,
     parameter_name: $ => /\$[a-zA-Z][a-zA-Z0-9_]*/,
     parameters_list: $ => seq("(", commaSep($.parameter), optional(","), ")"),
-    parameter: $ => seq($.parameter_name, optional("?"), ":", $.identifier),
+    optional_flag: $ => token("?"),
+    parameter: $ => seq(
+      field("name", $.parameter_name), field("optional", optional($.optional_flag)), ":", field("type", $.identifier)),
     _value: $ =>
       choice(
         $.query,
