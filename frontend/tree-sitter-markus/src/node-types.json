@@ -58,6 +58,10 @@
           "named": true
         },
         {
+          "type": "false_literal",
+          "named": true
+        },
+        {
           "type": "number",
           "named": true
         },
@@ -67,6 +71,10 @@
         },
         {
           "type": "string",
+          "named": true
+        },
+        {
+          "type": "true_literal",
           "named": true
         },
         {
@@ -138,6 +146,10 @@
             "named": true
           },
           {
+            "type": "false_literal",
+            "named": true
+          },
+          {
             "type": "number",
             "named": true
           },
@@ -147,6 +159,10 @@
           },
           {
             "type": "string",
+            "named": true
+          },
+          {
+            "type": "true_literal",
             "named": true
           },
           {
@@ -722,6 +738,10 @@
     "named": true
   },
   {
+    "type": "false_literal",
+    "named": true
+  },
+  {
     "type": "identifier",
     "named": true
   },
@@ -740,6 +760,10 @@
   {
     "type": "query",
     "named": false
+  },
+  {
+    "type": "true_literal",
+    "named": true
   },
   {
     "type": "type",

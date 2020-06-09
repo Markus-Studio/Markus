@@ -148,4 +148,3 @@ type Point {
       (type_field
         name: (identifier)
         field_type: (identifier)))))
-

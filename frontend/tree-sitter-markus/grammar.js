@@ -99,6 +99,7 @@ module.exports = grammar({
         $.call,
         $.number,
         $.string,
+        $._boolean,
         $.variable,
         $.uri
       ),
@@ -114,6 +115,9 @@ module.exports = grammar({
       '.',
       $.identifier,
     )),
+    _boolean: $ => choice($.true_literal, $.false_literal),
+    true_literal: $ => token('true'),
+    false_literal: $ => token('false'),
     parameter_reference: $ => $.parameter_name,
     type_reference: $ => $.identifier,
     user: $ => token("%user"),

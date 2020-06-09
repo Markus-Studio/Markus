@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "test": "tree-sitter test",
+    "build": "tree-sitter generate"
+  },
   "devDependencies": {
     "tree-sitter-cli": "^0.16.8"
   }

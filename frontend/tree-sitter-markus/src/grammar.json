@@ -738,6 +738,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "_boolean"
+        },
+        {
+          "type": "SYMBOL",
           "name": "variable"
         },
         {
@@ -802,6 +806,33 @@
             "name": "identifier"
           }
         ]
+      }
+    },
+    "_boolean": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "true_literal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "false_literal"
+        }
+      ]
+    },
+    "true_literal": {
+      "type": "TOKEN",
+      "content": {
+        "type": "STRING",
+        "value": "true"
+      }
+    },
+    "false_literal": {
+      "type": "TOKEN",
+      "content": {
+        "type": "STRING",
+        "value": "false"
       }
     },
     "parameter_reference": {

@@ -41,6 +41,27 @@ query Items() {
           (number))))))
 
 ==================
+Boolean
+==================
+
+query Items() {
+  fn(true, false)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list)
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (true_literal)
+          (false_literal))))))
+
+==================
 Uri
 ==================
 
@@ -174,3 +195,30 @@ query Items($box: Box) {
           (variable
             base: (parameter_reference (parameter_name))
             field: (uri (identifier) (identifier))))))))
+
+
+==================
+Nested query
+==================
+
+query Items() {
+  groupBy(.container, {
+    sum()
+  })
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list)
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (uri (identifier))
+          (query
+            (call
+              callee: (identifier)
+              arguments: (arguments))))))))
