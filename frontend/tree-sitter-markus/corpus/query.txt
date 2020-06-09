@@ -21,7 +21,7 @@ query Items() {
               (identifier))))))))
 
 ==================
-With numbers
+Numbers
 ==================
 
 query Items() {
@@ -103,3 +103,74 @@ query Items($size: number) {
             (identifier))
           (variable base: (parameter_reference (parameter_name))))))))
 
+
+==================
+Variable field
+==================
+
+query Items($size: Size) {
+  is(Box),
+  eq(.size.height, $size.height)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list
+      (parameter
+        (parameter_name)
+        (identifier)))
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier)))))
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (uri
+            (identifier)
+            (identifier))
+          (variable
+            base: (parameter_reference (parameter_name))
+            field: (uri (identifier))))))))
+
+
+==================
+Variable nested field
+==================
+
+query Items($box: Box) {
+  is(Box),
+  eq(.size.height, $box.size.height)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list
+      (parameter
+        (parameter_name)
+        (identifier)))
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier)))))
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (uri
+            (identifier)
+            (identifier))
+          (variable
+            base: (parameter_reference (parameter_name))
+            field: (uri (identifier) (identifier))))))))

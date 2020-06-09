@@ -1,5 +1,4 @@
-
-query Items() {
+query Items($size: Size) {
   is(Box),
-  eq(.size.height, 120)
+  eq(.size.height, $size.height)
 }

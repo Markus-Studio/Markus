@@ -1,5 +1,5 @@
 ==================
-Type declaration
+Basic usage
 ==================
 
 type Point {
@@ -16,6 +16,135 @@ type Point {
       (type_field
         name: (identifier)
         field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (identifier)))))
+
+
+==================
+Optional fields
+==================
+
+type Point {
+  x: number,
+  y: number,
+  z?: number
+}
+
+---
+
+(source_file
+  (type_declaration
+    name: (identifier)
+    body: (type_fields
+      (type_field
+        name: (identifier)
+        field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (identifier)))))
+
+
+==================
+With bases
+==================
+
+type Point: A, B {
+  x: number,
+  y: number,
+}
+
+---
+
+(source_file
+  (type_declaration
+    name: (identifier)
+    bases: (bases_list
+      (identifier)
+      (identifier))
+    body: (type_fields
+      (type_field
+        name: (identifier)
+        field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (identifier)))))
+
+
+==================
+With bases extra comma
+==================
+
+type Point: A, B, {
+  x: number,
+  y: number,
+}
+
+---
+
+(source_file
+  (type_declaration
+    name: (identifier)
+    bases: (bases_list
+      (identifier)
+      (identifier))
+    body: (type_fields
+      (type_field
+        name: (identifier)
+        field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (identifier)))))
+
+==================
+Bases empty base
+==================
+
+type Point: {
+  x: number,
+  y: number,
+}
+
+---
+
+(source_file
+  (type_declaration
+    name: (identifier)
+    (ERROR)
+    body: (type_fields
+      (type_field
+        name: (identifier)
+        field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (identifier)))))
+
+
+==================
+Missing field type
+==================
+
+type Point {
+  x: number,
+  y: ,
+  z: number
+}
+
+---
+
+(source_file
+  (type_declaration
+    name: (identifier)
+    body: (type_fields
+      (type_field
+        name: (identifier)
+        field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (MISSING identifier))
       (type_field
         name: (identifier)
         field_type: (identifier)))))

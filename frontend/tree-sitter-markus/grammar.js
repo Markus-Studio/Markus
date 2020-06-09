@@ -1,5 +1,6 @@
 module.exports = grammar({
   name: "markus",
+  word: $ => $.identifier,
   rules: {
     source_file: $ => repeat($._declaration),
     _declaration: $ =>
