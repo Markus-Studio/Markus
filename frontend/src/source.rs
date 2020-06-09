@@ -18,12 +18,9 @@ pub struct TextEdit {
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct TextEditResult {
-    start_byte: usize,
-    old_end_byte: usize,
-    new_end_byte: usize,
-    start_position: Position,
-    old_end_position: Position,
-    new_end_position: Position,
+    start: usize,
+    end: usize,
+    delta: i32,
 }
 
 /// The Source is used to store each source file and all of the diagnostics
@@ -259,33 +256,17 @@ impl Source {
         let new_end_byte = ((max_effected_offset as i32) + delta) as usize;
         let new_end_position = self.position_at(new_end_byte);
 
-        let result = TextEditResult::new(
-            min_effected_offset,
-            max_effected_offset,
-            new_end_byte,
-            old_range.start,
-            old_range.end,
-            new_end_position,
-        );
-
-        // TODO(qti3e) This sucks, reexport the tree-sitter InputEdit as TextEdit?.
         self.patch_tree(&InputEdit {
-            start_byte: result.start_byte,
-            old_end_byte: result.old_end_byte,
-            new_end_byte: result.new_end_byte,
-            start_position: Point::new(result.start_position.line, result.start_position.character),
-            old_end_position: Point::new(
-                result.old_end_position.line,
-                result.old_end_position.character,
-            ),
-            new_end_position: Point::new(
-                result.new_end_position.line,
-                result.new_end_position.character,
-            ),
+            start_byte: min_effected_offset,
+            old_end_byte: max_effected_offset,
+            new_end_byte,
+            start_position: Point::new(old_range.start.line, old_range.start.character),
+            old_end_position: Point::new(old_range.end.line, old_range.end.character),
+            new_end_position: Point::new(new_end_position.line, new_end_position.character),
         })
         .ok();
 
-        result
+        TextEditResult::new(min_effected_offset, max_effected_offset, delta)
     }
 }
 
@@ -318,32 +299,212 @@ impl TextEdit {
 }
 
 impl TextEditResult {
-    pub fn new(
-        start: usize,
-        old_end: usize,
-        new_end_byte: usize,
-        start_position: Position,
-        old_end_position: Position,
-        new_end_position: Position,
-    ) -> TextEditResult {
-        TextEditResult {
-            start_byte: start,
-            old_end_byte: old_end,
-            new_end_byte,
-            start_position,
-            old_end_position,
-            new_end_position,
-        }
+    pub fn new(start: usize, end: usize, delta: i32) -> TextEditResult {
+        TextEditResult { start, end, delta }
     }
 
     pub fn zero() -> TextEditResult {
         TextEditResult {
-            start_byte: 0,
-            old_end_byte: 0,
-            new_end_byte: 0,
-            start_position: Position::zero(),
-            old_end_position: Position::zero(),
-            new_end_position: Position::zero(),
+            start: 0,
+            end: 0,
+            delta: 0,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    // Editor tests taken from microsoft/vscode-languageserver-node
+
+    #[cfg(test)]
+    fn get_source(data: &str) -> Source {
+        Source::new("foo://bar", data)
+    }
+
+    #[test]
+    fn source_edit_inserts_0() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![TextEdit::insert(
+                Position::new(0, 0),
+                String::from("Hello"),
+            )]),
+            TextEditResult::new(0, 0, 5)
+        );
+        assert_eq!(
+            "Hello012345678901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_inserts_1() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![TextEdit::insert(
+                Position::new(0, 1),
+                String::from("Hello"),
+            )]),
+            TextEditResult::new(1, 1, 5)
+        );
+        assert_eq!(
+            "0Hello12345678901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_inserts_2() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![
+                TextEdit::insert(Position::new(0, 1), String::from("Hello")),
+                TextEdit::insert(Position::new(0, 1), String::from("World")),
+            ]),
+            TextEditResult::new(1, 1, 10)
+        );
+        assert_eq!(
+            "0HelloWorld12345678901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_inserts_3() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![
+                TextEdit::insert(Position::new(0, 2), String::from("One")),
+                TextEdit::insert(Position::new(0, 1), String::from("Hello")),
+                TextEdit::insert(Position::new(0, 1), String::from("World")),
+                TextEdit::insert(Position::new(0, 2), String::from("Two")),
+                TextEdit::insert(Position::new(0, 2), String::from("Three")),
+            ]),
+            TextEditResult::new(1, 2, 21)
+        );
+        assert_eq!(
+            "0HelloWorld1OneTwoThree2345678901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_replace_0() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![TextEdit::replace(
+                Position::new(0, 3),
+                Position::new(0, 6),
+                String::from("Hello"),
+            )]),
+            TextEditResult::new(3, 6, 2)
+        );
+        assert_eq!(
+            "012Hello678901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_replace_1() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![
+                TextEdit::replace(
+                    Position::new(0, 3),
+                    Position::new(0, 6),
+                    String::from("Hello"),
+                ),
+                TextEdit::replace(
+                    Position::new(0, 6),
+                    Position::new(0, 9),
+                    String::from("World"),
+                ),
+            ]),
+            TextEditResult::new(3, 9, 4)
+        );
+        assert_eq!(
+            "012HelloWorld901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_replace_2() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![
+                TextEdit::replace(
+                    Position::new(0, 3),
+                    Position::new(0, 6),
+                    String::from("Hello"),
+                ),
+                TextEdit::insert(Position::new(0, 6), String::from("World")),
+            ]),
+            TextEditResult::new(3, 6, 7)
+        );
+        assert_eq!(
+            "012HelloWorld678901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_replace_3() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![
+                TextEdit::insert(Position::new(0, 6), String::from("World")),
+                TextEdit::replace(
+                    Position::new(0, 3),
+                    Position::new(0, 6),
+                    String::from("Hello"),
+                ),
+            ]),
+            TextEditResult::new(3, 6, 7)
+        );
+        assert_eq!(
+            "012HelloWorld678901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_replace_4() {
+        let mut source = get_source("012345678901234567890123456789");
+        assert_eq!(
+            source.apply_edits(&mut vec![
+                TextEdit::insert(Position::new(0, 3), String::from("World")),
+                TextEdit::replace(
+                    Position::new(0, 3),
+                    Position::new(0, 6),
+                    String::from("Hello"),
+                ),
+            ]),
+            TextEditResult::new(3, 6, 7)
+        );
+        assert_eq!(
+            "012WorldHello678901234567890123456789",
+            source.get_content_utf8()
+        );
+    }
+
+    #[test]
+    fn source_edit_multiline() {
+        let mut source = get_source("0\n1\n2\n3\n4");
+        assert_eq!(
+            source.apply_edits(&mut vec![
+                TextEdit::replace(
+                    Position::new(2, 0),
+                    Position::new(3, 0),
+                    String::from("Hello"),
+                ),
+                TextEdit::insert(Position::new(1, 1), String::from("World")),
+            ]),
+            TextEditResult::new(3, 6, 8)
+        );
+        assert_eq!("0\n1World\nHello3\n4", source.get_content_utf8());
     }
 }
