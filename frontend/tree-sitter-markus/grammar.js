@@ -93,8 +93,13 @@ module.exports = grammar({
     parameter_name: $ => /\$[a-zA-Z][a-zA-Z0-9_]*/,
     parameters_list: $ => seq("(", commaSep($.parameter), optional(","), ")"),
     optional_flag: $ => token("?"),
-    parameter: $ => seq(
-      field("name", $.parameter_name), field("optional", optional($.optional_flag)), ":", field("type", $.identifier)),
+    parameter: $ =>
+      seq(
+        field("name", $.parameter_name),
+        field("optional", optional($.optional_flag)),
+        ":",
+        field("type", $.identifier)
+      ),
     _value: $ =>
       choice(
         $.query,
@@ -105,21 +110,15 @@ module.exports = grammar({
         $.variable,
         $.uri
       ),
-    variable: $ => seq(
-      field('base', choice(
-        $.parameter_reference,
-        $.type_reference,
-        $.user
-      )),
-      field('field', optional($.uri))
-    ),
-    uri: $ => repeat1(seq(
-      '.',
-      $.identifier,
-    )),
+    variable: $ =>
+      seq(
+        field("base", choice($.parameter_reference, $.type_reference, $.user)),
+        field("field", optional($.uri))
+      ),
+    uri: $ => repeat1(seq(".", $.identifier)),
     _boolean: $ => choice($.true_literal, $.false_literal),
-    true_literal: $ => token('true'),
-    false_literal: $ => token('false'),
+    true_literal: $ => token("true"),
+    false_literal: $ => token("false"),
     parameter_reference: $ => $.parameter_name,
     type_reference: $ => $.identifier,
     user: $ => token("%user"),

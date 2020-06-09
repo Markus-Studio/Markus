@@ -25,7 +25,7 @@ Numbers
 ==================
 
 query Items() {
-  gt(120)
+  gt(120, -10, +12, 12.5, 0.5)
 }
 
 ---
@@ -38,6 +38,10 @@ query Items() {
       (call
         callee: (identifier)
         arguments: (arguments
+          (number)
+          (number)
+          (number)
+          (number)
           (number))))))
 
 ==================
@@ -293,3 +297,98 @@ query Items($x: string, $size?: number,) {
             (identifier)
             (identifier))
           (variable base: (parameter_reference (parameter_name))))))))
+
+==================
+Single guard
+==================
+
+query Items()
+  allow User()
+{
+  is(Box)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list)
+    guards: (guards_list
+      (guard
+        selection: (call
+          callee: (identifier)
+          arguments: (arguments))))
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier))))))))
+
+==================
+Guard arguments
+==================
+
+query Items()
+  allow User($name, 123, "Some string")
+{
+  is(Box)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list)
+    guards: (guards_list
+      (guard
+        selection: (call
+          callee: (identifier)
+          arguments: (arguments
+            (variable base: (parameter_reference (parameter_name)))
+            (number)
+            (string)))))
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier))))))))
+
+==================
+Multiple guards
+==================
+
+query Items()
+  allow User()
+  allow X()
+{
+  is(Box)
+}
+
+---
+
+(source_file
+  (query_declaration
+    name: (identifier)
+    parameters: (parameters_list)
+    guards: (guards_list
+      (guard
+        selection: (call
+          callee: (identifier)
+          arguments: (arguments)))
+      (guard
+        selection: (call
+          callee: (identifier)
+          arguments: (arguments))))
+    body: (query
+      (call
+        callee: (identifier)
+        arguments: (arguments
+          (variable
+            base: (type_reference
+              (identifier))))))))
