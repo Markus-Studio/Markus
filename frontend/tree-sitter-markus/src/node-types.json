@@ -1,5 +1,83 @@
 [
   {
+    "type": "_declaration",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "action_declaration",
+        "named": true
+      },
+      {
+        "type": "permission_declaration",
+        "named": true
+      },
+      {
+        "type": "query_declaration",
+        "named": true
+      },
+      {
+        "type": "type_declaration",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "_statement",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "create_statement",
+        "named": true
+      },
+      {
+        "type": "delete_statement",
+        "named": true
+      },
+      {
+        "type": "update_statement",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "_value",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "call",
+        "named": true
+      },
+      {
+        "type": "false_literal",
+        "named": true
+      },
+      {
+        "type": "number",
+        "named": true
+      },
+      {
+        "type": "query",
+        "named": true
+      },
+      {
+        "type": "string",
+        "named": true
+      },
+      {
+        "type": "true_literal",
+        "named": true
+      },
+      {
+        "type": "uri",
+        "named": true
+      },
+      {
+        "type": "variable",
+        "named": true
+      }
+    ]
+  },
+  {
     "type": "action_declaration",
     "named": true,
     "fields": {
@@ -54,35 +132,7 @@
       "required": false,
       "types": [
         {
-          "type": "call",
-          "named": true
-        },
-        {
-          "type": "false_literal",
-          "named": true
-        },
-        {
-          "type": "number",
-          "named": true
-        },
-        {
-          "type": "query",
-          "named": true
-        },
-        {
-          "type": "string",
-          "named": true
-        },
-        {
-          "type": "true_literal",
-          "named": true
-        },
-        {
-          "type": "uri",
-          "named": true
-        },
-        {
-          "type": "variable",
+          "type": "_value",
           "named": true
         }
       ]
@@ -138,39 +188,11 @@
         "required": true,
         "types": [
           {
+            "type": "_value",
+            "named": true
+          },
+          {
             "type": "binding",
-            "named": true
-          },
-          {
-            "type": "call",
-            "named": true
-          },
-          {
-            "type": "false_literal",
-            "named": true
-          },
-          {
-            "type": "number",
-            "named": true
-          },
-          {
-            "type": "query",
-            "named": true
-          },
-          {
-            "type": "string",
-            "named": true
-          },
-          {
-            "type": "true_literal",
-            "named": true
-          },
-          {
-            "type": "uri",
-            "named": true
-          },
-          {
-            "type": "variable",
             "named": true
           }
         ]
@@ -467,19 +489,7 @@
       "required": false,
       "types": [
         {
-          "type": "action_declaration",
-          "named": true
-        },
-        {
-          "type": "permission_declaration",
-          "named": true
-        },
-        {
-          "type": "query_declaration",
-          "named": true
-        },
-        {
-          "type": "type_declaration",
+          "type": "_declaration",
           "named": true
         }
       ]
@@ -494,15 +504,7 @@
       "required": true,
       "types": [
         {
-          "type": "create_statement",
-          "named": true
-        },
-        {
-          "type": "delete_statement",
-          "named": true
-        },
-        {
-          "type": "update_statement",
+          "type": "_statement",
           "named": true
         }
       ]

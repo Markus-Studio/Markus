@@ -149,3 +149,34 @@ type Point {
       (type_field
         name: (identifier)
         field_type: (identifier)))))
+
+==================
+Comments
+==================
+
+// Hello World
+type Point {
+  /**
+   * Multiline comment
+   */
+  x: /* Comment */ number,
+  y: number,
+  // z: number
+}
+
+---
+
+(source_file
+  (comment)
+  (type_declaration
+    name: (identifier)
+    (comment)
+    body: (type_fields
+      (type_field
+        name: (identifier)
+        (comment)
+        field_type: (identifier))
+      (type_field
+        name: (identifier)
+        field_type: (identifier)))
+      (comment)))

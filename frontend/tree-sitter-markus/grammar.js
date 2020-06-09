@@ -1,6 +1,8 @@
 module.exports = grammar({
   name: "markus",
   word: $ => $.identifier,
+  extras: $ => [$.comment, /[\s\uFEFF\u2060\u200B\u00A0]/],
+  supertypes: $ => [$._statement, $._declaration, $._value],
   rules: {
     source_file: $ => repeat($._declaration),
     _declaration: $ =>
@@ -157,7 +159,10 @@ module.exports = grammar({
             /u{[0-9a-fA-F]+}/
           )
         )
-      )
+      ),
+    // http://stackoverflow.com/questions/13014947/regex-to-match-a-c-style-multiline-comment/36328890#36328890
+    comment: $ =>
+      token(choice(seq("//", /.*/), seq("/*", /[^*]*\*+([^/*][^*]*\*+)*/, "/")))
   }
 });
 
