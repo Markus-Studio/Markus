@@ -27,6 +27,8 @@ pub enum DiagnosticKind {
     QueryNameAlreadyInUse,
     // action declaration:
     ActionNameAlreadyInUse,
+    // type errors:
+    TypeMixedRank,
 }
 
 impl Diagnostic {
