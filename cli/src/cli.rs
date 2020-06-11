@@ -1,12 +1,10 @@
 extern crate clap;
 use clap::{App, Arg, ArgMatches, SubCommand};
-use frontend::gen::generate_ir;
-use frontend::program::Program;
 use frontend::source::Source;
 use std::fs;
 
 pub struct Cli {
-    program: Option<Program>,
+    source: Option<Source>,
 }
 
 impl Cli {
@@ -79,8 +77,7 @@ impl Cli {
         filename: String,
     ) -> Result<(), Box<dyn std::error::Error + 'static>> {
         let raw = fs::read_to_string(filename.to_owned())?;
-        let source = Source::new(&filename, &raw);
-        self.program = Some(Program::new(source));
+        self.source = Some(Source::new(&filename, &raw));
         Ok(())
     }
 
@@ -95,43 +92,42 @@ impl Cli {
     }
 
     fn ast(&mut self) -> bool {
-        let program = self.program.as_mut().unwrap();
-        program.parse();
-        println!("{:#?}", program.declarations);
+        self.source.as_mut().unwrap().ast();
         false
     }
 
     fn check(&mut self, matches: &ArgMatches) -> bool {
-        let silent = matches.is_present("silent");
-        let program = self.program.as_mut().unwrap();
-        program.parse();
-        program.verify();
+        // let silent = matches.is_present("silent");
+        // let program = self.program.as_mut().unwrap();
+        // program.parse();
+        // program.verify();
 
-        if silent {
-            return program.is_good();
-        }
+        // if silent {
+        //     return program.is_good();
+        // }
 
-        if program.is_good() {
-            println!("Verified program successfully.");
-        } else {
-            for diagnostic in &program.diagnostics {
-                let uri = diagnostic.get_uri(&program.source);
-                let msg = diagnostic.to_string();
-                println!("{} - {}", uri, msg);
-            }
-        }
+        // if program.is_good() {
+        //     println!("Verified program successfully.");
+        // } else {
+        //     for diagnostic in &program.diagnostics {
+        //         let uri = diagnostic.get_uri(&program.source);
+        //         let msg = diagnostic.to_string();
+        //         println!("{} - {}", uri, msg);
+        //     }
+        // }
 
-        program.is_good()
+        // program.is_good()
+        unimplemented!()
     }
 
     fn gen(&mut self, _matches: &ArgMatches) -> bool {
-        let program = self.program.as_mut().unwrap();
-        generate_ir(&program.declarations);
+        // let program = self.program.as_mut().unwrap();
+        // generate_ir(&program.declarations);
         true
     }
 
     pub fn new() -> Cli {
-        Cli { program: None }
+        Cli { source: None }
     }
 
     pub fn run(&mut self) -> bool {

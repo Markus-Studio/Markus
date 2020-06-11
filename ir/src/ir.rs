@@ -92,8 +92,8 @@ pub enum FilterVector {
     /// Shorthand for Disjunction(CompoundFilter::False)
     False,
     /// A filter value that consists of multiple compound filters.
-    /// The result is true if and only if one or more of the items is
-    /// evaluated to true.
+    /// The result is true if and only if one or more than one of the
+    /// items evaluates to true.
     Disjunction(Vec<CompoundFilter>),
 }
 
@@ -110,11 +110,11 @@ pub struct CreateAction {
 }
 
 pub struct DeleteAction {
-    selection: Selection,
+    target: Selection,
 }
 
 pub struct UpdateAction {
-    selection: Selection,
+    target: Selection,
     bindings: Vec<Binding>,
 }
 
@@ -129,6 +129,7 @@ pub enum Reduce {
     Min(Value, IrType),
     Max(Value, IrType),
     Avg(Value, IrType),
+    Group(Value, IrType, Option<Box<QueryLayer>>),
     Count(),
 }
 
@@ -142,16 +143,22 @@ pub enum QueryLayer {
     Reduce(Reduce),
 }
 
+pub struct Parameter {
+    pub name: String,
+    pub ir_type: IrType,
+    pub optional: bool,
+}
+
 pub struct Query {
     name: String,
-    parameters: Vec<(String, TypeId, bool)>, // name, type, nullable.
+    parameters: Vec<Parameter>,
     guard: Selection,
     layers: Vec<QueryLayer>,
 }
 
 pub struct Action {
     name: String,
-    parameters: Vec<(String, TypeId, bool)>, // name, type, nullable.
+    parameters: Vec<Parameter>, // name, type, nullable.
     guard: Selection,
     actions: Vec<SingleAction>,
 }

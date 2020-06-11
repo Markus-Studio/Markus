@@ -95,7 +95,7 @@ impl<'a> Space<'a> {
     pub fn resolve(&'a self, name: String) -> Result<MarkusType<'a>, Diagnostic> {
         match &name as &str {
             "bool" => Ok(MarkusType::new(&self, 0, PrimitiveType::BOOLEAN, 0..0)),
-            "str" => Ok(MarkusType::new(&self, 0, PrimitiveType::STRING, 0..0)),
+            "string" => Ok(MarkusType::new(&self, 0, PrimitiveType::STRING, 0..0)),
             "%num" => Ok(MarkusType::new(&self, 0, PrimitiveType::NUMBER, 0..0)),
             "i8" => Ok(MarkusType::new(&self, 0, PrimitiveType::I08, 0..0)),
             "u8" => Ok(MarkusType::new(&self, 0, PrimitiveType::U08, 0..0)),

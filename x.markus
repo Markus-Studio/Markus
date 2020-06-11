@@ -1,10 +1,8 @@
-type A {
-    x: i32;
+type Person {
+    name: string,
+    last_name: string,
 }
 
-type B {
-    y: i32;
-}
-
-type C: A, B {
+type Worker: Person {
+    job?: string
 }

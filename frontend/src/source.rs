@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use super::shared::*;
 use std::cell::RefCell;
+use std::io::{self, Write};
 use tree_sitter::{InputEdit, Language, Parser, Point, Tree};
 
 extern "C" {
@@ -128,6 +129,70 @@ impl Source {
             .borrow_mut()
             .get_or_insert_with(|| self.parse_source())
             .clone()
+    }
+
+    // Pretty-print the ast to stdout.
+    pub fn ast(&self) {
+        let stdout = io::stdout();
+        let mut stdout = stdout.lock();    
+        let tree = self.get_tree();
+        let mut cursor = tree.walk();
+
+        // From:
+        // https://github.com/tree-sitter/tree-sitter/blob/9b9329cb6c169a03458d6bc1bb594fff76b206ca/cli/src/parse.rs#L92
+        let mut needs_newline = false;
+        let mut indent_level = 0;
+        let mut did_visit_children = false;
+        loop {
+            let node = cursor.node();
+            let is_named = node.is_named();
+            if did_visit_children {
+                if is_named {
+                    stdout.write(b")").unwrap();
+                    needs_newline = true;
+                }
+                if cursor.goto_next_sibling() {
+                    did_visit_children = false;
+                } else if cursor.goto_parent() {
+                    did_visit_children = true;
+                    indent_level -= 1;
+                } else {
+                    break;
+                }
+            } else {
+                if is_named {
+                    if needs_newline {
+                        stdout.write(b"\n").unwrap();
+                    }
+                    for _ in 0..indent_level {
+                        stdout.write(b"  ").unwrap();
+                    }
+                    let start = node.start_position();
+                    let end = node.end_position();
+                    if let Some(field_name) = cursor.field_name() {
+                        write!(&mut stdout, "{}: ", field_name).unwrap();
+                    }
+                    write!(
+                        &mut stdout,
+                        "({}",
+                        node.kind(),
+                        // start.row,
+                        // start.column,
+                        // end.row,
+                        // end.column
+                    ).unwrap();
+                    needs_newline = true;
+                }
+                if cursor.goto_first_child() {
+                    did_visit_children = false;
+                    indent_level += 1;
+                } else {
+                    did_visit_children = true;
+                }
+            }
+        }
+        cursor.reset(tree.root_node());
+        println!("");
     }
 
     /// Returns the line_offsets of this source.

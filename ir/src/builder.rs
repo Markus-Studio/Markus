@@ -133,7 +133,11 @@ impl IRBuilder {
 
     /// Returns the TypeId for the given object type.
     pub fn resolve_type_id(&self, name: &String) -> TypeId {
-        *self.typespace.type_names.get_by_left(name).unwrap()
+        *self
+            .typespace
+            .type_names
+            .get_by_left(name)
+            .expect("Failed to resolve a type.")
     }
 
     /// Returns the IrType for the given name.
@@ -581,6 +585,13 @@ impl SelectionBuilder {
         self.stack.push(-value);
     }
 
+    /// Runs the `and` operation until there is only one element left in the stack.
+    pub fn finalize_and(&mut self) {
+        while self.stack.len() > 1 {
+            self.and();
+        }
+    }
+
     /// Build the selection and returns it.
     pub fn build(mut self) -> Selection {
         assert_eq!(self.stack.len(), 1);
@@ -604,6 +615,7 @@ impl<'a> QueryBuilder<'a> {
         self.parameters.push((name, ir_type, nullable));
     }
 
+    /// Add a is pipeline to the query.
     pub fn is(&mut self, type_name: &String) {
         let type_id = self.builder.resolve_type_id(type_name);
         self.current_selection.is(type_id);
