@@ -524,12 +524,12 @@
           }
         ]
       },
-      "body": {
-        "multiple": false,
+      "field": {
+        "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "type_fields",
+            "type": "type_field",
             "named": true
           }
         ]
@@ -580,21 +580,6 @@
           }
         ]
       }
-    }
-  },
-  {
-    "type": "type_fields",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "type_field",
-          "named": true
-        }
-      ]
     }
   },
   {

@@ -12,13 +12,12 @@ type Point {
 (source_file
   (type_declaration
     name: (identifier)
-    body: (type_fields
-      (type_field
-        name: (identifier)
-        field_type: (identifier))
-      (type_field
-        name: (identifier)
-        field_type: (identifier)))))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))))
 
 ==================
 Optional fields
@@ -35,17 +34,16 @@ type Point {
 (source_file
   (type_declaration
     name: (identifier)
-    body: (type_fields
-      (type_field
-        name: (identifier)
-        field_type: (identifier))
-      (type_field
-        name: (identifier)
-        field_type: (identifier))
-      (type_field
-        name: (identifier)
-        optional: (optional_flag)
-        field_type: (identifier)))))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))
+    field: (type_field
+      name: (identifier)
+      optional: (optional_flag)
+      field_type: (identifier))))
 
 ==================
 With bases
@@ -63,13 +61,12 @@ type Point: A, B {
     name: (identifier)
     base: (identifier)
     base: (identifier)
-    body: (type_fields
-      (type_field
-        name: (identifier)
-        field_type: (identifier))
-      (type_field
-        name: (identifier)
-        field_type: (identifier)))))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))))
 
 ==================
 With bases extra comma
@@ -87,13 +84,12 @@ type Point: A, B, {
     name: (identifier)
     base: (identifier)
     base: (identifier)
-    body: (type_fields
-      (type_field
-        name: (identifier)
-        field_type: (identifier))
-      (type_field
-        name: (identifier)
-        field_type: (identifier)))))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))))
 
 ==================
 Bases empty base
@@ -110,13 +106,12 @@ type Point: {
   (type_declaration
     name: (identifier)
     (ERROR)
-    body: (type_fields
-      (type_field
-        name: (identifier)
-        field_type: (identifier))
-      (type_field
-        name: (identifier)
-        field_type: (identifier)))))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))))
 
 ==================
 Missing field type
@@ -133,16 +128,15 @@ type Point {
 (source_file
   (type_declaration
     name: (identifier)
-    body: (type_fields
-      (type_field
-        name: (identifier)
-        field_type: (identifier))
-      (type_field
-        name: (identifier)
-        field_type: (MISSING identifier))
-      (type_field
-        name: (identifier)
-        field_type: (identifier)))))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))
+    field: (type_field
+      name: (identifier)
+      field_type: (MISSING identifier))
+    field: (type_field
+      name: (identifier)
+      field_type: (identifier))))
 
 ==================
 Comments
@@ -165,12 +159,11 @@ type Point {
   (type_declaration
     name: (identifier)
     (comment)
-    body: (type_fields
-      (type_field
+    field: (type_field
+      name: (identifier)
+      (comment)
+      field_type: (identifier))
+    field: (type_field
         name: (identifier)
-        (comment)
         field_type: (identifier))
-      (type_field
-        name: (identifier)
-        field_type: (identifier)))
-      (comment)))
+    (comment)))
