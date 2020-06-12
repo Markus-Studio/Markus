@@ -1,8 +1,9 @@
-type Person {
-    name: string,
-    last_name: string,
-}
+type A {}
 
-type Worker: Person {
-    job?: string
-}
+type B: A {}
+
+type C {}
+
+type D: C, F {}
+
+type F {}

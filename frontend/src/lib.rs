@@ -1,6 +1,10 @@
 #[macro_use]
 extern crate bitflags;
-extern crate incremental_topo;
+extern crate daggy;
+extern crate petgraph;
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
 
 pub mod diagnostics;
 mod shared;

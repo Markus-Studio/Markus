@@ -1,9 +1,12 @@
 use super::diagnostics::*;
 use super::types;
 use super::types::*;
-use incremental_topo;
+use daggy;
+use petgraph;
 use std::collections::HashMap;
 use tree_sitter::{Node, Tree, TreeCursor};
+
+type TypeDag = daggy::Dag<usize, (), usize>;
 
 pub struct VerifyContext<'a> {
     tree: &'a Tree,
@@ -89,7 +92,7 @@ impl<'a> VerifyContext<'a> {
     fn construct_ts(&mut self) {
         let source = self.source;
         let mut nodes = Vec::<&Node>::new();
-        let mut dag = incremental_topo::IncrementalTopo::<usize>::new();
+        let mut dag = daggy::Dag::<usize, (), usize>::new();
 
         // Create an empty TypeInfo for each type, report NameAlreadyInUse error for objects
         // with the same name as internal types.
@@ -97,7 +100,7 @@ impl<'a> VerifyContext<'a> {
             match self.space.add_object(name.clone(), ObjectInfo::new()) {
                 Ok(id) => {
                     nodes.push(&node);
-                    dag.add_node(id);
+                    assert_eq!(dag.add_node(id).index(), id);
                 }
                 Err(mut d) => {
                     d.attach_location(node.child_by_field_name("name").unwrap().range());
@@ -120,7 +123,14 @@ impl<'a> VerifyContext<'a> {
             }
         }
 
-        //
+        // Create fields.
+        let graph = dag.graph();
+        let sorted = petgraph::algo::toposort(graph, None).unwrap();
+
+        for id in sorted.iter().rev() {
+            let id = id.index();
+            println!("{} {}", id, self.space.get_object_name(&id).unwrap());
+        }
     }
 }
 
@@ -129,13 +139,21 @@ fn add_base(
     space: &mut types::Space,
     obj_id: usize,
     base: &String,
-    dag: &mut incremental_topo::IncrementalTopo<usize>,
+    dag: &mut TypeDag,
 ) -> Result<(), Diagnostic> {
     let base = space.get_object_id(base);
     let info = space.get_object_by_id_mut(&obj_id).unwrap();
 
     if let Some(base_id) = base {
-        match dag.add_dependency(&obj_id, &base_id) {
+        if base_id == obj_id {
+            return Err(Diagnostic::new(DiagnosticKind::CircularBaseGraph, None));
+        }
+
+        match dag.add_edge(
+            daggy::NodeIndex::<usize>::new(obj_id),
+            daggy::NodeIndex::<usize>::new(base_id),
+            (),
+        ) {
             Ok(_) => {
                 info.add_base(base_id);
                 Ok(())

@@ -110,7 +110,13 @@ impl Cli {
             println!("Verified program successfully.");
         } else {
             for diagnostic in &diagnostics {
-                println!("{:?}", diagnostic);
+                if let Some(location) = diagnostic.location {
+                    let row = location.start_point.row + 1;
+                    let col = location.start_point.column + 1;
+                    println!("{}:{}:{} - {}", source.filename, row, col, diagnostic);
+                } else {
+                    println!("{} - {}", source.filename, diagnostic);
+                }
             }
         }
 
@@ -131,7 +137,6 @@ impl Cli {
         let app_matches = Cli::build_app().get_matches();
         match app_matches.subcommand() {
             ("completion", Some(sub)) => Cli::completion(sub),
-
             ("ast", Some(matches)) => self.open_input(matches) && self.ast(),
             ("check", Some(matches)) => self.open_input(matches) && self.check(matches),
             ("gen", Some(matches)) => {

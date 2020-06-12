@@ -91,6 +91,12 @@ impl<'a> Space<'a> {
         self.object_names.get_by_left(name).copied()
     }
 
+    /// Resolves an object name by its id.
+    #[inline]
+    pub fn get_object_name(&self, id: &usize) -> Option<String> {
+        self.object_names.get_by_right(id).cloned()
+    }
+
     /// Resolves an object by its id.
     #[inline]
     pub fn get_object_by_id(&self, id: &usize) -> Option<&'a ObjectInfo> {
