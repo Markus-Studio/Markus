@@ -29,6 +29,7 @@ pub enum DiagnosticKind {
     ActionNameAlreadyInUse,
     // type errors:
     TypeMixedRank,
+    MissingToken,
 }
 
 impl Diagnostic {

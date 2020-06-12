@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use super::shared::*;
+use super::verify::verify;
 use std::cell::RefCell;
 use std::io::{self, Write};
 use tree_sitter::{InputEdit, Language, Parser, Point, Tree};
@@ -134,7 +135,7 @@ impl Source {
     // Pretty-print the ast to stdout.
     pub fn ast(&self) {
         let stdout = io::stdout();
-        let mut stdout = stdout.lock();    
+        let mut stdout = stdout.lock();
         let tree = self.get_tree();
         let mut cursor = tree.walk();
 
@@ -180,7 +181,8 @@ impl Source {
                         // start.column,
                         // end.row,
                         // end.column
-                    ).unwrap();
+                    )
+                    .unwrap();
                     needs_newline = true;
                 }
                 if cursor.goto_first_child() {
@@ -195,6 +197,11 @@ impl Source {
         println!("");
     }
 
+    pub fn verify(&self) {
+        let tree = self.get_tree();
+        verify(&tree);
+    }
+
     /// Returns the line_offsets of this source.
     pub fn get_line_offsets(&self) -> Vec<usize> {
         self.line_offsets_cache
@@ -204,27 +211,27 @@ impl Source {
     }
 
     /// Returns the offset of the given position.
-    pub fn offset_at(&mut self, position: Position) -> usize {
+    pub fn offset_at(&self, position: Point) -> usize {
         let line_offsets = self.get_line_offsets();
 
-        if position.line >= line_offsets.len() {
+        if position.row >= line_offsets.len() {
             self.content.len()
         } else {
-            let line_offset = line_offsets[position.line];
-            let next_line_offset = match position.line + 1 < line_offsets.len() {
-                true => line_offsets[position.line + 1],
+            let line_offset = line_offsets[position.row];
+            let next_line_offset = match position.row + 1 < line_offsets.len() {
+                true => line_offsets[position.row + 1],
                 false => self.content.len(),
             };
 
             std::cmp::max(
-                std::cmp::min(line_offset + position.character, next_line_offset),
+                std::cmp::min(line_offset + position.column, next_line_offset),
                 line_offset,
             )
         }
     }
 
     /// Returns the position at the given offset.
-    pub fn position_at(&self, mut offset: usize) -> Position {
+    pub fn position_at(&self, mut offset: usize) -> Point {
         offset = std::cmp::min(offset, self.content.len());
 
         let line_offsets = self.get_line_offsets();
@@ -232,7 +239,7 @@ impl Source {
         let mut high = line_offsets.len();
 
         if high == 0 {
-            return Position::new(0, offset);
+            return Point::new(0, offset);
         }
 
         while low < high {
@@ -245,16 +252,20 @@ impl Source {
         }
 
         let line = low - 1;
-        Position::new(line, offset - line_offsets[line])
+        Point::new(line, offset - line_offsets[line])
     }
 
     /// Convert a Span to source Range.
     pub fn span_to_range(&self, span: Span) -> Range {
         // TODO(qti3e) It's possible to optimize this function, `low` in the second call to
         // position_at can be set to the `line` returned by first call to position_at
+        let start_byte = span.offset;
+        let end_byte = span.offset + span.size;
         Range {
-            start: self.position_at(span.offset),
-            end: self.position_at(span.offset + span.size),
+            start_byte,
+            end_byte,
+            start_point: self.position_at(start_byte),
+            end_point: self.position_at(end_byte),
         }
     }
 
@@ -266,9 +277,9 @@ impl Source {
         }
 
         edits.sort_by(|a, b| {
-            let diff = a.range.start.line.cmp(&b.range.start.line);
+            let diff = a.range.start_point.row.cmp(&b.range.start_point.row);
             if diff == std::cmp::Ordering::Equal {
-                a.range.start.character.cmp(&b.range.end.character)
+                a.range.start_point.column.cmp(&b.range.end_point.column)
             } else {
                 diff
             }
@@ -276,14 +287,14 @@ impl Source {
 
         let mut last_modified_offset = self.content.len();
 
-        let min_effected_offset = self.offset_at(edits[0].range.start);
+        let min_effected_offset = edits[0].range.start_byte;
         let mut max_effected_offset = 0;
         let mut delta: i32 = 0;
 
         edits.reverse();
         for e in edits {
-            let start_offset = self.offset_at(e.range.start);
-            let end_offset = self.offset_at(e.range.end);
+            let start_offset = e.range.start_byte;
+            let end_offset = e.range.end_byte;
 
             if end_offset > max_effected_offset {
                 max_effected_offset = end_offset;
@@ -325,9 +336,9 @@ impl Source {
             start_byte: min_effected_offset,
             old_end_byte: max_effected_offset,
             new_end_byte,
-            start_position: Point::new(old_range.start.line, old_range.start.character),
-            old_end_position: Point::new(old_range.end.line, old_range.end.character),
-            new_end_position: Point::new(new_end_position.line, new_end_position.character),
+            start_position: old_range.start_point,
+            old_end_position: old_range.end_point,
+            new_end_position,
         })
         .ok();
 
@@ -337,17 +348,14 @@ impl Source {
 
 impl TextEdit {
     /// Creates a new TextEdit that inserts the given text at the given position.
-    pub fn insert(position: Position, text: String) -> TextEdit {
+    pub fn insert(source: &Source, position: Point, text: String) -> TextEdit {
+        let offset = source.offset_at(position);
         TextEdit {
             range: Range {
-                start: Position {
-                    line: position.line,
-                    character: position.character,
-                },
-                end: Position {
-                    line: position.line,
-                    character: position.character,
-                },
+                start_byte: offset,
+                end_byte: offset,
+                start_point: position.clone(),
+                end_point: position.clone(),
             },
             new_text: text,
         }
@@ -355,9 +363,14 @@ impl TextEdit {
 
     /// Creates a new TextEdit that replaces the data in the given range with
     /// the given text.
-    pub fn replace(start: Position, end: Position, text: String) -> TextEdit {
+    pub fn replace(source: &Source, start: Point, end: Point, text: String) -> TextEdit {
         TextEdit {
-            range: Range { start, end },
+            range: Range {
+                start_byte: source.offset_at(start),
+                end_byte: source.offset_at(end),
+                start_point: start,
+                end_point: end,
+            },
             new_text: text,
         }
     }
@@ -393,7 +406,8 @@ mod test {
         let mut source = get_source("012345678901234567890123456789");
         assert_eq!(
             source.apply_edits(&mut vec![TextEdit::insert(
-                Position::new(0, 0),
+                &source,
+                Point::new(0, 0),
                 String::from("Hello"),
             )]),
             TextEditResult::new(0, 0, 5)
@@ -409,7 +423,8 @@ mod test {
         let mut source = get_source("012345678901234567890123456789");
         assert_eq!(
             source.apply_edits(&mut vec![TextEdit::insert(
-                Position::new(0, 1),
+                &source,
+                Point::new(0, 1),
                 String::from("Hello"),
             )]),
             TextEditResult::new(1, 1, 5)
@@ -425,8 +440,8 @@ mod test {
         let mut source = get_source("012345678901234567890123456789");
         assert_eq!(
             source.apply_edits(&mut vec![
-                TextEdit::insert(Position::new(0, 1), String::from("Hello")),
-                TextEdit::insert(Position::new(0, 1), String::from("World")),
+                TextEdit::insert(&source, Point::new(0, 1), String::from("Hello")),
+                TextEdit::insert(&source, Point::new(0, 1), String::from("World")),
             ]),
             TextEditResult::new(1, 1, 10)
         );
@@ -441,11 +456,11 @@ mod test {
         let mut source = get_source("012345678901234567890123456789");
         assert_eq!(
             source.apply_edits(&mut vec![
-                TextEdit::insert(Position::new(0, 2), String::from("One")),
-                TextEdit::insert(Position::new(0, 1), String::from("Hello")),
-                TextEdit::insert(Position::new(0, 1), String::from("World")),
-                TextEdit::insert(Position::new(0, 2), String::from("Two")),
-                TextEdit::insert(Position::new(0, 2), String::from("Three")),
+                TextEdit::insert(&source, Point::new(0, 2), String::from("One")),
+                TextEdit::insert(&source, Point::new(0, 1), String::from("Hello")),
+                TextEdit::insert(&source, Point::new(0, 1), String::from("World")),
+                TextEdit::insert(&source, Point::new(0, 2), String::from("Two")),
+                TextEdit::insert(&source, Point::new(0, 2), String::from("Three")),
             ]),
             TextEditResult::new(1, 2, 21)
         );
@@ -460,8 +475,9 @@ mod test {
         let mut source = get_source("012345678901234567890123456789");
         assert_eq!(
             source.apply_edits(&mut vec![TextEdit::replace(
-                Position::new(0, 3),
-                Position::new(0, 6),
+                &source,
+                Point::new(0, 3),
+                Point::new(0, 6),
                 String::from("Hello"),
             )]),
             TextEditResult::new(3, 6, 2)
@@ -478,13 +494,15 @@ mod test {
         assert_eq!(
             source.apply_edits(&mut vec![
                 TextEdit::replace(
-                    Position::new(0, 3),
-                    Position::new(0, 6),
+                    &source,
+                    Point::new(0, 3),
+                    Point::new(0, 6),
                     String::from("Hello"),
                 ),
                 TextEdit::replace(
-                    Position::new(0, 6),
-                    Position::new(0, 9),
+                    &source,
+                    Point::new(0, 6),
+                    Point::new(0, 9),
                     String::from("World"),
                 ),
             ]),
@@ -502,11 +520,12 @@ mod test {
         assert_eq!(
             source.apply_edits(&mut vec![
                 TextEdit::replace(
-                    Position::new(0, 3),
-                    Position::new(0, 6),
+                    &source,
+                    Point::new(0, 3),
+                    Point::new(0, 6),
                     String::from("Hello"),
                 ),
-                TextEdit::insert(Position::new(0, 6), String::from("World")),
+                TextEdit::insert(&source, Point::new(0, 6), String::from("World")),
             ]),
             TextEditResult::new(3, 6, 7)
         );
@@ -521,10 +540,11 @@ mod test {
         let mut source = get_source("012345678901234567890123456789");
         assert_eq!(
             source.apply_edits(&mut vec![
-                TextEdit::insert(Position::new(0, 6), String::from("World")),
+                TextEdit::insert(&source, Point::new(0, 6), String::from("World")),
                 TextEdit::replace(
-                    Position::new(0, 3),
-                    Position::new(0, 6),
+                    &source,
+                    Point::new(0, 3),
+                    Point::new(0, 6),
                     String::from("Hello"),
                 ),
             ]),
@@ -541,10 +561,11 @@ mod test {
         let mut source = get_source("012345678901234567890123456789");
         assert_eq!(
             source.apply_edits(&mut vec![
-                TextEdit::insert(Position::new(0, 3), String::from("World")),
+                TextEdit::insert(&source, Point::new(0, 3), String::from("World")),
                 TextEdit::replace(
-                    Position::new(0, 3),
-                    Position::new(0, 6),
+                    &source,
+                    Point::new(0, 3),
+                    Point::new(0, 6),
                     String::from("Hello"),
                 ),
             ]),
@@ -562,11 +583,12 @@ mod test {
         assert_eq!(
             source.apply_edits(&mut vec![
                 TextEdit::replace(
-                    Position::new(2, 0),
-                    Position::new(3, 0),
+                    &source,
+                    Point::new(2, 0),
+                    Point::new(3, 0),
                     String::from("Hello"),
                 ),
-                TextEdit::insert(Position::new(1, 1), String::from("World")),
+                TextEdit::insert(&source, Point::new(1, 1), String::from("World")),
             ]),
             TextEditResult::new(3, 6, 8)
         );
