@@ -8,14 +8,13 @@ pub struct Diagnostic {
 
 #[derive(Copy, Clone, PartialEq, Debug, Hash)]
 pub enum DiagnosticKind {
+    NameAlreadyInUse,
     // Errors related to a single type declaration
     CircularBaseGraph,
-    TypeNameAlreadyInUse,
     FieldNameAlreadyInUse,
     FieldNameAppearsInParent,
     RequiredCircularField,
     // permission declaration errors:
-    PermissionNameAlreadyInUse,
     EmptyPermissionSelector,
     // general query errors:
     SelectorReachesNull,
@@ -23,13 +22,10 @@ pub enum DiagnosticKind {
     MismatchingArgument,
     FieldNotFound,
     CannotResolveName,
-    // query declaration:
-    QueryNameAlreadyInUse,
-    // action declaration:
-    ActionNameAlreadyInUse,
     // type errors:
     TypeMixedRank,
-    MissingToken,
+    // parser errors:
+    MissingIdentifier,
 }
 
 impl Diagnostic {

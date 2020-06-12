@@ -72,8 +72,8 @@ impl<'a> Space<'a> {
         name: String,
         info: ObjectInfo<'b>,
     ) -> Result<usize, Diagnostic> {
-        if self.object_names.contains_left(&name) {
-            return Err(Diagnostic::new(DiagnosticKind::TypeNameAlreadyInUse, None));
+        if self.resolve(&name).is_ok() {
+            return Err(Diagnostic::new(DiagnosticKind::NameAlreadyInUse, None));
         }
 
         let id = self.next_id;
@@ -85,15 +85,65 @@ impl<'a> Space<'a> {
         Ok(id)
     }
 
+    /// Resolves an object id by its name.
+    #[inline]
+    pub fn get_object_id(&self, name: &String) -> Option<usize> {
+        self.object_names.get_by_left(name).copied()
+    }
+
     /// Resolves an object by its id.
     #[inline]
     pub fn get_object_by_id(&self, id: &usize) -> Option<&'a ObjectInfo> {
         self.objects.get(id)
     }
 
+    /// Returns a mutable reference to an object info by its id.
+    #[inline]
+    pub fn get_object_by_id_mut<'b>(&'b mut self, id: &usize) -> Option<&mut ObjectInfo<'a>>
+    where
+        'a: 'b,
+    {
+        self.objects.get_mut(id)
+    }
+
+    /// Returns an iterator visiting all (object_id, info) pairs with mutable reference
+    /// to `info`.
+    #[inline]
+    pub fn objects_mut(
+        &mut self,
+    ) -> std::collections::hash_map::IterMut<'_, usize, ObjectInfo<'a>> {
+        self.objects.iter_mut()
+    }
+
+    #[inline]
+    pub fn object_ids(&self) -> std::ops::Range<usize> {
+        0..self.next_id
+    }
+
+    /// Returns a reference to an object info by its name.
+    #[inline]
+    pub fn get_object_by_name(&self, name: &String) -> Option<&'a ObjectInfo> {
+        match self.object_names.get_by_left(name) {
+            Some(id) => self.objects.get(id),
+            None => None,
+        }
+    }
+
+    /// Returns a mutable reference to an object info by its name.
+    #[inline]
+    pub fn get_object_by_name_mut<'b>(&'b mut self, name: &String) -> Option<&mut ObjectInfo<'a>>
+    where
+        'a: 'b,
+    {
+        match self.object_names.get_by_left(name) {
+            Some(id) => self.objects.get_mut(id),
+            None => None,
+        }
+    }
+
     /// Resolve a type by its name.
-    pub fn resolve(&'a self, name: String) -> Result<MarkusType<'a>, Diagnostic> {
-        match &name as &str {
+    pub fn resolve(&'a self, name: &String) -> Result<MarkusType<'a>, Diagnostic> {
+        match name as &str {
             "bool" => Ok(MarkusType::new(&self, 0, PrimitiveType::BOOLEAN, 0..0)),
             "string" => Ok(MarkusType::new(&self, 0, PrimitiveType::STRING, 0..0)),
             "%num" => Ok(MarkusType::new(&self, 0, PrimitiveType::NUMBER, 0..0)),
@@ -110,7 +160,7 @@ impl<'a> Space<'a> {
             "true" => Ok(MarkusType::new(&self, 0, PrimitiveType::TRUE, 0..0)),
             "false" => Ok(MarkusType::new(&self, 0, PrimitiveType::FALSE, 0..0)),
             _ => {
-                if let Some(&id) = self.object_names.get_by_left(&name) {
+                if let Some(&id) = self.object_names.get_by_left(name) {
                     Ok(MarkusType::new(
                         &self,
                         0,
@@ -130,11 +180,22 @@ impl<'a> Space<'a> {
 }
 
 impl<'a> ObjectInfo<'a> {
+    pub fn new() -> ObjectInfo<'a> {
+        ObjectInfo {
+            fields: HashMap::new(),
+            bases: HashSet::new(),
+        }
+    }
+
     pub fn get_bases(&'a self) -> &'a HashSet<usize> {
         &self.bases
     }
 
-    pub fn get_field(&'a self, name: &String) -> Option<&'a FieldInfo> {
+    pub fn add_base(&mut self, id: usize) {
+        self.bases.insert(id);
+    }
+
+    pub fn get_field(&self, name: &String) -> Option<&'a FieldInfo> {
         self.fields.get(name)
     }
 
@@ -201,7 +262,7 @@ impl<'a> MarkusType<'a> {
     /// in this type recursively and inserts them into the `objects` set.
     pub fn expand(&self) -> MarkusType<'a> {
         let mut objects = HashSet::<usize>::with_capacity(self.objects.len());
-        let mut to_visit: Vec<usize> = self.objects.iter().map(|x| *x).collect();
+        let mut to_visit: Vec<usize> = self.objects.iter().copied().collect();
 
         while let Some(node_id) = to_visit.pop() {
             if objects.contains(&node_id) {
@@ -276,7 +337,7 @@ impl<'a> std::ops::BitAnd<MarkusType<'a>> for MarkusType<'a> {
             self.space,
             self.rank,
             self.primitive & rhs.primitive,
-            self.objects.intersection(&rhs.objects).map(|x| *x),
+            self.objects.intersection(&rhs.objects).copied(),
         ))
     }
 }

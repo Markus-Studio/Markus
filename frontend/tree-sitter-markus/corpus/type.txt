@@ -61,9 +61,8 @@ type Point: A, B {
 (source_file
   (type_declaration
     name: (identifier)
-    bases: (bases_list
-      (identifier)
-      (identifier))
+    base: (identifier)
+    base: (identifier)
     body: (type_fields
       (type_field
         name: (identifier)
@@ -86,9 +85,8 @@ type Point: A, B, {
 (source_file
   (type_declaration
     name: (identifier)
-    bases: (bases_list
-      (identifier)
-      (identifier))
+    base: (identifier)
+    base: (identifier)
     body: (type_fields
       (type_field
         name: (identifier)

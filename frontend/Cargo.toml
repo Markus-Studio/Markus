@@ -8,6 +8,7 @@ edition = "2018"
 common = {path = "../common"}
 tree-sitter = "0.16.1"
 bitflags = "1.2.1"
+incremental-topo = "0.1.2"
 
 [build-dependencies]
 cc="*"

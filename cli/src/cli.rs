@@ -93,31 +93,28 @@ impl Cli {
 
     fn ast(&mut self) -> bool {
         self.source.as_mut().unwrap().ast();
-        false
+        true
     }
 
     fn check(&mut self, matches: &ArgMatches) -> bool {
-        // let silent = matches.is_present("silent");
-        // let program = self.program.as_mut().unwrap();
-        // program.parse();
-        // program.verify();
+        let silent = matches.is_present("silent");
+        let source = self.source.as_mut().unwrap();
+        let diagnostics = source.verify();
+        let is_good = diagnostics.len() == 0;
 
-        // if silent {
-        //     return program.is_good();
-        // }
+        if silent {
+            return is_good;
+        }
 
-        // if program.is_good() {
-        //     println!("Verified program successfully.");
-        // } else {
-        //     for diagnostic in &program.diagnostics {
-        //         let uri = diagnostic.get_uri(&program.source);
-        //         let msg = diagnostic.to_string();
-        //         println!("{} - {}", uri, msg);
-        //     }
-        // }
+        if is_good {
+            println!("Verified program successfully.");
+        } else {
+            for diagnostic in &diagnostics {
+                println!("{:?}", diagnostic);
+            }
+        }
 
-        // program.is_good()
-        unimplemented!()
+        is_good
     }
 
     fn gen(&mut self, _matches: &ArgMatches) -> bool {

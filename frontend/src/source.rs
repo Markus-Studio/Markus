@@ -1,6 +1,7 @@
 #![allow(dead_code)]
+use super::diagnostics;
 use super::shared::*;
-use super::verify::verify;
+use super::verify::VerifyContext;
 use std::cell::RefCell;
 use std::io::{self, Write};
 use tree_sitter::{InputEdit, Language, Parser, Point, Tree};
@@ -110,16 +111,18 @@ impl Source {
         let mut parser = self.parser.borrow_mut();
         // Reset the parser as we're doing a fresh parse.
         parser.reset();
-        // Parse the content as UTF-16
-        parser.parse_utf16(&self.content, None).unwrap()
+        // Parse the content as UTF-8, I tried parsing as UTF-16 but at the end
+        // positions are wrongly computed. ()
+        parser.parse(self.get_content_utf8(), None).unwrap()
     }
 
     #[inline]
     fn patch_tree(&mut self, edit: &InputEdit) -> Result<(), ()> {
+        let content = self.get_content_utf8();
         let old_tree = self.tree.get_mut().as_mut().ok_or(())?;
         old_tree.edit(edit);
         let mut parser = self.parser.borrow_mut();
-        let tree = parser.parse_utf16(&self.content, Some(&old_tree)).unwrap();
+        let tree = parser.parse(content, Some(&old_tree)).unwrap();
         self.tree.replace(Some(tree));
         Ok(())
     }
@@ -175,12 +178,12 @@ impl Source {
                     }
                     write!(
                         &mut stdout,
-                        "({}",
+                        "({} [{}, {}] - [{}, {}]",
                         node.kind(),
-                        // start.row,
-                        // start.column,
-                        // end.row,
-                        // end.column
+                        start.row,
+                        start.column,
+                        end.row,
+                        end.column
                     )
                     .unwrap();
                     needs_newline = true;
@@ -197,9 +200,11 @@ impl Source {
         println!("");
     }
 
-    pub fn verify(&self) {
+    pub fn verify(&self) -> Vec<diagnostics::Diagnostic> {
         let tree = self.get_tree();
-        verify(&tree);
+        let mut ctx = VerifyContext::new(&self.content, &tree);
+        ctx.verify();
+        ctx.diagnostics
     }
 
     /// Returns the line_offsets of this source.

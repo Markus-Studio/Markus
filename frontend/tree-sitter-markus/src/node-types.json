@@ -139,21 +139,6 @@
     }
   },
   {
-    "type": "bases_list",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "binding",
     "named": true,
     "fields": {
@@ -529,16 +514,12 @@
     "type": "type_declaration",
     "named": true,
     "fields": {
-      "bases": {
+      "base": {
         "multiple": true,
         "required": false,
         "types": [
           {
-            "type": ":",
-            "named": false
-          },
-          {
-            "type": "bases_list",
+            "type": "identifier",
             "named": true
           }
         ]
