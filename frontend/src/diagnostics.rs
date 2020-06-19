@@ -14,6 +14,8 @@ pub enum DiagnosticKind {
     // Errors related to a single type declaration
     #[strum(message = "Base create circular dependency.")]
     CircularBaseGraph,
+    #[strum(message = "A base must be an object-type.")]
+    AtomicTypeUsedAsBase,
     #[strum(message = "The following field name is already in use.")]
     FieldNameAlreadyInUse,
     #[strum(message = "The following field name is present somewhere at the base graph.")]
@@ -40,6 +42,8 @@ pub enum DiagnosticKind {
     // parser errors:
     #[strum(message = "Expected identifier token.")]
     MissingIdentifier,
+    #[strum(message = "Expected field type.")]
+    MissingFieldType,
 }
 
 impl Diagnostic {

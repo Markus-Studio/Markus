@@ -1,19 +1,14 @@
 use super::diagnostics::*;
-use super::types;
 use super::types::*;
-use daggy;
-use petgraph;
 use std::collections::HashMap;
 use tree_sitter::{Node, Tree, TreeCursor};
-
-type TypeDag = daggy::Dag<usize, (), usize>;
 
 pub struct VerifyContext<'a> {
     tree: &'a Tree,
     source: &'a [u16],
     cursor: TreeCursor<'a>,
     nodes: Nodes<'a>,
-    space: types::Space<'a>,
+    space: TypeSpace,
     pub diagnostics: Vec<Diagnostic>,
 }
 
@@ -42,7 +37,7 @@ impl<'a> VerifyContext<'a> {
             source,
             cursor: tree.walk(),
             nodes: Nodes::default(),
-            space: types::Space::new(),
+            space: TypeSpace::empty(),
             diagnostics: Vec::new(),
         }
     }
@@ -91,76 +86,81 @@ impl<'a> VerifyContext<'a> {
 
     fn construct_ts(&mut self) {
         let source = self.source;
-        let mut nodes = Vec::<&Node>::new();
-        let mut dag = daggy::Dag::<usize, (), usize>::new();
+        let mut nodes = HashMap::<usize, (&String, &Node)>::new();
 
-        // Create an empty TypeInfo for each type, report NameAlreadyInUse error for objects
-        // with the same name as internal types.
-        for (name, node) in &self.nodes.types {
-            match self.space.add_object(name.clone(), ObjectInfo::new()) {
-                Ok(id) => {
-                    nodes.push(&node);
-                    assert_eq!(dag.add_node(id).index(), id);
-                }
-                Err(mut d) => {
-                    d.attach_location(node.child_by_field_name("name").unwrap().range());
-                    self.diagnostics.push(d);
-                }
-            }
-        }
+        // Create a the type graph.
+        let (space_graph, topo) = {
+            let mut graph = TypeSpaceGraph::new();
+            graph.init_builtin().unwrap();
 
-        // Create the base graph.
-        for (obj_id, node) in self.space.object_ids().zip(nodes.iter().copied()) {
-            for base_node in node.children_by_field_name("base", &mut self.cursor) {
-                let base = String::from_utf16_lossy(base_node.utf16_text(source));
-                match add_base(&mut self.space, obj_id, &base, &mut dag) {
-                    Ok(_) => {}
-                    Err(mut err) => {
-                        err.attach_location(base_node.range());
-                        self.diagnostics.push(err);
+            // Create an empty TypeInfo for each type, report NameAlreadyInUse error for objects
+            // with the same name as internal types.
+            for (name, node) in &self.nodes.types {
+                match graph.add_type(name.clone()) {
+                    Ok(id) => {
+                        nodes.insert(id, (name, &node));
+                    }
+                    Err(mut d) => {
+                        d.attach_location(node.child_by_field_name("name").unwrap().range());
+                        self.diagnostics.push(d);
                     }
                 }
             }
-        }
+
+            // Create the base graph.
+            for (_, &(name, node)) in &nodes {
+                for base_node in node.children_by_field_name("base", &mut self.cursor) {
+                    let base = String::from_utf16_lossy(base_node.utf16_text(source));
+                    match graph.connect(&base, name) {
+                        Ok(_) => {}
+                        Err(mut err) => {
+                            err.attach_location(base_node.range());
+                            self.diagnostics.push(err);
+                        }
+                    }
+                }
+            }
+
+            let sorted = graph.sorted();
+            (graph, sorted)
+        };
+
+        // Attach the space graph.
+        self.space.update_graph(space_graph);
 
         // Create fields.
-        let graph = dag.graph();
-        let sorted = petgraph::algo::toposort(graph, None).unwrap();
-
-        for id in sorted.iter().rev() {
-            let id = id.index();
-            println!("{} {}", id, self.space.get_object_name(&id).unwrap());
+        for obj_id in topo.into_iter() {
+            let (_, node) = *nodes.get(&obj_id).unwrap();
+            for field_node in node.children_by_field_name("field", &mut self.cursor) {
+                match match extract_field_info(source, &field_node) {
+                    Ok((name, type_name, optional)) => {
+                        match self.space.add_field(obj_id, name, &type_name, optional) {
+                            Err(err) => Some(err),
+                            Ok(_) => None,
+                        }
+                    }
+                    Err(err) => Some(err),
+                } {
+                    Some(mut err) => {
+                        err.attach_location(field_node.range());
+                        self.diagnostics.push(err);
+                    }
+                    None => {}
+                }
+            }
         }
     }
 }
 
-#[inline]
-fn add_base(
-    space: &mut types::Space,
-    obj_id: usize,
-    base: &String,
-    dag: &mut TypeDag,
-) -> Result<(), Diagnostic> {
-    let base = space.get_object_id(base);
-    let info = space.get_object_by_id_mut(&obj_id).unwrap();
-
-    if let Some(base_id) = base {
-        if base_id == obj_id {
-            return Err(Diagnostic::new(DiagnosticKind::CircularBaseGraph, None));
-        }
-
-        match dag.add_edge(
-            daggy::NodeIndex::<usize>::new(obj_id),
-            daggy::NodeIndex::<usize>::new(base_id),
-            (),
-        ) {
-            Ok(_) => {
-                info.add_base(base_id);
-                Ok(())
-            }
-            Err(_) => Err(Diagnostic::new(DiagnosticKind::CircularBaseGraph, None)),
-        }
-    } else {
-        Err(Diagnostic::new(DiagnosticKind::CannotResolveName, None))
-    }
+fn extract_field_info(source: &[u16], node: &Node) -> Result<(String, String, bool), Diagnostic> {
+    let name = node
+        .child_by_field_name("name")
+        .map(|id| String::from_utf16_lossy(id.utf16_text(source)))
+        .ok_or(Diagnostic::new(DiagnosticKind::MissingIdentifier, None))?;
+    let type_name = node
+        .child_by_field_name("field_type")
+        .map(|id| String::from_utf16_lossy(id.utf16_text(source)))
+        .ok_or(Diagnostic::new(DiagnosticKind::MissingFieldType, None))?;
+    let optional = node.child_by_field_name("optional").is_some();
+    Ok((name, type_name, optional))
 }

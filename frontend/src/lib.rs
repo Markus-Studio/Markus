@@ -1,5 +1,4 @@
-#[macro_use]
-extern crate bitflags;
+extern crate bit_set;
 extern crate daggy;
 extern crate petgraph;
 extern crate strum;

@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 common = {path = "../common"}
 tree-sitter = "0.16.1"
-bitflags = "1.2.1"
+bit-set = "0.5.2"
 daggy = "0.7.0"
 petgraph = "0.5.1"
 strum = "0.18.0"

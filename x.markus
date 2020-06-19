@@ -1,9 +1,5 @@
-type A {}
+type A {
+  x?: B
+}
 
 type B: A {}
-
-type C {}
-
-type D: C, F {}
-
-type F {}
