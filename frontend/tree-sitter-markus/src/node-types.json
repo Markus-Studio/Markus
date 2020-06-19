@@ -22,6 +22,44 @@
     ]
   },
   {
+    "type": "_expression",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "call",
+        "named": true
+      },
+      {
+        "type": "false_literal",
+        "named": true
+      },
+      {
+        "type": "numeric_literal",
+        "named": true
+      },
+      {
+        "type": "query",
+        "named": true
+      },
+      {
+        "type": "string_literal",
+        "named": true
+      },
+      {
+        "type": "true_literal",
+        "named": true
+      },
+      {
+        "type": "uri",
+        "named": true
+      },
+      {
+        "type": "variable",
+        "named": true
+      }
+    ]
+  },
+  {
     "type": "_statement",
     "named": true,
     "subtypes": [
@@ -40,63 +78,15 @@
     ]
   },
   {
-    "type": "_value",
-    "named": true,
-    "subtypes": [
-      {
-        "type": "call",
-        "named": true
-      },
-      {
-        "type": "false_literal",
-        "named": true
-      },
-      {
-        "type": "number",
-        "named": true
-      },
-      {
-        "type": "query",
-        "named": true
-      },
-      {
-        "type": "string",
-        "named": true
-      },
-      {
-        "type": "true_literal",
-        "named": true
-      },
-      {
-        "type": "uri",
-        "named": true
-      },
-      {
-        "type": "variable",
-        "named": true
-      }
-    ]
-  },
-  {
     "type": "action_declaration",
     "named": true,
     "fields": {
-      "body": {
-        "multiple": false,
+      "guard": {
+        "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "statements",
-            "named": true
-          }
-        ]
-      },
-      "guards": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "guards_list",
+            "type": "guard",
             "named": true
           }
         ]
@@ -111,12 +101,22 @@
           }
         ]
       },
-      "parameters": {
-        "multiple": false,
-        "required": true,
+      "parameter": {
+        "multiple": true,
+        "required": false,
         "types": [
           {
-            "type": "parameters_list",
+            "type": "parameter",
+            "named": true
+          }
+        ]
+      },
+      "statement": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "_statement",
             "named": true
           }
         ]
@@ -124,30 +124,15 @@
     }
   },
   {
-    "type": "arguments",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "_value",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "binding",
     "named": true,
     "fields": {
-      "body": {
-        "multiple": false,
+      "field": {
+        "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "binding_fields",
+            "type": "binding_field",
             "named": true
           }
         ]
@@ -173,11 +158,7 @@
         "required": true,
         "types": [
           {
-            "type": "_value",
-            "named": true
-          },
-          {
-            "type": "binding",
+            "type": "binding_value",
             "named": true
           }
         ]
@@ -185,15 +166,43 @@
     }
   },
   {
-    "type": "binding_fields",
+    "type": "binding_value",
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": true,
       "types": [
         {
-          "type": "binding_field",
+          "type": "binding",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "false_literal",
+          "named": true
+        },
+        {
+          "type": "numeric_literal",
+          "named": true
+        },
+        {
+          "type": "string_literal",
+          "named": true
+        },
+        {
+          "type": "true_literal",
+          "named": true
+        },
+        {
+          "type": "uri",
+          "named": true
+        },
+        {
+          "type": "variable",
           "named": true
         }
       ]
@@ -203,12 +212,12 @@
     "type": "call",
     "named": true,
     "fields": {
-      "arguments": {
-        "multiple": false,
-        "required": true,
+      "argument": {
+        "multiple": true,
+        "required": false,
         "types": [
           {
-            "type": "arguments",
+            "type": "_expression",
             "named": true
           }
         ]
@@ -260,7 +269,7 @@
         "required": true,
         "types": [
           {
-            "type": "parameter_reference",
+            "type": "parameter_name",
             "named": true
           },
           {
@@ -285,21 +294,6 @@
           }
         ]
       }
-    }
-  },
-  {
-    "type": "guards_list",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "guard",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -339,49 +333,9 @@
     }
   },
   {
-    "type": "parameter_reference",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "parameter_name",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "parameters_list",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "parameter",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "permission_declaration",
     "named": true,
     "fields": {
-      "body": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "query",
-            "named": true
-          }
-        ]
-      },
       "name": {
         "multiple": false,
         "required": true,
@@ -392,12 +346,22 @@
           }
         ]
       },
-      "parameters": {
+      "parameter": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "parameter",
+            "named": true
+          }
+        ]
+      },
+      "query": {
         "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "parameters_list",
+            "type": "query",
             "named": true
           }
         ]
@@ -407,38 +371,29 @@
   {
     "type": "query",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "call",
-          "named": true
-        }
-      ]
+    "fields": {
+      "pipe": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "call",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
     "type": "query_declaration",
     "named": true,
     "fields": {
-      "body": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "query",
-            "named": true
-          }
-        ]
-      },
-      "guards": {
-        "multiple": false,
+      "guard": {
+        "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "guards_list",
+            "type": "guard",
             "named": true
           }
         ]
@@ -453,12 +408,22 @@
           }
         ]
       },
-      "parameters": {
+      "parameter": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "parameter",
+            "named": true
+          }
+        ]
+      },
+      "query": {
         "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "parameters_list",
+            "type": "query",
             "named": true
           }
         ]
@@ -481,22 +446,7 @@
     }
   },
   {
-    "type": "statements",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "_statement",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "string",
+    "type": "string_literal",
     "named": true,
     "fields": {},
     "children": {
@@ -583,44 +533,29 @@
     }
   },
   {
-    "type": "type_reference",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "update_statement",
     "named": true,
     "fields": {
-      "patch": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "binding",
-            "named": true
-          }
-        ]
-      },
       "target": {
         "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "parameter_reference",
+            "type": "parameter_name",
             "named": true
           },
           {
             "type": "query",
+            "named": true
+          }
+        ]
+      },
+      "updates": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "binding",
             "named": true
           }
         ]
@@ -630,16 +565,17 @@
   {
     "type": "uri",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        }
-      ]
+    "fields": {
+      "part": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -651,11 +587,11 @@
         "required": true,
         "types": [
           {
-            "type": "parameter_reference",
+            "type": "identifier",
             "named": true
           },
           {
-            "type": "type_reference",
+            "type": "parameter_name",
             "named": true
           },
           {
@@ -709,6 +645,10 @@
     "named": false
   },
   {
+    "type": "=",
+    "named": false
+  },
+  {
     "type": "action",
     "named": false
   },
@@ -737,7 +677,7 @@
     "named": true
   },
   {
-    "type": "number",
+    "type": "numeric_literal",
     "named": true
   },
   {

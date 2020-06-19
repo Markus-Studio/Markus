@@ -11,14 +11,11 @@ query Items() {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list)
-    body: (query
-      (call
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier))))))))
+        argument: (variable
+          base: (identifier))))))
 
 ==================
 Numbers
@@ -33,16 +30,14 @@ query Items() {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list)
-    body: (query
-      (call
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (number)
-          (number)
-          (number)
-          (number)
-          (number))))))
+        argument: (numeric_literal)
+        argument: (numeric_literal)
+        argument: (numeric_literal)
+        argument: (numeric_literal)
+        argument: (numeric_literal)))))
 
 ==================
 Boolean
@@ -57,13 +52,11 @@ query Items() {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list)
-    body: (query
-      (call
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (true_literal)
-          (false_literal))))))
+        argument: (true_literal)
+        argument: (false_literal)))))
 
 ==================
 Uri
@@ -79,21 +72,17 @@ query Items() {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list)
-    body: (query
-      (call
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier)))))
-      (call
+        argument: (variable
+          base: (identifier)))
+       pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (uri
-            (identifier)
-            (identifier))
-          (number))))))
+        argument: (uri
+          part: (identifier)
+          part: (identifier))
+        argument: (numeric_literal)))))
 
 ==================
 Parameters
@@ -109,24 +98,21 @@ query Items($size: number) {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list
-      (parameter
-        name: (parameter_name)
-        type: (identifier)))
-    body: (query
-      (call
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier)))))
-      (call
+        argument: (variable
+          base: (identifier)))
+       pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (uri
-            (identifier)
-            (identifier))
-          (variable base: (parameter_reference (parameter_name))))))))
+        argument: (uri
+          part: (identifier)
+          part: (identifier))
+        argument: (variable
+          base: (parameter_name))))))
 
 ==================
 Variable field
@@ -142,26 +128,23 @@ query Items($size: Size) {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list
-      (parameter
-        name: (parameter_name)
-        type: (identifier)))
-    body: (query
-      (call
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier)))))
-      (call
+        argument: (variable
+          base: (identifier)))
+       pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (uri
-            (identifier)
-            (identifier))
-          (variable
-            base: (parameter_reference (parameter_name))
-            field: (uri (identifier))))))))
+        argument: (uri
+          part: (identifier)
+          part: (identifier))
+        argument: (variable
+          base: (parameter_name)
+          field: (uri
+            part: (identifier)))))))
 
 ==================
 Variable nested field
@@ -177,26 +160,24 @@ query Items($box: Box) {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list
-      (parameter
-        name: (parameter_name)
-        type: (identifier)))
-    body: (query
-      (call
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier)))))
-      (call
+        argument: (variable
+          base: (identifier)))
+       pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (uri
-            (identifier)
-            (identifier))
-          (variable
-            base: (parameter_reference (parameter_name))
-            field: (uri (identifier) (identifier))))))))
+        argument: (uri
+          part: (identifier)
+          part: (identifier))
+        argument: (variable
+          base: (parameter_name)
+          field: (uri
+            part: (identifier)
+            part: (identifier)))))))
 
 ==================
 Nested query
@@ -213,16 +194,14 @@ query Items() {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list)
-    body: (query
-      (call
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (uri (identifier))
-          (query
-            (call
-              callee: (identifier)
-              arguments: (arguments))))))))
+        argument: (uri
+          part: (identifier))
+        argument: (query
+          pipe: (call
+            callee: (identifier)))))))
 
 ==================
 Optional parameters
@@ -238,25 +217,22 @@ query Items($size?: number) {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list
-      (parameter
-        name: (parameter_name)
-        optional: (optional_flag)
-        type: (identifier)))
-    body: (query
-      (call
+    parameter: (parameter
+      name: (parameter_name)
+      optional: (optional_flag)
+      type: (identifier))
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier)))))
-      (call
+        argument: (variable
+          base: (identifier)))
+       pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (uri
-            (identifier)
-            (identifier))
-          (variable base: (parameter_reference (parameter_name))))))))
+        argument: (uri
+          part: (identifier)
+          part: (identifier))
+        argument: (variable
+          base: (parameter_name))))))
 
 ==================
 Multiple parameters
@@ -272,28 +248,25 @@ query Items($x: string, $size?: number,) {
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list
-      (parameter
-        name: (parameter_name)
-        type: (identifier))
-      (parameter
-        name: (parameter_name)
-        optional: (optional_flag)
-        type: (identifier)))
-    body: (query
-      (call
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    parameter: (parameter
+      name: (parameter_name)
+      optional: (optional_flag)
+      type: (identifier))
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier)))))
-      (call
+        argument: (variable
+          base: (identifier)))
+       pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (uri
-            (identifier)
-            (identifier))
-          (variable base: (parameter_reference (parameter_name))))))))
+        argument: (uri
+          part: (identifier)
+          part: (identifier))
+        argument: (variable
+          base: (parameter_name))))))
 
 ==================
 Single guard
@@ -310,19 +283,14 @@ query Items()
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list)
-    guards: (guards_list
-      (guard
-        selection: (call
-          callee: (identifier)
-          arguments: (arguments))))
-    body: (query
-      (call
+    guard: (guard
+      selection: (call
+        callee: (identifier)))
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier))))))))
+        argument: (variable
+          base: (identifier))))))
 
 ==================
 Guard arguments
@@ -339,22 +307,18 @@ query Items()
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list)
-    guards: (guards_list
-      (guard
-        selection: (call
-          callee: (identifier)
-          arguments: (arguments
-            (variable base: (parameter_reference (parameter_name)))
-            (number)
-            (string)))))
-    body: (query
-      (call
+    guard: (guard
+      selection: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier))))))))
+        argument: (variable
+          base: (parameter_name))
+        argument: (numeric_literal)
+        argument: (string_literal)))
+    query: (query
+      pipe: (call
+        callee: (identifier)
+        argument: (variable
+          base: (identifier))))))
 
 ==================
 Multiple guards
@@ -372,20 +336,14 @@ query Items()
 (source_file
   (query_declaration
     name: (identifier)
-    parameters: (parameters_list)
-    guards: (guards_list
-      (guard
-        selection: (call
-          callee: (identifier)
-          arguments: (arguments)))
-      (guard
-        selection: (call
-          callee: (identifier)
-          arguments: (arguments))))
-    body: (query
-      (call
+    guard: (guard
+      selection: (call
+        callee: (identifier)))
+    guard: (guard
+      selection: (call
+        callee: (identifier)))
+    query: (query
+      pipe: (call
         callee: (identifier)
-        arguments: (arguments
-          (variable
-            base: (type_reference
-              (identifier))))))))
+        argument: (variable
+          base: (identifier))))))
