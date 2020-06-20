@@ -1,0 +1,282 @@
+==================
+Basic usage
+==================
+
+action X() {}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)))
+
+==================
+Parameters
+==================
+
+action X($x: i32) {}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))))
+
+==================
+Multiple parameters
+==================
+
+action X($x: i32, $y?: f32) {}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    parameter: (parameter
+      name: (parameter_name)
+      optional: (optional_flag)
+      type: (identifier))))
+
+==================
+Simple guard
+==================
+
+action X()
+  allow T() {}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    guard: (guard
+      selection: (call
+        callee: (identifier)))))
+
+==================
+Guard arguments
+==================
+
+action X($x: i32, $y: i32)
+  allow T($x, $y) {}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    guard: (guard
+      selection: (call
+        callee: (identifier)
+        argument: (variable
+          base: (parameter_name))
+        argument: (variable
+          base: (parameter_name))))))
+
+==================
+Guard literal arguments
+==================
+
+action X($x: i32, $y: i32)
+  allow T(12, "X") {}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    guard: (guard
+      selection: (call
+        callee: (identifier)
+        argument: (numeric_literal)
+        argument: (string_literal)))))
+
+==================
+Multiline guards
+==================
+
+action X()
+  allow T()
+  allow U() {}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    guard: (guard
+      selection: (call
+        callee: (identifier)))
+    guard: (guard
+      selection: (call
+        callee: (identifier)))))
+
+==================
+Delete statement
+==================
+
+action X($x: T) {
+  delete $x;
+
+  delete {
+    is(T)
+  };
+}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    statement: (delete_statement
+      target: (parameter_name))
+    statement: (delete_statement
+      target: (query
+        pipe: (call
+          callee: (identifier)
+          argument: (variable
+            base: (identifier)))))))
+
+==================
+Create statement
+==================
+
+action X() {
+  create T {
+    name = "X",
+    T = 123,
+  };
+}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    statement: (create_statement
+      name: (identifier)
+      binding: (binding
+        field: (binding_field
+          name: (identifier)
+          value: (string_literal))
+        field: (binding_field
+          name: (identifier)
+          value: (numeric_literal))))))
+
+==================
+Nested binding
+==================
+
+action X() {
+  create T {
+    name = "X",
+    t = {
+      x = 1,
+      y = 2
+    }
+  };
+}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    statement: (create_statement
+      name: (identifier)
+      binding: (binding
+        field: (binding_field
+          name: (identifier)
+          value: (string_literal))
+        field: (binding_field
+          name: (identifier)
+          value: (binding
+            field: (binding_field
+              name: (identifier)
+              value: (numeric_literal))
+            field: (binding_field
+              name: (identifier)
+              value: (numeric_literal))))))))
+
+==================
+Update statement
+==================
+
+action X($x: T) {
+  update $x {
+    x = 12,
+    y = 10
+  };
+}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    statement: (update_statement
+      target: (parameter_name)
+      updates: (binding
+        field: (binding_field
+          name: (identifier)
+          value: (numeric_literal))
+        field: (binding_field
+          name: (identifier)
+          value: (numeric_literal))))))
+
+==================
+Update statement (Query target)
+==================
+
+action X() {
+  update {
+    is(T)
+  } {
+    x = 12,
+    y = 10
+  };
+}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    statement: (update_statement
+      target: (query
+        pipe: (call
+          callee: (identifier)
+          argument: (variable
+            base: (identifier))))
+      updates: (binding
+        field: (binding_field
+          name: (identifier)
+          value: (numeric_literal))
+        field: (binding_field
+          name: (identifier)
+          value: (numeric_literal))))))

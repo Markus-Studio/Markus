@@ -1,0 +1,90 @@
+==================
+Basic usage
+==================
+
+permission OnlyX() {
+  is(X)
+}
+
+---
+
+(source_file
+  (permission_declaration
+    name: (identifier)
+    query: (query
+      pipe: (call
+        callee: (identifier)
+        argument: (variable
+          base: (identifier))))))
+
+==================
+With parameter
+==================
+
+permission OnlyX($x: string) {
+  is(X)
+}
+
+---
+
+(source_file
+  (permission_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    query: (query
+      pipe: (call
+        callee: (identifier)
+        argument: (variable
+          base: (identifier))))))
+
+==================
+Optional parameter
+==================
+
+permission OnlyX($x?: string) {
+  is(X)
+}
+
+---
+
+(source_file
+  (permission_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      optional: (optional_flag)
+      type: (identifier))
+    query: (query
+      pipe: (call
+        callee: (identifier)
+        argument: (variable
+          base: (identifier))))))
+
+
+==================
+Multiple parameters
+==================
+
+permission OnlyX($x?: string, $y: i32, ) {
+  is(X)
+}
+
+---
+
+(source_file
+  (permission_declaration
+    name: (identifier)
+    parameter: (parameter
+      name: (parameter_name)
+      optional: (optional_flag)
+      type: (identifier))
+    parameter: (parameter
+      name: (parameter_name)
+      type: (identifier))
+    query: (query
+      pipe: (call
+        callee: (identifier)
+        argument: (variable
+          base: (identifier))))))

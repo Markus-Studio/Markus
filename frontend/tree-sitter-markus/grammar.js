@@ -100,8 +100,8 @@ const binding = {
   ...expression,
   binding: $ => seq("{", commaSep(field("field", $.binding_field)), "}"),
   binding_field: $ =>
-    seq(field("name", $.identifier), "=", field("value", $.binding_value)),
-  binding_value: $ => choice($._primitive_expression, $.binding)
+    seq(field("name", $.identifier), "=", field("value", $._binding_value)),
+  _binding_value: $ => choice($._primitive_expression, $.binding)
 };
 
 const statement = {

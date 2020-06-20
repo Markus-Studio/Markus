@@ -941,12 +941,12 @@
           "name": "value",
           "content": {
             "type": "SYMBOL",
-            "name": "binding_value"
+            "name": "_binding_value"
           }
         }
       ]
     },
-    "binding_value": {
+    "_binding_value": {
       "type": "CHOICE",
       "members": [
         {
