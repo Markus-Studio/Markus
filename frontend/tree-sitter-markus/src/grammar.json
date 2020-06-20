@@ -264,6 +264,13 @@
         "value": "?"
       }
     },
+    "neg_flag": {
+      "type": "TOKEN",
+      "content": {
+        "type": "STRING",
+        "value": "-"
+      }
+    },
     "_expression": {
       "type": "CHOICE",
       "members": [
@@ -841,6 +848,22 @@
     "guard": {
       "type": "SEQ",
       "members": [
+        {
+          "type": "FIELD",
+          "name": "not",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "neg_flag"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        },
         {
           "type": "STRING",
           "value": "allow"

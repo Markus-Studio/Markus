@@ -1,7 +1,8 @@
 const common = {
   identifier: $ => /[a-zA-Z][a-zA-Z0-9_]*/,
   parameter_name: $ => /\$[a-zA-Z][a-zA-Z0-9_]*/,
-  optional_flag: $ => token("?")
+  optional_flag: $ => token("?"),
+  neg_flag: $ => token("-")
 };
 
 /**
@@ -183,7 +184,7 @@ const query_declaration = {
       repeat(field("guard", $.guard)),
       field("query", $.query)
     ),
-  guard: $ => seq("allow", field("selection", $.call))
+  guard: $ => seq(field("not", optional($.neg_flag)), "allow", field("selection", $.call))
 };
 
 const action_declaration = {

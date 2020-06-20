@@ -269,6 +269,16 @@
     "type": "guard",
     "named": true,
     "fields": {
+      "not": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "neg_flag",
+            "named": true
+          }
+        ]
+      },
       "selection": {
         "multiple": false,
         "required": true,
@@ -659,6 +669,10 @@
   },
   {
     "type": "identifier",
+    "named": true
+  },
+  {
+    "type": "neg_flag",
     "named": true
   },
   {

@@ -131,6 +131,27 @@ action X()
         callee: (identifier)))))
 
 ==================
+Negative guards
+==================
+
+action X()
+  allow T()
+  -allow U() {}
+
+---
+
+(source_file
+  (action_declaration
+    name: (identifier)
+    guard: (guard
+      selection: (call
+        callee: (identifier)))
+    guard: (guard
+      not: (neg_flag)
+      selection: (call
+        callee: (identifier)))))
+
+==================
 Delete statement
 ==================
 
