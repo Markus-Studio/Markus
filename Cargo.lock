@@ -144,6 +144,7 @@ dependencies = [
 name = "ir"
 version = "0.1.0"
 dependencies = [
+ "bit-set 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "common 0.1.0",
 ]
 

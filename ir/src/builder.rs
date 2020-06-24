@@ -1,4 +1,3 @@
-#![allow(unused)]
 //! The builder module provides an API to build valid Markus IRs.
 //!
 //! In order to build a IR-Program one must first create the type space, and to do that they
@@ -11,51 +10,15 @@
 //! [`QueryBuilder`]: struct.QueryBuilder.html
 //! [`ActionBuilder`]: struct.ActionBuilder.html
 
-use crate::ir::*;
-use common::bimap::BiMap;
-use common::matrix::Matrix;
-use std::collections::{HashMap, HashSet};
+use super::program::*;
+use super::sat::*;
+use super::types::*;
+use super::value::*;
 
 /// The builder used to build an IR-Programs.
 pub struct IRBuilder {
     /// The type space used in this program.
     pub typespace: TypeSpace,
-}
-
-/// The builder used to build a TypeSpace.
-///
-/// Every program has one and only one TypeSpace, that contains all of the information
-/// for each user-defined-object-type including the BaseGraph and fields and their types.
-///
-/// This Builder can be used to generate the TypeSpace in a non-recursive manner.
-///
-/// # Example
-/// ```
-/// // type A { x: u32; y?: u32; } type B: A {}
-/// let mut builder = TypeSpaceBuilder::new();
-/// builder.begin("A");
-/// builder.field("x", "u32", false);
-/// builder.field("y", "u32", true);
-/// builder.end();
-/// builder.begin("B");
-/// builder.base("A");
-/// builder.end();
-/// let typespace = builder.build();
-/// ```
-pub struct TypeSpaceBuilder {
-    /// Maps every type name to its id.
-    type_ids: HashMap<String, TypeId>,
-    /// TypeId counter.
-    next_id: TypeId,
-    /// Maps every type name to its fields and bases.
-    /// Field: (FieldName, TypeName, Optional)
-    objects: HashMap<String, (Vec<(String, String, bool)>, Vec<String>)>,
-    /// Name of the current type (last call to begin()).
-    current_type_name: Option<String>,
-    /// Stores bases for the current type.
-    current_bases: Option<Vec<String>>,
-    /// Stores fields for the current type.
-    current_fields: Option<Vec<(String, String, bool)>>,
 }
 
 /// Helper to build IR-Values.
@@ -114,12 +77,12 @@ pub struct ValueBuilder {
 /// builder.build()
 /// ```
 pub struct SelectionBuilder {
-    stack: Vec<FilterVector>,
+    stack: Vec<Disjunction>,
 }
 
 pub struct QueryBuilder<'a> {
     builder: &'a IRBuilder,
-    parameters: Vec<(String, IrType, bool)>,
+    parameters: Vec<(String, TypeRef, bool)>,
     current_selection: SelectionBuilder,
 }
 
@@ -131,185 +94,9 @@ impl IRBuilder {
         IRBuilder { typespace }
     }
 
-    /// Returns the TypeId for the given object type.
-    pub fn resolve_type_id(&self, name: &String) -> TypeId {
-        *self
-            .typespace
-            .type_names
-            .get_by_left(name)
-            .expect("Failed to resolve a type.")
-    }
-
-    /// Returns the IrType for the given name.
-    pub fn get_type(&self, name: &String) -> IrType {
-        match name as &str {
-            "null" => IrType::Null,
-            "i32" => IrType::I32,
-            "i64" => IrType::I64,
-            "u32" => IrType::U32,
-            "u64" => IrType::U64,
-            "f32" => IrType::F32,
-            "f64" => IrType::F64,
-            "time" => IrType::Time,
-            "string" => IrType::Str,
-            "bool" => IrType::Bool,
-            _ => {
-                let id = self.resolve_type_id(name);
-                IrType::Object(id)
-            }
-        }
-    }
-}
-
-impl TypeSpaceBuilder {
-    /// Constructs a new empty TypeSpaceBuilder.
-    pub fn new() -> TypeSpaceBuilder {
-        let mut space = TypeSpaceBuilder {
-            type_ids: HashMap::new(),
-            next_id: 0,
-            objects: HashMap::new(),
-            current_bases: None,
-            current_type_name: None,
-            current_fields: None,
-        };
-        space.reserve(String::from("user"));
-        space
-    }
-
-    /// Reserves a type id for the given name, used to reserve id for internal types such as
-    /// `user`.
-    fn reserve(&mut self, name: String) {
-        let id = self.next_id;
-        self.type_ids.insert(name, id);
-        self.next_id += 1;
-    }
-
-    /// Start building a new type in the current typespace with the given name, one must
-    /// call `end()` at the end of implementation.
-    /// # Panics
-    /// Two consecutive calls to `begin()` without an `end()` call in between causes
-    /// a panic.
-    pub fn begin(&mut self, name: String) {
-        assert!(self.current_type_name.is_none());
-        self.current_type_name = Some(name);
-        self.current_fields = Some(Vec::new());
-        self.current_bases = Some(Vec::new());
-    }
-
-    /// Ends implementation of the current type, must be called at the end of each call
-    /// to `begin()`.
-    /// # Panics
-    /// If there isn't a open implementation (no call to `begin()` before this call.)
-    pub fn end(&mut self) {
-        let type_name = std::mem::replace(&mut self.current_type_name, None).unwrap();
-        let fields = std::mem::replace(&mut self.current_fields, None).unwrap();
-        let bases = std::mem::replace(&mut self.current_bases, None).unwrap();
-        self.objects.insert(type_name, (fields, bases));
-    }
-
-    /// Adds a base with the given name to the current type.
-    /// # Panics
-    /// If there is no open implementation.
-    pub fn base(&mut self, name: String) {
-        self.current_bases.as_mut().unwrap().push(name);
-    }
-
-    /// Adds a field with the given information to this type.
-    /// # Panics
-    /// If there is no open implementation.
-    pub fn field(&mut self, name: String, field_type: String, nullable: bool) {
-        self.current_fields
-            .as_mut()
-            .unwrap()
-            .push((name, field_type, nullable));
-    }
-
-    /// Assigns an ID to all of the types that do not have an ID yet.
-    fn stage(&mut self) {
-        let mut type_names: Vec<&String> = self.objects.keys().collect();
-        type_names.sort_unstable();
-        for type_name in &type_names {
-            let id = self.next_id;
-            self.type_ids.insert((*type_name).clone(), id);
-            self.next_id += 1;
-        }
-    }
-
-    /// Returns an `IrType` for the type with the given name.
-    fn get_type(&self, name: &String) -> IrType {
-        match name as &str {
-            "null" => IrType::Null,
-            "i32" => IrType::I32,
-            "i64" => IrType::I64,
-            "u32" => IrType::U32,
-            "u64" => IrType::U64,
-            "f32" => IrType::F32,
-            "f64" => IrType::F64,
-            "time" => IrType::Time,
-            "string" => IrType::Str,
-            "bool" => IrType::Bool,
-            _ => {
-                let id = *self.type_ids.get(name).unwrap();
-                IrType::Object(id)
-            }
-        }
-    }
-
-    /// Build the final `TypeSpace` and returns it.
-    /// # Panics
-    /// If there is an open implementation (a call to `begin()` without `end()`) or
-    /// when a field type can not be resolved.
-    pub fn build(mut self) -> TypeSpace {
-        assert!(self.current_type_name.is_none());
-        self.stage();
-
-        let size = self.next_id;
-        let mut base_graph = Matrix::<bool, TypeId>::new(size, size, false);
-        let mut type_names = BiMap::new();
-        let mut types = HashMap::new();
-
-        for (name, _) in &self.objects {
-            let type_id = *self.type_ids.get(name).unwrap();
-            let mut object_fields: ObjectTypeData = Vec::new();
-            let mut recursive_bases: Vec<&String> = Vec::new();
-            let mut cursor = 0;
-            let mut seen: HashSet<TypeId> = HashSet::new();
-            recursive_bases.push(&name);
-
-            while cursor < recursive_bases.len() {
-                let current = recursive_bases[cursor];
-                let base_id = *self.type_ids.get(current).unwrap();
-                if seen.insert(base_id) == false {
-                    continue;
-                }
-
-                match self.objects.get(current) {
-                    Some((fields, bases)) => {
-                        for base in bases {
-                            recursive_bases.push(base);
-                        }
-
-                        for (name, type_name, optional) in fields {
-                            let field_type = self.get_type(type_name);
-                            object_fields.push((name.clone(), field_type, *optional))
-                        }
-                    }
-                    _ => {} // An internal type like `user`.
-                }
-
-                base_graph.set(type_id, base_id, true);
-
-                cursor += 1;
-            }
-
-            type_names.insert(name.clone(), type_id);
-        }
-
-        TypeSpace {
-            base_graph,
-            type_names,
-            types,
-        }
+    /// Returns the TypeRef for the given name.
+    pub fn get_type(&self, name: &str) -> TypeRef {
+        self.typespace.resolve(name)
     }
 }
 
@@ -378,7 +165,7 @@ impl ValueBuilder {
     }
 
     /// Pushes the `%current` value to the stack.
-    pub fn push_current(&mut self, current_type: Vec<IrType>) {
+    pub fn push_current(&mut self, current_type: TypeRef) {
         self.stack.push(ValueStackItem::Variable(
             ValueVariableBase::Current,
             current_type,
@@ -387,7 +174,7 @@ impl ValueBuilder {
     }
 
     /// Pushes the `%user` value to the stack.
-    pub fn push_user(&mut self, user_type: Vec<IrType>) {
+    pub fn push_user(&mut self, user_type: TypeRef) {
         self.stack.push(ValueStackItem::Variable(
             ValueVariableBase::User,
             user_type,
@@ -396,7 +183,7 @@ impl ValueBuilder {
     }
 
     /// Pushes the given variable to the stack.
-    pub fn push_variable(&mut self, name: String, variable_type: Vec<IrType>) {
+    pub fn push_variable(&mut self, name: String, variable_type: TypeRef) {
         self.stack.push(ValueStackItem::Variable(
             ValueVariableBase::Named(name),
             variable_type,
@@ -418,7 +205,7 @@ impl ValueBuilder {
     /// builder.add();
     /// builder.build()
     /// ```
-    pub fn get_field(&mut self, name: String, field_type: Vec<IrType>) {
+    pub fn get_field(&mut self, name: String, field_type: TypeRef) {
         let mut item = self.stack.pop().unwrap();
         match item {
             ValueStackItem::Variable(base, base_type, mut fields) => {
@@ -515,51 +302,51 @@ impl SelectionBuilder {
     }
 
     /// Adds the `is` filter.
-    pub fn is(&mut self, type_id: TypeId) {
+    pub fn is(&mut self, type_id: TypeRef) {
         self.stack
-            .push(FilterVector::from_filter(AtomicFilter::Is(type_id), false));
+            .push(Disjunction::from_filter(AtomicFilter::Is(type_id), false));
     }
 
     /// Adds an `eq` filter with the given values.
     pub fn eq(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(AtomicFilter::Eq(lhs, rhs), false));
+            .push(Disjunction::from_filter(AtomicFilter::Eq(lhs, rhs), false));
     }
 
     /// Adds a `not(eq)` filter with the given values.
     pub fn neq(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(AtomicFilter::Eq(lhs, rhs), true));
+            .push(Disjunction::from_filter(AtomicFilter::Eq(lhs, rhs), true));
     }
 
     /// Adds a `gt` filter with the given values.
     pub fn gt(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(AtomicFilter::Gt(lhs, rhs), false));
+            .push(Disjunction::from_filter(AtomicFilter::Gt(lhs, rhs), false));
     }
 
     /// Adds a `not(lt)` filter with the given values.
     pub fn gte(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(AtomicFilter::Lt(lhs, rhs), true));
+            .push(Disjunction::from_filter(AtomicFilter::Lt(lhs, rhs), true));
     }
 
     /// Adds a `lt` filter with the given values.
     pub fn lt(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(AtomicFilter::Lt(lhs, rhs), false));
+            .push(Disjunction::from_filter(AtomicFilter::Lt(lhs, rhs), false));
     }
 
     /// Adds a `not(gt)` filter with the given values.
     pub fn lte(&mut self, lhs: Value, rhs: Value) {
         self.stack
-            .push(FilterVector::from_filter(AtomicFilter::Gt(lhs, rhs), true));
+            .push(Disjunction::from_filter(AtomicFilter::Gt(lhs, rhs), true));
     }
 
     /// The test variable is an Atomic constant filter used for testing
     /// purpose.
     pub fn test_variable(&mut self, id: usize) {
-        self.stack.push(FilterVector::from_filter(
+        self.stack.push(Disjunction::from_filter(
             AtomicFilter::TestVariable(id),
             false,
         ));
@@ -615,9 +402,9 @@ impl<'a> QueryBuilder<'a> {
         self.parameters.push((name, ir_type, nullable));
     }
 
-    /// Add a is pipeline to the query.
-    pub fn is(&mut self, type_name: &String) {
-        let type_id = self.builder.resolve_type_id(type_name);
+    /// Add a `is` pipeline to the query.
+    pub fn is(&mut self, type_name: &str) {
+        let type_id = self.builder.get_type(type_name);
         self.current_selection.is(type_id);
     }
 }

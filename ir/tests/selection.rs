@@ -32,11 +32,11 @@ fn create_truth_table(n: usize) -> Matrix<u8> {
 }
 
 #[cfg(test)]
-fn eval_compound(matrix: &Matrix<u8>, row: usize, filter: &CompoundFilter) -> u8 {
+fn eval_compound(matrix: &Matrix<u8>, row: usize, filter: &Conjunction) -> u8 {
     match filter {
-        CompoundFilter::True => 1,
-        CompoundFilter::False => 0,
-        CompoundFilter::Conjunction(members) => {
+        Conjunction::True => 1,
+        Conjunction::False => 0,
+        Conjunction::Conjunction(members) => {
             let mut result = true;
 
             for (neg, filter) in members {
@@ -59,11 +59,11 @@ fn eval_compound(matrix: &Matrix<u8>, row: usize, filter: &CompoundFilter) -> u8
 }
 
 #[cfg(test)]
-fn eval_filter_vector(matrix: &Matrix<u8>, row: usize, vector: &FilterVector) -> u8 {
+fn eval_filter_vector(matrix: &Matrix<u8>, row: usize, vector: &Disjunction) -> u8 {
     match vector {
-        FilterVector::True => 1,
-        FilterVector::False => 0,
-        FilterVector::Disjunction(filters) => {
+        Disjunction::True => 1,
+        Disjunction::False => 0,
+        Disjunction::Disjunction(filters) => {
             for filter in filters {
                 if eval_compound(matrix, row, filter) == 1 {
                     return 1;
